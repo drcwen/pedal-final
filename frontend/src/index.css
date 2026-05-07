@@ -1,0 +1,95 @@
+@import "tailwindcss";
+
+/* Thin */
+@font-face {
+  font-family: 'AkagiPro';
+  src: url('./assets/fonts/Akagi_Thin.otf') format('opentype');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Extra Light */
+@font-face {
+  font-family: 'AkagiPro';
+  src: url('./assets/fonts/Akagi_Extralight.otf') format('opentype');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Light */
+@font-face {
+  font-family: 'AkagiPro';
+  src: url('./assets/fonts/Akagi_Light.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Book (Regular) */
+@font-face {
+  font-family: 'AkagiPro';
+  src: url('./assets/fonts/Akagi_Book.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Medium */
+@font-face {
+  font-family: 'AkagiPro';
+  src: url('./assets/fonts/Akagi_Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* SemiBold */
+@font-face {
+  font-family: 'AkagiPro';
+  src: url('./assets/fonts/Akagi_Semibold.otf') format('opentype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Bold */
+@font-face {
+  font-family: 'AkagiPro';
+  src: url('./assets/fonts/Akagi_Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Black */
+@font-face {
+  font-family: 'AkagiPro';
+  src: url('./assets/fonts/Akagi_Black.otf') format('opentype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Fat */
+@font-face {
+  font-family: 'AkagiPro';
+  src: url('./assets/fonts/Akagi_Fat.otf') format('opentype');
+  font-weight: 999; /* Custom high value for the heaviest weight */
+  font-style: normal;
+  font-display: swap;
+}
+
+
+
+@theme {
+  --font-akagi: "AkagiPro", sans-serif;
+  --color-blue: #078BF4;
+  --color-darkblue: #2F5B7E;
+  --color-navyblue: #104459;
+  --color-yellow: #E4E017;
+  --color-white: #D9D9D9;
+  --color-gray: #979B9D;
+  --color-lightgray: #bcc2c4;
+}
