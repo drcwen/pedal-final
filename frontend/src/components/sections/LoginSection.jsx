@@ -5,9 +5,9 @@ import { useNavigate } from "react-router-dom";
 import { fadeBack } from "../../animations/fadeBack"
 import TextField from "../../components/ui/TextField"
 import { useState } from "react";
-import axios from "axios";
 import { FaFacebookF } from "react-icons/fa";
 import { FaGoogle } from "react-icons/fa";
+import { supabase } from "../../lib/supabase"
 
 function LoginSection() {
 
@@ -16,23 +16,35 @@ function LoginSection() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
 
+    const SignInWithGoogle = async () => {
+        
+        const {error} = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            option: {
+                redirectTo: 'http://localhost:5173/dashboard'
+            }
+        })
+
+        if(error) {
+            console.log(error.message);
+        }
+    }
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        try {
-            const res = await axios.post('http://localhost:4000/users/login', {
-                username,
-                password
-            });
-            if(res.data.accessToken) {
-                localStorage.setItem("token", res.data.accessToken);
-                navigate("/");
-            }
-        } catch(err) {
-            const message = err.response?.data?.message || err.message;
-            console.log(message);
-            alert(message);
+        const {data, error} = await supabase.auth.signInWithPassword({
+            email: username,
+            password: password,
+        });
+
+        if(error) {
+            console.log(error.message)
+            alert(error.message)
+            return;
         }
+
+        console.log("Logged in", data);
     }
 
   return (
@@ -87,6 +99,7 @@ function LoginSection() {
                                         whileTap={buttonClickBounce.whileTap}
                                         onHoverStart={buttonClickBounce.onHoverStart}
                                         type="submit"
+                                        onClick={SignInWithGoogle}
                                     >
                                         <div className='w-fit px-2 py-2 flex rounded-xl bg-white border border-gray-400 w-60 duration-300 transition-all'>
                                             <FaGoogle className='text-xl text-red-400'/>
@@ -95,7 +108,7 @@ function LoginSection() {
                                     </motion.button>
                                 </div>
 
-                        <form onSubmit={handleSubmit}
+                        <form
                             className='flex flex-col gap-10 items-center'>
                                 
                             <div className='flex flex-col gap-5'>
@@ -115,6 +128,7 @@ function LoginSection() {
 
                             {/*Login Button*/}
                             <motion.button
+                                onSubmit={handleSubmit}
                                 whileHover={buttonClickBounce.whileHover}
                                 whileTap={buttonClickBounce.whileTap}
                                 onHoverStart={buttonClickBounce.onHoverStart}
