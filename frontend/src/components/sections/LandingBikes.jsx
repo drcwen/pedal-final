@@ -12,6 +12,7 @@ import { Navigation } from 'swiper/modules';
 function LandingBikes() {
 
     const [info, setInfo] = useState([]);
+    const [family, setFamily] = useState([]);
 
     const settings = {
         dots: true,
@@ -25,6 +26,7 @@ function LandingBikes() {
     const { data, error } = await supabase
         .from("bike_types")
         .select("*")
+        .eq("type_isSolo", true)
 
         console.log("DATA:", data)
         console.log("ERROR:", error)
@@ -36,6 +38,22 @@ function LandingBikes() {
         fetchBikes()
     }, [])
 
+    const fetchFamily = async () => {
+    const { data, error } = await supabase
+        .from("bike_types")
+        .select("*")
+        .eq("type_isSolo", false)
+
+        console.log("DATA:", data)
+        console.log("ERROR:", error)
+
+        setFamily(data)
+    }
+
+    useEffect(() => {
+        fetchFamily()
+    }, [])
+
     return (
         <>
             <div className='min-h-screen bg-[#F7F7F7] md:py-25 md:px-30 md:flex md:flex-col md:gap-20 justify-center'>
@@ -45,7 +63,7 @@ function LandingBikes() {
                 </h1>
 
                 <div className='w-full'>
-                    <Swiper navigation={true} modules={[Navigation]} className="mySwiper" slidesPerView={3} spaceBetween={20} loop={true}>
+                    <Swiper navigation={true} modules={[Navigation]} className="mySwiper" slidesPerView={3} spaceBetween={50} loop={true}>
 
                         {info.map((bike) => (
                             <SwiperSlide>
@@ -61,17 +79,18 @@ function LandingBikes() {
                     Family Bikes
                 </h1>
 
-                <Swiper navigation={true} modules={[Navigation]} className="mySwiper" slidesPerView={3} spaceBetween={20}>
+                <div className='w-full'>
+                    <Swiper navigation={true} modules={[Navigation]} className="mySwiper" slidesPerView={3} spaceBetween={50} loop={true}>
 
-                    {info.map((bike) => (
-                        <SwiperSlide>
-                            <div key={bike.type_id} className="px-3">
-                                <BikeCard bike={bike} />
-                            </div>
-                        </SwiperSlide>
-                    ))}
-                </Swiper>
-
+                        {family.map((bike) => (
+                            <SwiperSlide>
+                                <div key={bike.type_id} className="px-3">
+                                    <BikeCard bike={bike} />
+                                </div>
+                            </SwiperSlide>
+                        ))}
+                    </Swiper>
+                </div>
             </div>
         </>
     )
