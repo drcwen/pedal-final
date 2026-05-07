@@ -1,55 +1,77 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom"
+import { useEffect, useState } from "react"
+import { supabase } from "./lib/supabase"
+
 import Login from "./pages/Login"
-import {useEffect, useState} from "react"
-import { supabase } from "../src/lib/supabase"
-import Dashboard from './pages/Dashboard'
+import Dashboard from "./pages/Dashboard"
 import CreateAccount from "./pages/CreateAccount"
+import ForgotPassword from "./pages/ForgotPassword"
+import ResetPassword from "./pages/ResetPassword"
+import LandingPage from "./pages/LandingPage"
 
 function App() {
+  const [session, setSession] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [isRecovery, setIsRecovery] = useState(false)
 
-  const [session, setSession] = useState(null);
-  const [loading, setLoading] = useState(true);
-
+  const navigate = useNavigate()
 
   useEffect(() => {
-    
+    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
-      setLoading(false);
+      setLoading(false)
     })
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-      setLoading(false);
-    })
+    // Listen for auth changes
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session)
+        setLoading(false)
 
-    return () => subscription.unsubscribe()
-    }, [])
+        // Detect password recovery flow
+        if (event === "PASSWORD_RECOVERY") {
+          setIsRecovery(true)
+          navigate("/reset-password")
+        }
+      }
+    )
 
-    if (loading) return <h1>Loading...</h1>;
+    return () => listener.subscription.unsubscribe()
+  }, [navigate])
+
+  if (loading) return <h1>Loading...</h1>
 
   return (
-    <>
-      <Routes>
-
-      {!session ? (
+    <Routes>
+      {/* PASSWORD RECOVERY ROUTE */}
+      {isRecovery && (
         <>
-          <Route path="/login" element={<Login />} />
-          <Route path="*" element={<Navigate to="/login" />} />
-          {/*<Route path="/createaccount" element={<Navigate to="/createaccount" />} />*/}
-          <Route path="/createaccount" element={<CreateAccount />} />
-        </>
-      ) : (
-        <>
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="*" element={<Navigate to="/dashboard" />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="*" element={<Navigate to="/reset-password" />} />
         </>
       )}
 
+      {/* AUTH ROUTES (NOT LOGGED IN) */}
+      {!session && !isRecovery && (
+        <>
+          <Route path="/login" element={<Login />} />
+          <Route path="/createaccount" element={<CreateAccount />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="*" element={<Navigate to="/" />} />
+          <Route path="/" element={<LandingPage />} />
+        </>
+      )}
+
+      {/* PROTECTED ROUTES (LOGGED IN) */}
+      {session && !isRecovery && (
+        <>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/" element={<LandingPage />} />
+          <Route path="*" element={<Navigate to="/" />} />
+        </>
+      )}
     </Routes>
-    </>
   )
 }
 

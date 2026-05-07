@@ -5,11 +5,13 @@ import { IoMenu } from "react-icons/io5";
 import NavMobile from './NavMobile'
 import { IoClose } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
-
+import { supabase } from "../../../lib/supabase"
 
 function NavigationPC() {
   const [scrolled, setScrolled] = useState(false);
   const [menu, setMenu] = useState(false);
+
+  const [user, setUser] = useState(null);
 
   const navigate = useNavigate();
 
@@ -28,6 +30,22 @@ function NavigationPC() {
     // Clean up
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  //Supabase
+  useEffect(() => {
+
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user)
+    })
+
+    const {
+      data: { subscription }
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
 
   const navDesign =
     'font-akagi text-lg font-bold text-white text-shadow-lg hover:text-yellow transition-all duration-300 hover:scale-105 cursor-pointer';
@@ -58,15 +76,27 @@ function NavigationPC() {
 
           <ul className='hidden lg:flex flex flex-row gap-15'>
             <li className={navDesign} onClick={() => navigate("/")}>Home</li>
-            <li className={navDesign}>Rents</li>
-            <li className={navDesign}>Reservations</li>
-            <li className={navDesign}>Transactions</li>
+            <li className={navDesign} onClick={() => navigate("/")}>Rents</li>
+            <li className={navDesign} onClick={() => navigate("/")}>Reservations</li>
+            <li className={navDesign} onClick={() => navigate("/")}>Transactions</li>
           </ul>
 
           <div className='flex flex-row gap-8'>
             <IoMdCart className='text-white text-xl text-shadow-lg hover:text-yellow transition-all cursor-pointer duration-300 hover:scale-110' />
-            <FaUserAlt onClick={() => navigate("/login")}
+
+            { user ? (
+              <div onClick={() => navigate("/profile")}
+              className='cursor-pointer'>
+
+                <h1 className='text-white font-akagi font-bold hover:text-yellow transition-all'>
+                  {user.user_metadata.first_name || "Profile"}
+                </h1>
+              </div>
+            ): (
+              <FaUserAlt onClick={() => navigate("/login")}
               className='text-white text-lg text-shadow-lg hover:text-yellow transition-all cursor-pointer duration-300 hover:scale-110'/>
+            )}
+            
           </div>
         </div>
 

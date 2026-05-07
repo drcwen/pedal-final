@@ -59,7 +59,7 @@ function LoginSection() {
 
             {/*3Jremy Title*/}
             <div className='lg:flex lg:h-full lg:items-center lg:justify-center'>
-                <h1 className='lg:text-6xl lg:text-2xl text-3xl font-akagi text-center leading-tight font-black 
+                <h1 className='lg:text-6xl text-3xl font-akagi text-center leading-tight font-black 
                 text-yellow [text-shadow:2px_2px_8px_rgba(0,0,0,0.8)]'>3Jremy's <br/> Rent A Bike!</h1>
             </div>
         </motion.div>
@@ -87,7 +87,7 @@ function LoginSection() {
                                         onHoverStart={buttonClickBounce.onHoverStart}
                                         type="submit"
                                     >
-                                        <div className='w-fit px-2 py-2 flex rounded-xl bg-blue w-60 duration-300 transition-all'>
+                                        <div className='w-fit px-2 py-2 flex rounded-xl bg-blue duration-300 transition-all'>
                                             <FaFacebookF className='text-xl text-white '/>
                                         </div>
                                     </motion.button>
@@ -109,26 +109,26 @@ function LoginSection() {
                                 </div>
 
                         <form
+                            onSubmit={handleSubmit}
                             className='flex flex-col gap-10 items-center'>
                                 
                             <div className='flex flex-col gap-5'>
                                 
                                 {/*Username*/}
-                                <TextField Type="text" 
-                                            Placeholder="Username"
+                                <TextField type="text" 
+                                            placeholder="Username"
                                             value={username}
                                             onChange={(e) => setUsername(e.target.value)}/>
 
                                 {/*Password*/}
-                                <TextField Type="password" 
-                                            Placeholder="Password"
+                                <TextField type="password" 
+                                            placeholder="Password"
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}/>
                             </div>
 
                             {/*Login Button*/}
                             <motion.button
-                                onSubmit={handleSubmit}
                                 whileHover={buttonClickBounce.whileHover}
                                 whileTap={buttonClickBounce.whileTap}
                                 onHoverStart={buttonClickBounce.onHoverStart}
@@ -143,7 +143,7 @@ function LoginSection() {
                     <div className='flex flex-col gap-1'>
 
                         {/*Forgot Password*/}
-                        <h1 onClick={() => navigate("/forgotpassword")}
+                        <h1 onClick={() => navigate("/forgot-password")}
                             className='md:text-lg text-sm font-akagi font-bold text-darkblue hover:text-navyblue hover:scale-101 
                             cursor-pointer duration-300 transition-all underline'>Forgot password?</h1>
                         
