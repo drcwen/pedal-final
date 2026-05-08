@@ -88,6 +88,7 @@ function LandingBikes() {
                                     <BikeCard bike={bike} />
                                 </div>
                             </SwiperSlide>
+                            
                         ))}
                     </Swiper>
                 </div>

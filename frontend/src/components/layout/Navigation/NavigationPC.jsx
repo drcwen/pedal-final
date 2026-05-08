@@ -6,12 +6,15 @@ import NavMobile from './NavMobile'
 import { IoClose } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../../lib/supabase"
+import ProfileClickOptions from "./ProfileClickOptions"
 
 function NavigationPC() {
   const [scrolled, setScrolled] = useState(false);
   const [menu, setMenu] = useState(false);
 
   const [user, setUser] = useState(null);
+
+  const [showProfileOptions, setShowProfileOptions] = useState(false);
 
   const navigate = useNavigate();
 
@@ -85,12 +88,14 @@ function NavigationPC() {
             <IoMdCart className='text-white text-xl text-shadow-lg hover:text-yellow transition-all cursor-pointer duration-300 hover:scale-110' />
 
             { user ? (
-              <div onClick={() => navigate("/profile")}
+              <div onClick={() => setShowProfileOptions(prev => !prev)}
               className='cursor-pointer'>
 
                 <h1 className='text-white font-akagi font-bold hover:text-yellow transition-all'>
                   {user.user_metadata.first_name || "Profile"}
                 </h1>
+
+                
               </div>
             ): (
               <FaUserAlt onClick={() => navigate("/login")}
@@ -98,6 +103,12 @@ function NavigationPC() {
             )}
             
           </div>
+
+          {showProfileOptions  && (
+            <ProfileClickOptions 
+              myUser={user.user_metadata?.first_name || "Profile"} 
+            />
+          )}
         </div>
 
         <div
