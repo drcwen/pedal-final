@@ -8,71 +8,36 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import { Navigation } from 'swiper/modules';
 
+import FamilyBikesCarousel from "../layout/bikes/FamilyBikesCarousel"
+import SoloBikesCarousel from "../layout/bikes/SoloBikesCarousel"
+
+import SoloBikesDisplay from "../layout/bikes/SoloBikesDisplay"
+import FamilyBikesDisplay from "../layout/bikes/FamilyBikesDisplay"
+
 
 function LandingBikes() {
 
-    const [info, setInfo] = useState([]);
-    const [family, setFamily] = useState([]);
-
-    const settings = {
-        dots: true,
-        infinite: true,
-        speed: 500,
-        slidesToShow: 3,
-        slidesToScroll: 3
-    };
-
-    const fetchBikes = async () => {
-    const { data, error } = await supabase
-        .from("bike_types")
-        .select("*")
-        .eq("type_isSolo", true)
-
-        console.log("DATA:", data)
-        console.log("ERROR:", error)
-
-        setInfo(data)
-    }
-
-    useEffect(() => {
-        fetchBikes()
-    }, [])
-
-    const fetchFamily = async () => {
-    const { data, error } = await supabase
-        .from("bike_types")
-        .select("*")
-        .eq("type_isSolo", false)
-
-        console.log("DATA:", data)
-        console.log("ERROR:", error)
-
-        setFamily(data)
-    }
-
-    useEffect(() => {
-        fetchFamily()
-    }, [])
+    
 
     return (
         <>
-            <div className='min-h-screen bg-[#F7F7F7] md:py-25 md:px-30 md:flex md:flex-col md:gap-20 justify-center'>
+            <div className='min-h-screen bg-[#F7F7F7] px-10 py-10 flex flex-col items-center justify-center gap-10 md:items-start md:py-25 md:px-30 md:flex md:flex-col md:gap-20'>
                 
                 <h1 className='font-akagi font-black tracking-wide text-blue text-4xl'>
                     Solo Bikes
                 </h1>
 
                 <div className='w-full'>
-                    <Swiper navigation={true} modules={[Navigation]} className="mySwiper" slidesPerView={3} spaceBetween={50} loop={true}>
+                    {/*PC*/}
+                    <div className='hidden lg:flex'>
+                        <SoloBikesCarousel/>
+                    </div>
 
-                        {info.map((bike) => (
-                            <SwiperSlide>
-                                <div key={bike.type_id} className="px-3">
-                                    <BikeCard bike={bike} />
-                                </div>
-                            </SwiperSlide>
-                        ))}
-                    </Swiper>
+                    {/*Mobile*/}
+                    <div className='flex lg:hidden items-center justify-center'>
+                        <SoloBikesDisplay />
+                    </div>
+                    
                 </div>
 
                 <h1 className='font-akagi font-black tracking-wide text-blue text-4xl'>
@@ -80,17 +45,15 @@ function LandingBikes() {
                 </h1>
 
                 <div className='w-full'>
-                    <Swiper navigation={true} modules={[Navigation]} className="mySwiper" slidesPerView={3} spaceBetween={50} loop={true}>
+                    {/*PC*/}
+                    <div className='hidden lg:flex'>
+                        <FamilyBikesCarousel/>
+                    </div>
 
-                        {family.map((bike) => (
-                            <SwiperSlide>
-                                <div key={bike.type_id} className="px-3">
-                                    <BikeCard bike={bike} />
-                                </div>
-                            </SwiperSlide>
-                            
-                        ))}
-                    </Swiper>
+                    {/*Mobile*/}
+                    <div className='flex lg:hidden items-center justify-center'>
+                        <FamilyBikesDisplay />
+                    </div>
                 </div>
             </div>
         </>

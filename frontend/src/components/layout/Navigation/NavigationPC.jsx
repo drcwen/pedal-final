@@ -87,6 +87,7 @@ function NavigationPC() {
           <div className='flex flex-row gap-8'>
             <IoMdCart className='text-white text-xl text-shadow-lg hover:text-yellow transition-all cursor-pointer duration-300 hover:scale-110' />
 
+            
             { user ? (
               <div onClick={() => setShowProfileOptions(prev => !prev)}
               className='cursor-pointer'>
