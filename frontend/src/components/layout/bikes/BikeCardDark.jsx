@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 
 function BikeCardDark({ bike }) {
 
-  if (!bike) return null; // safety check
+  if (!bike) return null; 
 
   return (
     <div className="md:grid md:grid-cols-2 flex md:gap-5 gap-10 md:items-center flex flex-col items-center cursor-pointer">
