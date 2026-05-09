@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 
-function BikeCard({ bike }) {
+function BikeCardDark({ bike }) {
 
   if (!bike) return null; // safety check
 
@@ -20,9 +20,16 @@ function BikeCard({ bike }) {
             {bike.type_name}
           </h1>
 
-          <h1 className="text-gray font-bold">
-            ₱{bike.type_price}/hr
-          </h1>
+          <div className='flex flex-row gap-3 items-center'>
+            <h1 className="text-gray font-bold">
+              ₱{bike.type_price}/hr
+            </h1>
+
+            <div className='bg-yellow px-2 rounded-md'>
+              <h1 className='text-sm font-bold font-akagi text-navyblue'>10 units</h1>
+            </div>
+          </div>
+
         </div>
 
         <motion.button
@@ -39,4 +46,4 @@ function BikeCard({ bike }) {
   );
 }
 
-export default BikeCard;
+export default BikeCardDark;

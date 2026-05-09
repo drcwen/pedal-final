@@ -8,8 +8,8 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../../../lib/supabase"
 import ProfileClickOptions from "./ProfileClickOptions"
 
-function NavigationPC() {
-  const [scrolled, setScrolled] = useState(false);
+function StaticNavigationPC() {
+
   const [menu, setMenu] = useState(false);
 
   const [user, setUser] = useState(null);
@@ -18,21 +18,6 @@ function NavigationPC() {
 
   const navigate = useNavigate();
 
-  // Scroll listener
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 0) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-
-    // Clean up
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   //Supabase
   useEffect(() => {
@@ -57,9 +42,7 @@ function NavigationPC() {
     <>
 
       <div
-        className={`w-full fixed top-0 left-0 z-50 transition-colors duration-300 ${
-          scrolled ? 'bg-darkblue' : 'bg-transparent'
-        }`}
+        className={`w-full fixed top-0 left-0 z-50 transition-colors duration-300 bg-darkblue`}
       >
         <div className='md:px-30 md:py-7 px-10 py-8 flex justify-between flex-row items-center'>
           <div className='lg:flex hidden'>
@@ -113,8 +96,7 @@ function NavigationPC() {
         </div>
 
         <div
-          className={`w-full h-2 transition-all duration-300 
-            ${scrolled ? 'bg-blue opacity-100' : 'bg-transparent opacity-0'}`}
+          className={`w-full h-2 transition-all duration-300 bg-blue opacity-100`}
         ></div>
 
         
@@ -132,4 +114,4 @@ function NavigationPC() {
   );
 }
 
-export default NavigationPC;
+export default StaticNavigationPC;

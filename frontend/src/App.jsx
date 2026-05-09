@@ -9,6 +9,8 @@ import ForgotPassword from "./pages/ForgotPassword"
 import ResetPassword from "./pages/ResetPassword"
 import LandingPage from "./pages/LandingPage"
 
+import Reserve from "./pages/Reserve"
+
 function App() {
   const [session, setSession] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -69,6 +71,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/" element={<LandingPage />} />
           <Route path="*" element={<Navigate to="/" />} />
+          <Route path="/reserve" element={<Reserve/>} />
         </>
       )}
     </Routes>

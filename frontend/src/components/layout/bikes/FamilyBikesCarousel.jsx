@@ -29,7 +29,7 @@ function FamilyBikesCarousel() {
     }, [])
 
     return (
-        <div className="w-full px-10">
+        <div className="w-full">
 
             <Swiper
                 navigation={true}

@@ -93,3 +93,7 @@
   --color-gray: #979B9D;
   --color-lightgray: #bcc2c4;
 }
+
+body {
+  scroll-snap-type: y mandatory;
+}

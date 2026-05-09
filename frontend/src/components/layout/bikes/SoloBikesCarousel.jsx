@@ -29,7 +29,7 @@ function SoloBikesCarousel() {
     }, [])
 
     return (
-        <div className="w-full px-10">
+        <div className="w-full">
 
             <Swiper
                 navigation={true}
@@ -37,9 +37,10 @@ function SoloBikesCarousel() {
                 slidesPerView={3}
                 spaceBetween={50}
                 loop={true}
+                
             >
                 {info.map((bike) => (
-                    <SwiperSlide key={bike.type_id}>
+                    <SwiperSlide key={bike.type_id} className='flex justify-center items-center'>
                         <BikeCard bike={bike} />
                     </SwiperSlide>
                 ))}
