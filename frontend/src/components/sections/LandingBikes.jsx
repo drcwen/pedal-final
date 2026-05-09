@@ -1,11 +1,6 @@
 
-import FamilyBikesCarousel from "../layout/bikes/FamilyBikesCarousel"
-import SoloBikesCarousel from "../layout/bikes/SoloBikesCarousel"
 import SoloBikesDisplay from "../layout/bikes/SoloBikesDisplay"
 import FamilyBikesDisplay from "../layout/bikes/FamilyBikesDisplay"
-import { motion } from "motion/react"
-import { fadeScale } from "../../animations/fadeScale"
-
 
 function LandingBikes() {
 
@@ -18,36 +13,16 @@ function LandingBikes() {
                 </h1>
 
                 <div className='w-full'>
-                    {/*PC*/}
-                    <motion.div
-                            initial={fadeScale.initial}
-                            animate={fadeScale.animate}
-                            transition={fadeScale.transition}
-                            className='hidden lg:flex'>
-                        <SoloBikesCarousel/>
-                    </motion.div>
-
-                    {/*Mobile*/}
-                    <div className='flex lg:hidden items-center justify-center'>
-                        <SoloBikesDisplay />
-                    </div>
-                    
+                    <SoloBikesDisplay/>
                 </div>
+
 
                 <h1 className='font-akagi font-black tracking-wide text-blue text-4xl'>
                     Family Bikes
                 </h1>
 
                 <div className='w-full'>
-                    {/*PC*/}
-                    <div className='hidden lg:flex'>
-                        <FamilyBikesCarousel/>
-                    </div>
-
-                    {/*Mobile*/}
-                    <div className='flex lg:hidden items-center justify-center'>
-                        <FamilyBikesDisplay />
-                    </div>
+                    <FamilyBikesDisplay />
                 </div>
             </div>
         </>

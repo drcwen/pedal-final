@@ -1,8 +1,10 @@
 import BikeCard from "./BikeCard"
 import { supabase } from "../../../lib/supabase"
 import { useEffect, useState } from "react"
+import { motion } from "motion/react"
+import { fadeScale } from "../../../animations/fadeScale"
 
-function SoloBikesDisplay() {
+function FamilyBikesDisplay() {
 
     const [info, setInfo] = useState([]);
 
@@ -25,15 +27,21 @@ function SoloBikesDisplay() {
 
     return (
         <>
-            <div className='flex flex-col gap-20'>
+            <div className='flex flex-col lg:grid lg:grid-cols-3 lg:gap-15 gap-20'>
+        
                 {info.map((bike) => (
-                    <div key={bike.type_id}>
+                    <motion.div
+                        initial={fadeScale.initial}
+                        animate={fadeScale.animate}
+                        transition={fadeScale.transition} 
+                        key={bike.type_id}
+                    >
                         <BikeCard bike={bike} />
-                    </div>
+                    </motion.div>
                 ))}
-            </div>
+            </div> 
         </>
     )
 }
 
-export default SoloBikesDisplay
+export default FamilyBikesDisplay
