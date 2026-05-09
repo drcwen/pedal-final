@@ -20,7 +20,7 @@ function BikeCardDark({ bike }) {
             {bike.type_name}
           </h1>
 
-          <div className='flex flex-row gap-3 items-center'>
+          <div className='flex flex-row gap-3 items-center justify-center'>
             <h1 className="text-gray font-bold">
               ₱{bike.type_price}/hr
             </h1>

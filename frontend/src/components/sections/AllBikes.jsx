@@ -9,8 +9,6 @@ import Lenis from "lenis";
 function AllBikes() {
 
     const [bikes, setBikes] = useState([]);
-    const [familyBikes, setFamilyBikes] = useState([]);
-    const [soloBikes, setSoloBikes] = useState([]);
 
      useEffect(() => {
         const lenis = new Lenis({
@@ -42,51 +40,23 @@ function AllBikes() {
                 setBikes(data || [])
         }
 
-        const fetchFamilyBikes = async () => {
-            const { data, error } = await supabase
-                .from("bike_types")
-                .select("*")
-                .eq("type_isSolo", false)
-
-                console.log("DATA: ", data)
-                console.log("ERROR: ", error)
-
-                setFamilyBikes(data || [])
-
-        }
-
-        const fetchSoloBikes = async () => {
-            const { data, error } = await supabase
-                .from("bike_types")
-                .select("*")
-                .eq("type_isSolo", true)
-
-                console.log("DATA: ", data)
-                console.log("ERROR: ", error)
-
-                setSoloBikes(data || [])
-
-        }
-
         fetchBikes()
-        fetchFamilyBikes()
-        fetchSoloBikes()
     }, [])
 
   return (
     <>
-            <div className='snap-start h-screen box-model flex flex-col justify-center gap-15'>
+            <div className='box-model flex flex-col justify-center gap-15'>
                 
                 <h1 className='text-4xl font-akagi font-black text-blue'>All Bikes</h1>
 
-                <div className='grid grid-cols-3 gap-20 place-items-center'>
+                <div className='lg:grid lg:grid-cols-3 lg:gap-20 flex flex-col gap-20 place-items-center'>
                     {bikes.map((allBikes) => (
                         <motion.div
                             key={allBikes.type_id}
                             initial={fadeScale.initial}
                             animate={fadeScale.animate}
                             transition={fadeScale.transition}
-                            className='w-80'
+                            className='lg:w-80 w-40'
                         >
                             <BikesCardDark bike={allBikes} />
                         </motion.div>
