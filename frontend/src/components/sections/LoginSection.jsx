@@ -4,7 +4,7 @@ import { motion } from "motion/react"
 import { useNavigate } from "react-router-dom";
 import { fadeBack } from "../../animations/fadeBack"
 import TextField from "../../components/ui/TextField"
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaFacebookF } from "react-icons/fa";
 import { FaGoogle } from "react-icons/fa";
 import { supabase } from "../../lib/supabase"
@@ -15,6 +15,18 @@ function LoginSection() {
 
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+
+    useEffect(() => {
+    console.log("useEffect ran")
+
+    const getToken = async () => {
+        const { data: { session } } = await supabase.auth.getSession()
+
+        console.log("SESSION:", session)
+    }
+
+    getToken()
+    }, [])
 
     const SignInWithGoogle = async () => {
         

@@ -31,7 +31,7 @@ function AllBikes() {
         
         const fetchBikes = async () => {
             const { data, error } = await supabase
-                .from("bike_types")
+                .from("bike_types_mod")
                 .select("*")
 
                 console.log("DATA: ", data)
@@ -49,14 +49,14 @@ function AllBikes() {
                 
                 <h1 className='text-4xl font-akagi font-black text-blue'>All Bikes</h1>
 
-                <div className='lg:grid lg:grid-cols-3 lg:gap-20 flex flex-col gap-20 place-items-center'>
+                <div className='md:grid lg:grid lg:grid-cols-3 md:grid-cols-2 lg:gap-20 flex flex-col md:gap-10 gap-20 place-items-center'>
                     {bikes.map((allBikes) => (
                         <motion.div
-                            key={allBikes.type_id}
+                            key={allBikes.id}
                             initial={fadeScale.initial}
                             animate={fadeScale.animate}
                             transition={fadeScale.transition}
-                            className='lg:w-80 w-40'
+                            className='lg:w-80 w-full'
                         >
                             <BikesCardDark bike={allBikes} />
                         </motion.div>

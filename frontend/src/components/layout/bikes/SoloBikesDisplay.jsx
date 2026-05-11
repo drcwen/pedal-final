@@ -11,9 +11,9 @@ function SoloBikesDisplay() {
     useEffect(() => {
         const fetchBikes = async () => {
             const { data, error } = await supabase
-                .from("bike_types")
+                .from("bike_types_mod")
                 .select("*")
-                .eq("type_isSolo", true)
+                .eq("is_solo", true)
 
             console.log("DATA:", data)
             console.log("ERROR:", error)
@@ -35,7 +35,7 @@ function SoloBikesDisplay() {
                         initial={fadeScale.initial}
                         animate={fadeScale.animate}
                         transition={fadeScale.transition} 
-                        key={bike.type_id}
+                        key={bike.id}
                     >
                         <BikeCard bike={bike} />
                     </motion.div>

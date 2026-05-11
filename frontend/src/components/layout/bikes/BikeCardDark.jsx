@@ -8,8 +8,8 @@ function BikeCardDark({ bike }) {
     <div className="md:grid md:grid-cols-2 flex md:gap-5 gap-10 md:items-center flex flex-col items-center cursor-pointer">
 
       <img
-        src={bike.type_image}
-        alt={bike.type_name}
+        src={bike.image_url}
+        alt={bike.name}
         className="w-50"
       />
 
@@ -17,12 +17,12 @@ function BikeCardDark({ bike }) {
 
         <div className='md:flex md:flex-col md:text-start text-center'>
           <h1 className="text-2xl font-bold text-darkblue hover:underline transition-all duration-300">
-            {bike.type_name}
+            {bike.name}
           </h1>
 
           <div className='flex flex-row gap-3 items-center justify-center'>
             <h1 className="text-gray font-bold">
-              ₱{bike.type_price}/hr
+              ₱{bike.price}/hr
             </h1>
 
             <div className='bg-yellow px-2 rounded-md'>

@@ -5,14 +5,23 @@ import { motion } from "motion/react"
 import { fadeScale } from "../../animations/fadeScale"
 import "../css/boxModel.css"
 
-function SetTimeAndDate() {
+function SetTimeAndDate({ setReservationData }) {
 
     const [selectedDate, setSelectedDate] = useState(null);
 
     const [selectedStart, setSelectedStart] = useState(null);
+    
+    const [hours, setHours] = useState("");
 
     const handleDateChange = (date) => {
         setSelectedDate(date);
+    }
+
+    const handleSubmit = () => {
+        setReservationData({
+            date: selectedDate,
+            startTime: selectedStart
+        })
     }
 
     //Date
@@ -32,7 +41,7 @@ function SetTimeAndDate() {
                     initial={fadeScale.initial}
                     animate={fadeScale.animate}
                     transition={fadeScale.transition} 
-                    className='bg-navyblue rounded-2xl px-10 py-10 flex flex-col gap-10 items-center justify-center'>
+                    className='bg-navyblue rounded-2xl px-10 py-10 flex flex-col gap-10 items-center justify-center text-center'>
                 
                 <h1 className='font-akagi font-black text-yellow text-3xl'>
                     SET RESERVATION
@@ -50,7 +59,7 @@ function SetTimeAndDate() {
                                 onChange={handleDateChange}
                                 dateFormat="MM  /  dd  /  YYYY"
                                 filterDate={(date) => date.getDay() !== 1}
-                                className='w-full py-1 text-xl font-akagi font-bold text-center text-navyblue cursor-pointer'
+                                className='w-full py-1 text-md lg:text-xl font-akagi font-bold text-center text-navyblue cursor-pointer'
                             />
                         </div>
                     </div>
@@ -77,13 +86,37 @@ function SetTimeAndDate() {
                                     createTime(15),
                                     createTime(16)
                                 ]}  
-                                className='w-full py-1 text-xl font-akagi font-bold text-center text-navyblue cursor-pointer'
+                                className='w-full py-1 text-md lg:text-xl font-akagi font-bold text-center text-navyblue cursor-pointer'
                             />
                         </div>
                         
                     </div>
 
+                    <div className='flex flex-row gap-5 items-center justify-center'>
+                        <h1 className='font-akagi font-bold text-white text-xl'>Hour</h1>
+
+                        <div className='bg-[#f7f7f7] px-5 py-2 rounded-xl flex justify-between'>
+                            <input
+                                type="number"
+                                min={1}
+                                max={4}
+                                value={hours}
+                                onChange={(e) => {
+                                    let value = Number(e.target.value);
+
+                                    if (value > 4) value = 4;
+                                    if (value < 1) value = 1;
+
+                                    setHours(value);
+                                }}
+                                className="text-lg font-akagi font-bold text-navyblue px-3 py-1 rounded-lg text-center"
+                                />
+                        </div>
+                    </div>
+
                 </div>
+
+                
 
                 <div className='w-full flex justify-between'>
 
@@ -91,7 +124,10 @@ function SetTimeAndDate() {
                         <h1 className='font-akagi text-sm font-semibold text-navyblue'>Back</h1>
                     </div>
 
-                    <div className='bg-yellow rounded-lg px-5 py-1 cursor-pointer'>
+                    <div 
+                        onClick={handleSubmit}
+                        className='bg-yellow rounded-lg px-5 py-1 cursor-pointer'
+                    >
                         <h1 className='font-akagi text-sm font-semibold text-navyblue'>Submit</h1>
                     </div>
                 </div>

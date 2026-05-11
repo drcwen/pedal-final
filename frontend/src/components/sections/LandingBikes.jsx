@@ -1,6 +1,7 @@
 
 import SoloBikesDisplay from "../layout/bikes/SoloBikesDisplay"
 import FamilyBikesDisplay from "../layout/bikes/FamilyBikesDisplay"
+import Test from "../sections/Test"
 
 function LandingBikes() {
 
@@ -24,6 +25,8 @@ function LandingBikes() {
                 <div className='w-full'>
                     <FamilyBikesDisplay />
                 </div>
+
+                <Test/>
             </div>
         </>
     )

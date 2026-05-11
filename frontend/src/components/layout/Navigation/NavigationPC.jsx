@@ -16,6 +16,8 @@ function NavigationPC() {
 
   const [showProfileOptions, setShowProfileOptions] = useState(false);
 
+  const [firstName, setFirstName] = useState("");
+
   const navigate = useNavigate();
 
   // Scroll listener
@@ -39,6 +41,9 @@ function NavigationPC() {
 
     supabase.auth.getUser().then(({ data }) => {
       setUser(data.user)
+
+      const firstName = data.user.user_metadata.name.split(" ")[0];
+      setFirstName(firstName)
     })
 
     const {
@@ -93,7 +98,7 @@ function NavigationPC() {
               className='cursor-pointer'>
 
                 <h1 className='text-white font-akagi font-bold hover:text-yellow transition-all'>
-                  {user.user_metadata.first_name || "Profile"}
+                  {firstName || user.user_metadata.first_name}
                 </h1>
 
                 
@@ -107,7 +112,7 @@ function NavigationPC() {
 
           {showProfileOptions  && (
             <ProfileClickOptions 
-              myUser={user.user_metadata?.first_name || "Profile"} 
+              myUser={firstName || user.user_metadata.first_name} 
             />
           )}
         </div>
