@@ -37,11 +37,17 @@ function BikeCardDark({ bike }) {
         </div>
 
         <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="bg-blue px-4 py-2 rounded-lg text-[#f7f7f7] font-bold"
+          whileHover={bike.available_count > 0 ? { scale: 1.05 } : {}}
+          whileTap={bike.available_count > 0 ? { scale: 0.95 } : {}}
+          disabled={bike.available_count === 0}
+          className={`px-4 py-2 rounded-lg font-bold transition-all
+            ${
+              bike.available_count === 0
+                ? "bg-gray-400 text-gray-200 cursor-not-allowed"
+                : "bg-blue text-[#f7f7f7]"
+            }`}
         >
-          Rent Now
+          {bike.available_count === 0 ? "Not Available" : "Rent Now"}
         </motion.button>
 
       </div>

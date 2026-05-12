@@ -52,7 +52,6 @@ function AllBikes({ reservationData }) {
     fetchBikes();
   }, []);
 
-  // Lenis smooth scroll
   useEffect(() => {
     const lenis = new Lenis({
       duration: 0.8,
@@ -69,7 +68,6 @@ function AllBikes({ reservationData }) {
     return () => lenis.destroy();
   }, []);
 
-  // Merge availability into bikes
   const bikesWithAvailability = bikes.map((bike) => {
     const match = availability.find((a) => a.type_id === bike.id);
 
