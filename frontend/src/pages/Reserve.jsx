@@ -1,26 +1,29 @@
-
-import AllBikes from "../components/sections/AllBikes"
-import StaticNavigation from "../components/layout/Navigation/StaticNavigationPC"
-import SetTimeAndDate from "../components/layout/SetTimeAndDate"
+import { useState } from "react";
+import AllBikes from "../components/sections/AllBikes";
+import StaticNavigation from "../components/layout/Navigation/StaticNavigationPC";
+import SetTimeAndDate from "../components/layout/SetTimeAndDate";
 
 function Reserve() {
 
+  const [reservationData, setReservationData] = useState(null);
+  const [open, setOpen] = useState(true);
 
   return (
-    <>
+    <div className="w-full bg-[#f7f7f7]">
 
-        <div className='w-full bg-[#f7f7f7]'>
-            <StaticNavigation/>
-            
-            <AllBikes/> 
+      <StaticNavigation />
 
-            <SetTimeAndDate/>
+      <AllBikes reservationData={reservationData}/>
 
-        </div>
-        
+      {open && (
+        <SetTimeAndDate
+          setReservationData={setReservationData}
+          onClose={() => setOpen(false)}
+        />
+      )}
 
-    </>
-  )
+    </div>
+  );
 }
 
-export default Reserve
+export default Reserve;

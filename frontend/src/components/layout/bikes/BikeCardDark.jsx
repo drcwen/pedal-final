@@ -1,6 +1,10 @@
 import { motion } from "framer-motion";
+import { useEffect } from "react"
+import { supabase } from "../../../lib/supabase"
 
 function BikeCardDark({ bike }) {
+
+  
 
   if (!bike) return null; 
 
@@ -26,7 +30,7 @@ function BikeCardDark({ bike }) {
             </h1>
 
             <div className='bg-yellow px-2 rounded-md'>
-              <h1 className='text-sm font-bold font-akagi text-navyblue'>10 units</h1>
+              <h1 className='text-sm font-bold font-akagi text-navyblue'>{bike.available_count} units</h1>
             </div>
           </div>
 

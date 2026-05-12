@@ -5,23 +5,57 @@ import { motion } from "motion/react"
 import { fadeScale } from "../../animations/fadeScale"
 import "../css/boxModel.css"
 
-function SetTimeAndDate({ setReservationData }) {
+function SetTimeAndDate({ setReservationData, onClose }) {
 
     const [selectedDate, setSelectedDate] = useState(null);
 
     const [selectedStart, setSelectedStart] = useState(null);
     
-    const [hours, setHours] = useState("");
+    const [selectedHours, setSelectedHours] = useState("");
+
+    const formatDate = (date) => {
+        if (!date) return null;
+
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+
+        return `${year}-${month}-${day}`;
+    };
+
+    const formatTime = (date) => {
+        if (!date) return null;
+
+        const hours = String(date.getHours()).padStart(2, "0");
+        const minutes = String(date.getMinutes()).padStart(2, "0");
+        const seconds = "00";
+
+        return `${hours}:${minutes}:${seconds}`;
+    };
 
     const handleDateChange = (date) => {
         setSelectedDate(date);
     }
 
     const handleSubmit = () => {
+
+        if (!setReservationData) {
+            console.error("setReservationData is missing");
+            return;
+        }
+
         setReservationData({
-            date: selectedDate,
-            startTime: selectedStart
-        })
+            date: formatDate(selectedDate),
+            startTime: formatTime(selectedStart),
+            hours: selectedHours
+        });
+
+        console.log("yehay");
+
+        if (onClose) {
+        onClose(); 
+    }
+
     }
 
     //Date
@@ -31,7 +65,7 @@ function SetTimeAndDate({ setReservationData }) {
         return date;
     };
 
-    console.log(selectedDate)
+    console.log(formatDate(selectedDate), formatTime(selectedStart), selectedHours);
 
   return (
     <>
@@ -100,14 +134,14 @@ function SetTimeAndDate({ setReservationData }) {
                                 type="number"
                                 min={1}
                                 max={4}
-                                value={hours}
+                                value={selectedHours}
                                 onChange={(e) => {
                                     let value = Number(e.target.value);
 
                                     if (value > 4) value = 4;
                                     if (value < 1) value = 1;
 
-                                    setHours(value);
+                                    setSelectedHours(value);
                                 }}
                                 className="text-lg font-akagi font-bold text-navyblue px-3 py-1 rounded-lg text-center"
                                 />
