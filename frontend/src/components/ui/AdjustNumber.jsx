@@ -1,7 +1,7 @@
 import { FiMinus } from "react-icons/fi";
 import { FiPlus } from "react-icons/fi";
 
-function AdjustNumber({ value, setValue, color }) {
+function AdjustNumber({ value, setValue }) {
 
     const addValue = () => {
         setValue((prev) => prev + 1);
@@ -14,17 +14,17 @@ function AdjustNumber({ value, setValue, color }) {
     };
 
     return(
-        <div className={`grid grid-cols-3 rounded-lg border-2 border-${color}`}>
+        <div className={`grid grid-cols-3 rounded-lg border-2 border-[#979B9D]`}>
 
             <div
                 className='flex items-center justify-center px-2 cursor-pointer'
                 onClick={subtractValue}
             >
-                <FiMinus className={`text-${color}`}/>
+                <FiMinus className={`text-[#979B9D]`}/>
             </div>
 
-            <div className={`bg-${color} flex justify-center items-center`}>
-                <h1 className='text-lg text-white font-akagi font-semibold'>
+            <div className={`bg-[#979B9D] flex justify-center items-center lg:py-1`}>
+                <h1 className='text-lg text-[#ffffff] font-akagi font-semibold'>
                     {value}
                 </h1>
             </div>
@@ -33,7 +33,7 @@ function AdjustNumber({ value, setValue, color }) {
                 className='flex items-center justify-center cursor-pointer'
                 onClick={addValue}
             >
-                <FiPlus className={`text-${color}`}/>
+                <FiPlus className={`text-[#979B9D]`}/>
             </div>
 
         </div>
