@@ -8,6 +8,7 @@ import CreateAccount from "./pages/CreateAccount"
 import ForgotPassword from "./pages/ForgotPassword"
 import ResetPassword from "./pages/ResetPassword"
 import LandingPage from "./pages/LandingPage"
+import BikeExpand from "./components/layout/bikes/BikeExpand"
 
 import Reserve from "./pages/Reserve"
 
@@ -72,6 +73,7 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="*" element={<Navigate to="/" />} />
           <Route path="/reserve" element={<Reserve/>} />
+          <Route path="/rent" element={<BikeExpand />} />
         </>
       )}
     </Routes>

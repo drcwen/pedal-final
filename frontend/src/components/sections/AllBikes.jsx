@@ -92,7 +92,7 @@ function AllBikes({ reservationData }) {
             transition={fadeScale.transition}
             className="lg:w-80 w-full"
           >
-            <BikesCardDark bike={allBikes} />
+            <BikesCardDark bike={allBikes} reservationData={reservationData} />
           </motion.div>
         ))}
       </div>

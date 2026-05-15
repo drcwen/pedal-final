@@ -1,10 +1,11 @@
 import { motion } from "framer-motion";
 import { useEffect } from "react"
 import { supabase } from "../../../lib/supabase"
+import { useNavigate } from "react-router-dom"
 
-function BikeCardDark({ bike }) {
+function BikeCardDark({ bike, reservationData }) {
 
-  
+  const navigate = useNavigate();
 
   if (!bike) return null; 
 
@@ -39,6 +40,7 @@ function BikeCardDark({ bike }) {
         <motion.button
           whileHover={bike.available_count > 0 ? { scale: 1.05 } : {}}
           whileTap={bike.available_count > 0 ? { scale: 0.95 } : {}}
+          onClick={() => navigate("/rent", {state: { bike, reservationData }})}
           disabled={bike.available_count === 0}
           className={`px-4 py-2 rounded-lg font-bold transition-all
             ${
