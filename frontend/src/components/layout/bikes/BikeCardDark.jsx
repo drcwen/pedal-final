@@ -41,15 +41,15 @@ function BikeCardDark({ bike, reservationData }) {
           whileHover={bike.available_count > 0 ? { scale: 1.05 } : {}}
           whileTap={bike.available_count > 0 ? { scale: 0.95 } : {}}
           onClick={() => navigate("/rent", {state: { bike, reservationData }})}
-          disabled={bike.available_count === 0}
-          className={`px-4 py-2 rounded-lg font-bold transition-all
+          disabled={bike.available_bikes === 0}
+          className={`px-4 py-2 rounded-lg font-bold transition-all cursor-pointer
             ${
-              bike.available_count === 0
+              bike.available_bikes === 0
                 ? "bg-gray-400 text-gray-200 cursor-not-allowed"
                 : "bg-blue text-[#f7f7f7]"
             }`}
         >
-          {bike.available_count === 0 ? "Not Available" : "Rent Now"}
+          {bike.available_bikes === 0 ? "Not Available" : "Rent Now"}
         </motion.button>
 
       </div>

@@ -39,7 +39,7 @@ function BikeExpand() {
                                 
                                 {/*Bikes Available*/}
                                 <div className='bg-yellow rounded-lg w-fit px-3 py-1'>
-                                    <h1 className='text-md font-bold font-akagi text-navyblue'>{bike.available_count} units available</h1>
+                                    <h1 className='text-md font-bold font-akagi text-navyblue'>{bike.available_bikes} units available</h1>
                                 </div>
                             </div>
 
