@@ -25,13 +25,13 @@ function BikeCardDark({ bike, reservationData }) {
             {bike.name}
           </h1>
 
-          <div className='flex flex-row gap-3 items-center justify-center'>
+          <div className='flex flex-row gap-3 items-center justify-center lg:justify-start'>
             <h1 className="text-gray font-bold">
               ₱{bike.price}/hr
             </h1>
 
             <div className='bg-yellow px-2 rounded-md'>
-              <h1 className='text-sm font-bold font-akagi text-navyblue'>{bike.available_count} units</h1>
+              <h1 className='text-sm font-bold font-akagi text-navyblue'>{bike.available_bikes} units</h1>
             </div>
           </div>
 

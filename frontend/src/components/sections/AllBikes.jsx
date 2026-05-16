@@ -9,7 +9,7 @@ function AllBikes({ reservationData }) {
   const [bikes, setBikes] = useState([]);
   const [availability, setAvailability] = useState([]);
 
-  // Fetch availability
+   // Fetch availability
   useEffect(() => {
     const fetchAvailableBikes = async () => {
       if (
@@ -73,7 +73,7 @@ function AllBikes({ reservationData }) {
 
     return {
       ...bike,
-      available_count: match?.available_count ?? 0,
+      available_bikes: match?.available_bikes ?? 0,
     };
   });
 

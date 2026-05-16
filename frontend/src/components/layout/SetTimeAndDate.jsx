@@ -67,6 +67,7 @@ function SetTimeAndDate({ setReservationData, onClose }) {
 
     console.log(formatDate(selectedDate), formatTime(selectedStart), selectedHours);
 
+    console.log("No format", selectedDate, selectedStart, selectedHours)
   return (
     <>
         <div className="box-model fixed inset-0 bg-black/60 flex items-center justify-center">

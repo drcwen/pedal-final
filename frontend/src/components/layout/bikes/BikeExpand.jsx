@@ -4,7 +4,6 @@ import { supabase } from "../../../lib/supabase"
 import { useLocation } from "react-router-dom";
 import Navigation from "../Navigation/StaticNavigationPC"
 import AdjustNumber from "../../ui/AdjustNumber"
-import { IoMdArrowRoundBack } from "react-icons/io";
 import { IoMdCart } from "react-icons/io";
 import { fadeScale } from "../../../animations/fadeScale"
 
@@ -15,53 +14,6 @@ function BikeExpand() {
     const reservationData = location.state?.reservationData;
 
     const [quantity, setQuantity] = useState(1);
-
-    console.log(reservationData.hours);
-
-    const handleSubmit = async () => {
-  try {
-    // 1. Get user
-    const { data: userData, error: userError } = await supabase.auth.getUser();
-
-    if (userError || !userData?.user) {
-      console.error("No user found");
-      return;
-    }
-
-    const user = userData.user;
-    
-    const start = new Date(`${reservationData.date}T${reservationData.startTime}`);
-    const end = new Date(start);
-    end.setHours(end.getHours() + Number(reservationData.hours));
-
-    const reservation_range = `[${start.toISOString()},${end.toISOString()})`;
-
-    const { data, error } = await supabase
-      .from("orders_mod")
-      .insert([
-        {
-          user_id: user.id,
-          bike_id: bike.id,
-          reservation_date: reservationData.date,
-          start_time: reservationData.startTime,
-          duration_hours: reservationData.hours,
-          reservation_range: reservation_range,
-          status: "reserved",
-        },
-      ])
-      .select();
-
-      if (error) {
-      console.error("Insert error:", error);
-      return;
-    }
-
-    console.log("Inserted successfully:", data);
-
-    } catch(err){
-        console.error("No", err);
-    };
-};
 
     return (
         <>
@@ -139,7 +91,6 @@ function BikeExpand() {
                                     whileHover={{ scale: 1.1 }}
                                     whileTap={{ scale: 0.95 }}
                                     onHoverStart={() => console.log('hover started!')}
-                                    onClick={handleSubmit}
                                 >
                                     <IoMdCart className='text-xl text-[#FFFFFF]'/>
                                     <h1 className="text-lg font-bold font-akagi text-[#FFFFFF]">Add to Rent</h1>
