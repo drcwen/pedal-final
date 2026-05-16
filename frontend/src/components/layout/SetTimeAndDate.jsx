@@ -37,6 +37,20 @@ function SetTimeAndDate({ setReservationData, onClose }) {
         setSelectedDate(date);
     }
 
+    const getPHNow = () => {
+        const now = new Date();
+
+        // convert to PH time (UTC+8)
+        const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+        return new Date(utc + 8 * 60 * 60000);
+    };
+
+    const phNow = getPHNow();
+
+    const minDate = new Date(phNow);
+    minDate.setDate(minDate.getDate() + 1);
+    minDate.setHours(0, 0, 0, 0);
+
     const handleSubmit = () => {
 
         if (!setReservationData) {
@@ -93,6 +107,7 @@ function SetTimeAndDate({ setReservationData, onClose }) {
                                 selected={selectedDate}
                                 onChange={handleDateChange}
                                 dateFormat="MM  /  dd  /  YYYY"
+                                minDate={minDate}
                                 filterDate={(date) => date.getDay() !== 1}
                                 className='w-full py-1 text-md lg:text-xl font-akagi font-bold text-center text-navyblue cursor-pointer'
                             />
