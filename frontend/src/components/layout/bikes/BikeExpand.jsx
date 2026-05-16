@@ -15,6 +15,56 @@ function BikeExpand() {
 
     const [quantity, setQuantity] = useState(1);
 
+    const handleSubmit = async () => {
+
+        try{
+        const { data: userData, error: userError } = await supabase.auth.getUser();
+
+        if(userError || !userData?.user) {
+            console.error("No user found");
+            return
+        }
+
+        const user = userData.user;
+
+        const start = new Date(
+            `${reservationData.date}T${reservationData.startTime}`
+        );
+
+        const end = new Date(start);
+        end.setHours(end.getHours() + Number(reservationData.hours));
+
+        const reservation_range = `[${start.toISOString()},${end.toISOString()})`;
+
+        // 3. Insert order
+        const { data, error } = await supabase
+        .from("orders_mod")
+        .insert([
+            {
+            user_id: user.id,
+            bike_id: null, // assigned later by cashier
+            bike_type_id: bike.id,
+            reservation_date: reservationData.date,
+            start_time: reservationData.startTime,
+            duration_hours: reservationData.hours,
+            status: "reserved",
+            transaction_id: null,
+            reservation_range,
+            },
+        ])
+        .select();
+
+        if (error) {
+        console.error("Insert error:", error);
+        return;
+        }
+
+        console.log("Order created:", data);
+    } catch (err) {
+        console.error("Unexpected error:", err);
+    }
+    }
+
     return (
         <>
             <Navigation />
@@ -91,6 +141,7 @@ function BikeExpand() {
                                     whileHover={{ scale: 1.1 }}
                                     whileTap={{ scale: 0.95 }}
                                     onHoverStart={() => console.log('hover started!')}
+                                    onClick={handleSubmit}
                                 >
                                     <IoMdCart className='text-xl text-[#FFFFFF]'/>
                                     <h1 className="text-lg font-bold font-akagi text-[#FFFFFF]">Add to Rent</h1>
