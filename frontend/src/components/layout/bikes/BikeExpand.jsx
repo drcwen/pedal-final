@@ -6,12 +6,15 @@ import Navigation from "../Navigation/StaticNavigationPC"
 import AdjustNumber from "../../ui/AdjustNumber"
 import { IoMdCart } from "react-icons/io";
 import { fadeScale } from "../../../animations/fadeScale"
+import AddedToCart from "../../ui/AddedToCart"
 
 function BikeExpand() {
 
     const location = useLocation();
     const bike = location.state?.bike;
     const reservationData = location.state?.reservationData;
+
+    const [open, setOpen] = useState(false);
 
     const [quantity, setQuantity] = useState(1);
 
@@ -36,13 +39,12 @@ function BikeExpand() {
 
         const reservation_range = `[${start.toISOString()},${end.toISOString()})`;
 
-        // 3. Insert order
         const { data, error } = await supabase
         .from("orders_mod")
         .insert([
             {
             user_id: user.id,
-            bike_id: null, // assigned later by cashier
+            bike_id: null,
             bike_type_id: bike.id,
             reservation_date: reservationData.date,
             start_time: reservationData.startTime,
@@ -55,11 +57,13 @@ function BikeExpand() {
         .select();
 
         if (error) {
-        console.error("Insert error:", error);
-        return;
+            console.error("Insert error:", error);
+            return;
         }
 
         console.log("Order created:", data);
+        setOpen(true);
+   
     } catch (err) {
         console.error("Unexpected error:", err);
     }
@@ -68,6 +72,8 @@ function BikeExpand() {
     return (
         <>
             <Navigation />
+
+            {open && <AddedToCart/>}
 
             {/*Back Button*/}
 

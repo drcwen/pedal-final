@@ -97,7 +97,7 @@ function SetTimeAndDate({ setReservationData, onClose }) {
                 </h1>
 
                 <div
-                    className='flex flex-col gap-5 items-center justify-center'
+                    className='w-full flex flex-col gap-5 items-center justify-center'
                 >
                     <div className='flex flex-row gap-5 items-center justify-center'>
                         <h1 className='font-akagi font-bold text-white text-xl'>Date</h1>
