@@ -123,6 +123,7 @@ function SetTimeAndDate({ setReservationData, onClose }) {
                                 showTimeSelectOnly
                                 timeIntervals={60}
                                 dateFormat="h:mm aa"
+                                
                                 includeTimes={[
                                     createTime(8),
                                     createTime(9),
@@ -133,7 +134,7 @@ function SetTimeAndDate({ setReservationData, onClose }) {
                                     createTime(14),
                                     createTime(15),
                                     createTime(16)
-                                ]}  
+                                ]} 
                                 className='w-full py-1 text-md lg:text-xl font-akagi font-bold text-center text-navyblue cursor-pointer'
                             />
                         </div>

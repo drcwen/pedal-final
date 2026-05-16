@@ -16,16 +16,16 @@ function AdjustHours({ value, setValue, min = 1, max = 4 }) {
     };
 
     return(
-        <div className='grid grid-cols-3 rounded-lg border-2 border-white overflow-hidden'>
+        <div className='grid grid-cols-3 rounded-lg border-2 border-[#FFFFFF] overflow-hidden'>
 
             <div
                 className='flex items-center justify-center px-3 cursor-pointer'
                 onClick={subtractValue}
             >
-                <FiMinus className='text-white'/>
+                <FiMinus className='text-[#FFFFFF]'/>
             </div>
 
-            <div className='bg-white flex justify-center items-center px-4 py-2'>
+            <div className='bg-[#FFFFFF] flex justify-center items-center px-4 py-2'>
                 <h1 className='text-lg text-darkblue font-akagi font-semibold'>
                     {value}
                 </h1>
@@ -35,7 +35,7 @@ function AdjustHours({ value, setValue, min = 1, max = 4 }) {
                 className='flex items-center justify-center px-3 cursor-pointer'
                 onClick={addValue}
             >
-                <FiPlus className='text-white'/>
+                <FiPlus className='text-[#FFFFFF]'/>
             </div>
 
         </div>
