@@ -4,6 +4,7 @@ import { useState } from "react"
 import { motion } from "motion/react"
 import { fadeScale } from "../../animations/fadeScale"
 import "../css/boxModel.css"
+import AdjustHours from "../ui/AdjustHours"
 
 function SetTimeAndDate({ setReservationData, onClose }) {
 
@@ -11,7 +12,7 @@ function SetTimeAndDate({ setReservationData, onClose }) {
 
     const [selectedStart, setSelectedStart] = useState(null);
     
-    const [selectedHours, setSelectedHours] = useState("");
+    const [selectedHours, setSelectedHours] = useState(1);
 
     const formatDate = (date) => {
         if (!date) return null;
@@ -97,9 +98,8 @@ function SetTimeAndDate({ setReservationData, onClose }) {
                 </h1>
 
                 <div
-                    className='w-full flex flex-col gap-5 items-center justify-center'
+                    className='w-full grid grid-cols-[60px_1fr] flex flex-col gap-5 items-center justify-center'
                 >
-                    <div className='flex flex-row gap-5 items-center justify-center'>
                         <h1 className='font-akagi font-bold text-white text-xl'>Date</h1>
 
                         <div className='bg-[#f7f7f7] px-5 py-2 rounded-xl flex justify-between'>
@@ -112,9 +112,7 @@ function SetTimeAndDate({ setReservationData, onClose }) {
                                 className='w-full py-1 text-md lg:text-xl font-akagi font-bold text-center text-navyblue cursor-pointer'
                             />
                         </div>
-                    </div>
 
-                    <div className='flex flex-row gap-5 items-center justify-center'>
                         <h1 className='font-akagi font-bold text-white text-xl'>Start</h1>
 
                         <div className='bg-[#f7f7f7] px-5 py-2 rounded-xl flex justify-between'>
@@ -140,29 +138,16 @@ function SetTimeAndDate({ setReservationData, onClose }) {
                             />
                         </div>
                         
-                    </div>
 
-                    <div className='flex flex-row gap-5 items-center justify-center'>
                         <h1 className='font-akagi font-bold text-white text-xl'>Hour</h1>
 
-                        <div className='bg-[#f7f7f7] px-5 py-2 rounded-xl flex justify-between'>
-                            <input
-                                type="number"
+                            <AdjustHours
+                                value={selectedHours}
+                                setValue={setSelectedHours}
                                 min={1}
                                 max={4}
-                                value={selectedHours}
-                                onChange={(e) => {
-                                    let value = Number(e.target.value);
+                            />
 
-                                    if (value > 4) value = 4;
-                                    if (value < 1) value = 1;
-
-                                    setSelectedHours(value);
-                                }}
-                                className="text-lg font-akagi font-bold text-navyblue px-3 py-1 rounded-lg text-center"
-                                />
-                        </div>
-                    </div>
 
                 </div>
 
