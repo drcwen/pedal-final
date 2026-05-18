@@ -11,7 +11,7 @@ function CartRentRow({name, hour, reservationdate, starttime, checked, onCheck, 
                 transition={fade.transition}
                 className='flex flex-col gap-5'>
 
-                <div className='flex lg:flex-row items-center lg:justify-between '>
+                <div className='flex lg:flex-row items-center lg:justify-between gap-5 '>
                     
                     <div className=''>
                         <input type='checkbox' className='lg:w-5 lg:h-5 accent-blue-500'
@@ -20,13 +20,13 @@ function CartRentRow({name, hour, reservationdate, starttime, checked, onCheck, 
                     </div>
 
                     {/*Image and Details*/}
-                    <div className='flex flex-row gap-5'>
-                        <div className='bg-yellow rounded-lg'>
-                            <img src='https://res.cloudinary.com/dp3vkgxtb/image/upload/v1775882068/bmx__ydrvxq.png' className='px-2 py-2 w-20 rounded-lg'></img>
+                    <div className='flex flex-row gap-5 md:items-center'>
+                        <div className='rounded-lg flex items-center'>
+                            <img src='https://res.cloudinary.com/dp3vkgxtb/image/upload/v1775882068/bmx__ydrvxq.png' className='px-2 py-2 lg:w-20 w-20 rounded-lg'></img>
                         </div>
 
                         <div className='flex flex-col'>
-                            <h1 className='font-akagi text-md font-semibold text-[#6D7172]'>{name}</h1>
+                            <h1 className='font-akagi text-lg font-bold text-blue'>{name}</h1>
 
                             {/*Details for PC*/}
                             <div className='lg:flex lg:flex-row hidden gap-2'>
@@ -35,24 +35,25 @@ function CartRentRow({name, hour, reservationdate, starttime, checked, onCheck, 
                             </div>
 
                             {/*Details for mobile*/}
-                            <div className='w-full md:hidden grid grid-cols-2'>
+                            <div className='w-full lg:hidden flex md:flex-row flex-col gap-1'>
                                 <div className='flex flex-row gap-2'>
-                                    <h1>Hours</h1>
-                                    <div className='rounded-lg border-2 '>
-                                        <h1>   2    </h1>
-                                    </div>
+                                    <h1 className='text-[#6D7172] font-akagi font-semibold'>Hours:</h1>
+                                        <h1 className='px-3 text-[#6D7172] font-akagi font-semibold'>{hour}</h1>
                                 </div>
 
-                                <div>
-                                    <h1>Hello</h1>
+                                <div className='flex flex-row'>
+                                    <h1 className='text-[#6D7172] font-akagi font-semibold'>Quantity:</h1>
+                                        <h1 className='px-3 text-[#6D7172] font-akagi font-semibold'>2</h1>
                                 </div>
 
-                                <div>
-                                    <h1>Hello</h1>
+                                <div className='flex flex-row gap-2'>
+                                    <h1 className='text-[#6D7172] font-akagi font-semibold'>Date:</h1>
+                                        <h1 className='px-3 text-[#6D7172] font-akagi font-semibold'>{reservationdate}</h1>
                                 </div>
 
-                                <div>
-                                    <h1>Hello</h1>
+                                <div className='flex flex-row gap-2'>
+                                    <h1 className='text-[#6D7172] font-akagi font-semibold'>Time:</h1>
+                                        <h1 className='px-3 text-[#6D7172] font-akagi font-semibold'>{starttime}</h1>
                                 </div>
                             </div>
                             <h1 className='lg:flex hidden font-akagi text-md font-semibold text-[#6D7172]'>1</h1>
@@ -94,7 +95,10 @@ function CartRentRow({name, hour, reservationdate, starttime, checked, onCheck, 
                     <div className='flex items-center justify-center'>
                         <h1 className='lg:flex hidden text-3xl font-akagi font-bold text-[#6D7172]'>P{price}</h1>
                     </div>
+
+                    
                 </div>
+                <div className='h-0.5 bg-black/5'></div>
             </motion.div>
 
   );

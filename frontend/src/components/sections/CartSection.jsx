@@ -3,6 +3,8 @@ import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { fade } from "../../animations/fade"
 import { motion } from "framer-motion";
+import { MdDelete } from "react-icons/md";
+import { BsCheckAll } from "react-icons/bs";
 
 function CartSection() {
 
@@ -100,16 +102,23 @@ function CartSection() {
   return (
     <div className='box-model flex flex-col gap-5 flex flex-col justify-center'>
 
-        <div className='w-full flex flex-col gap-10'>
+        <div className='w-full flex flex-col gap-10 pt-10'>
             <h1 className="text-4xl font-akagi font-black text-blue">
                 Cart
             </h1>
+
+            <div className='w-full flex justify-end gap-3'>
+                    <MdDelete className='text-2xl text-red-600'/>
+
+                    <BsCheckAll className='text-2xl text-blue'/>
+                
+            </div>
 
             <motion.div
                 initial={fade.initial}
                 animate={fade.animate}
                 transition={fade.transition}
-                className='h-70 overflow-y-auto flex flex-col gap-7 lg:px-10 px-2'>
+                className='lg:h-70 h-80 overflow-y-auto flex flex-col gap-7 lg:px-10 px-2'>
                 
                 {orders.map((order) => {
                     return (
@@ -134,9 +143,13 @@ function CartSection() {
 
             <div className='h-1 bg-black/20 rounded-lg'></div>
 
-            <div className='flex flex-row justify-between px-20'>
+            <div className='flex flex-row justify-between lg:px-20 px-5'>
                 <h1 className='text-2xl font-akagi font-bold text-[#6D7172]'>Total</h1>
                 <h1 className='text-2xl font-akagi font-bold text-[#6D7172]'>P{total}</h1>
+            </div>
+
+            <div className='w-full bg-blue rounded-lg py-1 flex items-center justify-center'>
+                <h1 className='text-[#ffffff] font-akagi font-bold'>Checkout</h1>
             </div>
         </div>
         
