@@ -1,8 +1,11 @@
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 function BikeCard({ bike }) {
 
-  if (!bike) return null; // safety check
+  if (!bike) return null;
+
+  const navigate = useNavigate();
 
   return (
     <div className="md:grid md:grid-cols-2 flex md:gap-5 gap-10 md:items-center flex flex-col items-center cursor-pointer">
@@ -28,7 +31,8 @@ function BikeCard({ bike }) {
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="bg-blue px-4 py-2 rounded-lg text-[#f7f7f7] font-bold"
+          className="cursor-pointer bg-blue px-4 py-2 rounded-lg text-[#f7f7f7] font-bold"
+          onClick={() => navigate("/reserve")}
         >
           Rent Now
         </motion.button>

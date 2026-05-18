@@ -2,7 +2,7 @@ import { supabase } from "../../lib/supabase";
 import BikesCardDark from "../../components/layout/bikes/BikeCardDark";
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
-import { fadeScale } from "../../animations/fadeScale";
+import { fade } from "../../animations/fade";
 import Lenis from "lenis";
 
 function AllBikes({ reservationData }) {
@@ -87,9 +87,9 @@ function AllBikes({ reservationData }) {
         {bikesWithAvailability.map((allBikes) => (
           <motion.div
             key={allBikes.id}
-            initial={fadeScale.initial}
-            animate={fadeScale.animate}
-            transition={fadeScale.transition}
+            initial={fade.initial}
+            animate={fade.animate}
+            transition={fade.transition}
             className="lg:w-80 w-full"
           >
             <BikesCardDark bike={allBikes} reservationData={reservationData} />

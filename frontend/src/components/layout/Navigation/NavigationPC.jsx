@@ -90,7 +90,10 @@ function NavigationPC() {
           </ul>
 
           <div className='flex flex-row gap-8'>
-            <IoMdCart className='text-white text-xl text-shadow-lg hover:text-yellow transition-all cursor-pointer duration-300 hover:scale-110' />
+            <IoMdCart 
+              className='text-white text-xl text-shadow-lg hover:text-yellow transition-all cursor-pointer duration-300 hover:scale-110' 
+              onClick={() => navigate("/cart")}
+              />
 
             
             { user ? (

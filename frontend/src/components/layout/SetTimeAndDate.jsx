@@ -5,6 +5,7 @@ import { motion } from "motion/react"
 import { fadeScale } from "../../animations/fadeScale"
 import "../css/boxModel.css"
 import AdjustHours from "../ui/AdjustHours"
+import { useNavigate } from "react-router-dom";
 
 function SetTimeAndDate({ setReservationData, onClose }) {
 
@@ -13,6 +14,8 @@ function SetTimeAndDate({ setReservationData, onClose }) {
     const [selectedStart, setSelectedStart] = useState(null);
     
     const [selectedHours, setSelectedHours] = useState(1);
+
+    const navigate = useNavigate();
 
     const formatDate = (date) => {
         if (!date) return null;
@@ -156,7 +159,9 @@ function SetTimeAndDate({ setReservationData, onClose }) {
 
                 <div className='w-full flex justify-between'>
 
-                    <div className='bg-lightgray rounded-lg px-5 py-1 cursor-pointer'>
+                    <div className='bg-lightgray rounded-lg px-5 py-1 cursor-pointer'
+                        onClick={() => navigate("/")}
+                        >
                         <h1 className='font-akagi text-sm font-semibold text-navyblue'>Back</h1>
                     </div>
 
