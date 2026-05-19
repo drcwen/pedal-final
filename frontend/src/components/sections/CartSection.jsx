@@ -22,6 +22,7 @@ function CartSection() {
             };
 
             sendCheckedToBackend(updated);
+            console.log("Here", updated);
 
             return updated;
         });
@@ -32,6 +33,40 @@ function CartSection() {
             .filter((id) => checkedObj[id])
             .map(Number);
 
+    async function handleDeleteSelected() {
+
+        const selectedIds = Object.keys(checkedItems)
+            .filter((id) => checkedItems[id])
+            .map((id) => Number(id));
+
+        if (selectedIds.length === 0) {
+            console.log("No items selected");
+            return;
+        }
+
+        const { error } = await supabase
+            .from("orders_mod")
+            .delete()
+            .in("id", selectedIds);
+
+        if (error) {
+            console.log(error);
+            return;
+        }
+
+        setOrders((prev) =>
+            prev.filter((order) => !selectedIds.includes(order.id))
+        );
+
+        // Clear checked items
+        setCheckedItems({});
+
+        // Reset total
+        setTotal(0);
+
+        console.log("Deleted:", selectedIds);
+    }
+    
     async function sendCheckedToBackend(updatedChecked) {
 
         const selectedIds = Object.keys(updatedChecked)
@@ -86,7 +121,8 @@ function CartSection() {
                 total_amount
                 )
             `)
-            .eq("user_id", user.id);
+            .eq("user_id", user.id)
+            .is("transaction_id", null);
 
             if (error) {
             console.log(error);
@@ -108,9 +144,10 @@ function CartSection() {
             </h1>
 
             <div className='w-full flex justify-end gap-3'>
-                    <MdDelete className='text-2xl text-red-600'/>
+                    <MdDelete className='text-2xl text-red-600 cursor-pointer'
+                        onClick={handleDeleteSelected}/>
 
-                    <BsCheckAll className='text-2xl text-blue'/>
+                    <BsCheckAll className='text-2xl text-blue cursor-pointer'/>
                 
             </div>
 
