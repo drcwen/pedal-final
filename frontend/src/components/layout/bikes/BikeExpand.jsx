@@ -5,7 +5,7 @@ import { useLocation } from "react-router-dom";
 import Navigation from "../Navigation/StaticNavigationPC"
 import AdjustNumber from "../../ui/AdjustNumber"
 import { IoMdCart } from "react-icons/io";
-import { fadeScale } from "../../../animations/fadeScale"
+import { fade } from "../../../animations/fade"
 import AddedToCart from "../../ui/AddedToCart"
 
 function BikeExpand() {
@@ -81,9 +81,9 @@ function BikeExpand() {
 
                     {/*Grid*/}
                     <motion.div className='lg:grid lg:grid-cols-2 lg:gap-30 gap-10 flex flex-col items-center'
-                        initial={fadeScale.initial}
-                        animate={fadeScale.animate}
-                        transition={fadeScale.transition} >
+                        initial={fade.initial}
+                        animate={fade.animate}
+                        transition={fade.transition} >
                         <div className=''>
                             <img src={bike.image_url} className='lg:w-80 w-60'/>
                         </div>

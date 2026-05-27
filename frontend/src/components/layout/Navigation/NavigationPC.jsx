@@ -101,7 +101,7 @@ function NavigationPC() {
               className='cursor-pointer'>
 
                 <h1 className='text-white font-akagi font-bold hover:text-yellow transition-all'>
-                  {firstName || user.user_metadata.first_name}
+                  {user.user_metadata.first_name || "Profile"}
                 </h1>
 
                 
@@ -115,7 +115,7 @@ function NavigationPC() {
 
           {showProfileOptions  && (
             <ProfileClickOptions 
-              myUser={firstName || user.user_metadata.first_name} 
+              myUser={user.user_metadata.first_name || "Profile"}
             />
           )}
         </div>

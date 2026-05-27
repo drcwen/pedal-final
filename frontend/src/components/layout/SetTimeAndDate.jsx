@@ -2,7 +2,7 @@ import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
 import { useState } from "react"
 import { motion } from "motion/react"
-import { fadeScale } from "../../animations/fadeScale"
+import { fade } from "../../animations/fade"
 import "../css/boxModel.css"
 import AdjustHours from "../ui/AdjustHours"
 import { useNavigate } from "react-router-dom";
@@ -91,9 +91,9 @@ function SetTimeAndDate({ setReservationData, onClose }) {
         <div className="box-model fixed inset-0 bg-black/60 flex items-center justify-center">
     
             <motion.div
-                    initial={fadeScale.initial}
-                    animate={fadeScale.animate}
-                    transition={fadeScale.transition} 
+                    initial={fade.initial}
+                    animate={fade.animate}
+                    transition={fade.transition} 
                     className='bg-navyblue rounded-2xl px-10 py-10 flex flex-col gap-10 items-center justify-center text-center'>
                 
                 <h1 className='font-akagi font-black text-yellow text-3xl'>

@@ -10,8 +10,9 @@ import ResetPassword from "./pages/ResetPassword"
 import LandingPage from "./pages/LandingPage"
 import BikeExpand from "./components/layout/bikes/BikeExpand"
 import Cart from "./pages/Cart"
-
+import Practice from "./components/practice"
 import Reserve from "./pages/Reserve"
+import Checkout from "./pages/Checkout"
 
 function App() {
   const [session, setSession] = useState(null)
@@ -48,6 +49,8 @@ function App() {
 
   return (
     <Routes>
+
+      <Route path="/prac" element={<Practice/>}/>
       {/* PASSWORD RECOVERY ROUTE */}
       {isRecovery && (
         <>
@@ -64,6 +67,7 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="*" element={<Navigate to="/" />} />
           <Route path="/" element={<LandingPage />} />
+          
         </>
       )}
 
@@ -76,6 +80,7 @@ function App() {
           <Route path="/reserve" element={<Reserve/>} />
           <Route path="/rent" element={<BikeExpand />} />
           <Route path="/cart" element={<Cart />} />
+          <Route path="/checkout" element={<Checkout />} />
         </>
       )}
     </Routes>
