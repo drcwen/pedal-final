@@ -1,7 +1,7 @@
 import { fade } from "../../../animations/fade"
 import { motion } from "framer-motion";
 
-function CartRentRow({name, hour, reservationdate, starttime, checked, onCheck, price }) {
+function CartRentRow({image, name, hour, reservationdate, starttime, checked, onCheck, price }) {
 
   return (
 
@@ -20,9 +20,9 @@ function CartRentRow({name, hour, reservationdate, starttime, checked, onCheck, 
                     </div>
 
                     {/*Image and Details*/}
-                    <div className='flex flex-row gap-5 md:items-center'>
+                    <div className='lg:grid lg:grid-cols-2 flex flex-row justify-items-center gap-5 md:items-center'>
                         <div className='rounded-lg flex items-center'>
-                            <img src='https://res.cloudinary.com/dp3vkgxtb/image/upload/v1775882068/bmx__ydrvxq.png' className='px-2 py-2 lg:w-20 w-20 rounded-lg'></img>
+                            <img src={image} className='px-2 py-2 lg:w-20 w-20 rounded-lg'></img>
                         </div>
 
                         <div className='flex flex-col'>
@@ -93,7 +93,7 @@ function CartRentRow({name, hour, reservationdate, starttime, checked, onCheck, 
                     </div>
 
                     <div className='flex items-center justify-center'>
-                        <h1 className='lg:flex hidden text-3xl font-akagi font-bold text-[#6D7172]'>P{price}</h1>
+                        <h1 className='lg:flex hidden text-3xl font-akagi font-bold text-[#6D7172]'>P{price * hour}</h1>
                     </div>
 
                     

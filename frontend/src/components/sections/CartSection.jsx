@@ -5,14 +5,35 @@ import { fade } from "../../animations/fade"
 import { motion } from "framer-motion";
 import { MdDelete } from "react-icons/md";
 import { BsCheckAll } from "react-icons/bs";
+import { useNavigate } from "react-router-dom";
 
 function CartSection() {
 
     const [orders, setOrders] = useState([]);
 
+    const navigate = useNavigate();
+
     const [checkedItems, setCheckedItems] = useState({});
 
     const [total, setTotal] = useState(0);
+
+    function handleCheckout() {
+        const selectedOrders = orders.filter(
+            (order) => checkedItems[order.id]
+        );
+
+        if(selectedOrders.length === 0 ) {
+            console.log("No items selected.");
+            return;
+        }
+
+        navigate("/checkout", {
+            state: {
+                orders: selectedOrders,
+                total
+            }
+        })
+    }
 
     function handleCheckbox(id) {
         setCheckedItems((prev) => {
@@ -22,8 +43,6 @@ function CartSection() {
             };
 
             sendCheckedToBackend(updated);
-            console.log("Here", updated);
-
             return updated;
         });
     }
@@ -40,7 +59,6 @@ function CartSection() {
             .map((id) => Number(id));
 
         if (selectedIds.length === 0) {
-            console.log("No items selected");
             return;
         }
 
@@ -64,7 +82,6 @@ function CartSection() {
         // Reset total
         setTotal(0);
 
-        console.log("Deleted:", selectedIds);
     }
     
     async function sendCheckedToBackend(updatedChecked) {
@@ -93,8 +110,6 @@ function CartSection() {
 
     useEffect(() => {
     
-        console.log("Checked items:", checkedItems);
-
         async function fetchOrders() {
 
             const { data: { user } } = await supabase.auth.getUser();
@@ -111,6 +126,7 @@ function CartSection() {
                 status,
 
                 bike_types_mod (
+                image_url,
                 id,
                 name,
                 price
@@ -161,6 +177,7 @@ function CartSection() {
                     return (
                         <CartRentRow
                             key={order.id}
+                            image={order.bike_types_mod.image_url}
                             name={order.bike_types_mod.name}
                             hour={order.duration_hours}
                             reservationdate={order.reservation_date}
@@ -185,7 +202,10 @@ function CartSection() {
                 <h1 className='text-2xl font-akagi font-bold text-[#6D7172]'>P{total}</h1>
             </div>
 
-            <div className='w-full bg-blue rounded-lg py-1 flex items-center justify-center'>
+            <div 
+                onClick={total !== 0 ? handleCheckout : undefined}
+                className={`w-full rounded-lg py-2 flex items-center justify-center ${total === 0 ? "bg-gray-400 cursor-not-allowed" : "bg-blue cursor-pointer"}`}
+            >
                 <h1 className='text-[#ffffff] font-akagi font-bold'>Checkout</h1>
             </div>
         </div>
