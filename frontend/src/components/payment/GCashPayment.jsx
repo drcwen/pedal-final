@@ -1,5 +1,5 @@
 
-function GCashPayment({payment}) {
+function GCashPayment({payment, onClose}) {
 
    
   return (
@@ -13,7 +13,7 @@ function GCashPayment({payment}) {
                     Pay with GCash
                 </h1>
 
-                <div className='flex flex-row gap-4 items-center'>
+                <div className='hidden flex flex-row gap-4 items-center'>
                     <div className='w-8 h-8 rounded-full bg-blue flex items-center justify-center'>
                         <h1 className='text-md font-akagi text-white'>1</h1>
                     </div>
@@ -30,14 +30,11 @@ function GCashPayment({payment}) {
                         Scan the QR below using your GCash app
                     </h1>
 
-                    <h1 className='font-akagi font-bold text-black/30 text-md'>
-                        Open GCash and Scan {">"} Pay
-                    </h1>
                 </div>
 
                 <div className='flex flex-col gap-5 items-center justify-center'>
-                    <img url="https://res.cloudinary.com/dp3vkgxtb/image/upload/v1779959914/Black_White_Square_Interior_Designer_Logo_scjfum.png"
-                        className='w-20 h-20'/>
+                    <img src='https://res.cloudinary.com/dp3vkgxtb/image/upload/v1779959866/qrcode_envfyr.png'
+                        className='w-20 h-20'></img>
 
                     <div className='flex flex-col gap-1'>
                         <h1 className='font-akagi font-bold text-[#505050] text-md'>
@@ -54,14 +51,16 @@ function GCashPayment({payment}) {
                             or
                         </h1>
 
-                        <div className='flex flex-row justify-between'>
-                            <div className='px-5 py-2 rounded-full bg-blue'>
+                        <div className='flex flex-col gap-4'>
+                            <div className='px-5 py-2 rounded-full bg-blue cursor-pointer '>
                                 <h1 className='font-akagi font-bold text-white text-md'>
                                     Go to GCash
                                 </h1>
                             </div>
 
-                            <h1 className='text-sm font-akagi text-black/30'>Cancel</h1>
+                            <h1 
+                                onClick={onClose}
+                                className='text-sm font-akagi text-black/30 hover:underline duration-300 cursor-pointer transition-all'>Cancel</h1>
                         </div>
                     </div>
 

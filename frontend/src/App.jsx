@@ -13,6 +13,7 @@ import Cart from "./pages/Cart"
 import Practice from "./components/practice"
 import Reserve from "./pages/Reserve"
 import Checkout from "./pages/Checkout"
+import EBankPayment from "./components/payment/EBankPayment"
 
 function App() {
   const [session, setSession] = useState(null)
@@ -81,6 +82,7 @@ function App() {
           <Route path="/rent" element={<BikeExpand />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
+          <Route path="/ebank" element={<EBankPayment />} />
         </>
       )}
     </Routes>

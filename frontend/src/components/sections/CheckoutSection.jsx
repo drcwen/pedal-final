@@ -1,6 +1,6 @@
 import { IoMdArrowDropdown } from "react-icons/io";
 import CheckoutRentRow from "../layout/checkout/CheckoutRentRow";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
 import { useEffect, useState } from "react";
 import GCashPayment from "../payment/GCashPayment"
@@ -17,9 +17,11 @@ function CartSection() {
 
     const [paymentMethod, setPaymentMethod] = useState("GCash");
 
-    const [GCashPopUp, setGCashPopUp] = useState(false);
+    const [eBank, setEBank] = useState(false);
 
     const [showPopup, setShowPopup] = useState(false);
+
+    const navigate = useNavigate();
 
     useEffect(() => {
         async function fetchCheckoutTotal() {
@@ -50,6 +52,11 @@ function CartSection() {
     function handleCheckout() {
         if (paymentMethod === "GCash") {
             setShowPopup(true);
+            return;
+        }
+
+        if (paymentMethod === "E-Bank") {
+            navigate("/ebank");
             return;
         }
     }
@@ -193,7 +200,7 @@ function CartSection() {
                 </div>
 
                 { showPopup && (
-                    <GCashPayment payment={checkoutTotal}/>
+                    <GCashPayment payment={checkoutTotal} onClose={() => setShowPopup(false)}/>
                 )}
 
                 
