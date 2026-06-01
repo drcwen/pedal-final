@@ -17,8 +17,6 @@ function CartSection() {
 
     const [paymentMethod, setPaymentMethod] = useState("GCash");
 
-    const [eBank, setEBank] = useState(false);
-
     const [showPopup, setShowPopup] = useState(false);
 
     const navigate = useNavigate();
@@ -56,7 +54,12 @@ function CartSection() {
         }
 
         if (paymentMethod === "E-Bank") {
-            navigate("/ebank");
+            navigate("/ebank", {
+                state: {
+                    checkoutTotal,
+                    orders
+                }
+            });
             return;
         }
     }
