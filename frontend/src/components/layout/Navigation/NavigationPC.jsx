@@ -85,7 +85,7 @@ function NavigationPC() {
           <ul className='hidden lg:flex flex flex-row gap-15'>
             <li className={navDesign} onClick={() => navigate("/")}>Home</li>
             <li className={navDesign} onClick={() => navigate("/reserve")}>Reserve</li>
-            <li className={navDesign} onClick={() => navigate("/")}>Transactions</li>
+            <li className={navDesign} onClick={() => navigate("/transactions")}>Transactions</li>
             <li className={navDesign} onClick={() => navigate("/")}>Reviews</li>
           </ul>
 
