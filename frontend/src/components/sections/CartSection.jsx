@@ -152,9 +152,9 @@ function CartSection() {
   }, []);
 
   return (
-    <div className='box-model flex flex-col gap-5 flex flex-col justify-center'>
+    <div className='box-model flex flex-col gap-5 flex flex-col'>
 
-        <div className='w-full flex flex-col gap-10 pt-10'>
+        <div className='w-full flex flex-col gap-10'>
             <h1 className="text-4xl font-akagi font-black text-blue">
                 Cart
             </h1>
