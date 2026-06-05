@@ -1,16 +1,28 @@
 
 import Navigation from "../layout/Navigation/StaticNavigationPC"
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabase"
 
 function EBankPayment() {
 
     const location = useLocation();
 
+    const navigate = useNavigate();
+
     const { checkoutTotal, orders } = location.state || {};  
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        const cardNumber = document
+        .getElementById("card-number")
+        .value
+        .replace(/\D/g, "");
+
+        if (cardNumber.length !== 16) {
+            alert("Please enter a complete 16-digit card number.");
+            return;
+        }
     
         try {
             const { data: userData, error: userError } = await supabase.auth.getUser();
@@ -35,7 +47,7 @@ function EBankPayment() {
             .select();
 
             if (error) {
-                console.error("Insert error:", error);
+                alert.error("Insert error:", error);
                 return;
             }
 
@@ -55,8 +67,12 @@ function EBankPayment() {
             .in("id", orderIds);
 
             if (updateError) {
-            console.error(updateError);
+            alert.error(updateError);
             }
+
+            alert("Payment success!");
+            navigate("/");
+
         } catch(err) {
             console.error("Unexpected error:", err);
         }
@@ -96,9 +112,11 @@ function EBankPayment() {
                                 <input
                                     type="text"
                                     required
+                                    id="card-number"
                                     className="w-full font-akagi font-md font-bold text-[#6D7172]"
                                     placeholder="•••• •••• ••••"
                                     maxLength={19}
+                                    minLength={19}
                                     onChange={(e) => {
                                         let value = e.target.value.replace(/\D/g, ""); // remove non-numbers
                                         value = value.replace(/(.{4})/g, "$1-").trim();

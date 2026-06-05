@@ -1,11 +1,71 @@
 
 import TransactionCurrentRow from "../transactions/TransactionsCurrentRow"
-import { IoMdArrowDropdown } from "react-icons/io";
 import { useEffect, useState } from "react"
+import { supabase } from "../../lib/supabase"
+import { fade } from "../../animations/fade"
+import { motion } from "framer-motion";
 
 function TransactionsSection() {
 
-    const [onClick, setOnClick] = useState(false);
+    const [transactions, setTransactions] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    const formatPHDateTime = (timestamp) => {
+        const date = new Date(timestamp);
+
+        const datePart = date.toLocaleDateString("en-PH", {
+            timeZone: "Asia/Manila",
+            year: "numeric",
+            month: "long",
+            day: "2-digit",
+        });
+
+        const timePart = date.toLocaleTimeString("en-PH", {
+            timeZone: "Asia/Manila",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+        });
+
+        return { datePart, timePart };
+    };
+
+    useEffect(() => {
+        
+            async function fetchTransactions() {
+
+                setLoading(true);
+    
+                const { data: { user } } = await supabase.auth.getUser();
+    
+                if (!user) return;
+    
+                const { data, error } = await supabase
+                    .from("transactions_mod")
+                    .select(`
+                    id,
+                    payment_method,
+                    amount_paid,
+                    status,
+                    created_at,
+                    orders_mod!orders_mod_transaction_id_fkey(id)
+                `)
+                .eq("user_id", user.id)
+    
+                if (error) {
+                console.log(error);
+                } else {
+                setTransactions(data);
+                }
+
+                setLoading(false);
+            }
+    
+            fetchTransactions();
+
+            
+    
+      }, []);
 
   return (
     <>
@@ -33,14 +93,34 @@ function TransactionsSection() {
 
             <div className='flex flex-col gap-3'>
                 
-                <TransactionCurrentRow/>
-                <div className='h-0.5 w-full bg-black/10 rounded-lg'/>
-                <TransactionCurrentRow/>
-                <div className='h-0.5 w-full bg-black/10 rounded-lg'/>
-                <TransactionCurrentRow/>
-                <div className='h-0.5 w-full bg-black/10 rounded-lg'/>
-                <TransactionCurrentRow/>
-            
+                {loading ? (
+                    <div className="w-full text-center text-gray font-akagi text-lg">
+                        Loading transactions...
+                    </div>
+                ) : (
+                    transactions.map((transaction) => {
+                        const { datePart, timePart } = formatPHDateTime(transaction.created_at);
+                        const bikeCount = transaction.orders_mod?.length || 0;
+
+                        return (
+                            <motion.div
+                                initial={fade.initial}
+                                animate={fade.animate}
+                                transition={fade.transition} className=''>
+                                <TransactionCurrentRow
+                                    key={transaction.id}
+                                    bikeCount={bikeCount}
+                                    date={datePart}
+                                    time={timePart}
+                                    method={transaction.payment_method}
+                                    total={`P${transaction.amount_paid}`}
+                                    status={transaction.status}
+                                />
+                            </motion.div>
+                        );
+                    })
+                )}
+                
             </div>
             
 
