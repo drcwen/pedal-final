@@ -94,9 +94,15 @@ function TransactionsSection() {
             <div className='flex flex-col gap-3'>
                 
                 {loading ? (
-                    <div className="w-full text-center text-gray font-akagi text-lg">
-                        Loading transactions...
+                    <div className="w-full text-center">
+                        <h1 className='text-gray font-akagi text-lg'>Loading transactions...</h1>
                     </div>
+                ) : transactions.length === 0 ? (
+                    <div className="w-full text-center">
+                        <h1 className='text-gray font-akagi text-lg'>
+                            No bikes are added to cart.
+                        </h1>
+                    </div> 
                 ) : (
                     transactions.map((transaction) => {
                         const { datePart, timePart } = formatPHDateTime(transaction.created_at);
