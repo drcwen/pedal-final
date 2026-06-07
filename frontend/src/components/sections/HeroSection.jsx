@@ -57,17 +57,21 @@ function HeroSection() {
           <div className='md:hidden flex flex-1 flex-col pt-10 justify-between'>
 
 
-              <div className='w-60 flex flex-col gap-3'>
+              <motion.div
+                  initial={fadeScale.initial}
+                  animate={fadeScale.animate}
+                  transition={fadeScale.transition}
+                  className='w-60 flex flex-col gap-3'>
                 <h1 className='text-5xl font-akagi font-black text-yellow text-shadow-lg'>Experience our family bikes!</h1>
                 <h1 className='text-xl font-akagi font-black text-white text-shadow-lg'>at La Mesa Eco Park!</h1>
-              </div>
+              </motion.div>
 
               <div className='flex flex-row gap-4'>
 
                 <motion.button
-                    whileHover={buttonClickBounce.whileHover}
-                    whileTap={buttonClickBounce.whileTap}
-                    onHoverStart={buttonClickBounce.onHoverStart}
+                    initial={fadeScale.initial}
+                    animate={fadeScale.animate}
+                    transition={fadeScale.transition}
                   >
                   <div className='px-5 py-2 border-3 border-yellow w-fit rounded-md'>
                       <h1 className='text-md font-akagi font-black text-yellow'>Reserve</h1>

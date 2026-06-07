@@ -15,6 +15,8 @@ function CartSection() {
 
     const [checkedItems, setCheckedItems] = useState({});
 
+    const [loading, setLoading] = useState(true);
+
     const [total, setTotal] = useState(0);
 
     function handleCheckout() {
@@ -109,6 +111,8 @@ function CartSection() {
     }
 
     useEffect(() => {
+
+        setLoading(true);
     
         async function fetchOrders() {
 
@@ -145,6 +149,8 @@ function CartSection() {
             } else {
             setOrders(data);
             }
+
+            setLoading(false);
         }
 
         fetchOrders();
@@ -173,25 +179,37 @@ function CartSection() {
                 transition={fade.transition}
                 className='lg:h-70 h-80 overflow-y-auto flex flex-col gap-7 lg:px-10 px-2'>
                 
-                {orders.map((order) => {
-                    return (
-                        <CartRentRow
-                            key={order.id}
-                            image={order.bike_types_mod.image_url}
-                            name={order.bike_types_mod.name}
-                            hour={order.duration_hours}
-                            reservationdate={order.reservation_date}
-                            starttime={order.start_time}
-                            price={order.bike_types_mod.price}
-
-                            checked={checkedItems[order.id] || false}
-
-                            onCheck={() => handleCheckbox(order.id)}
-                        />
-
-                        
-                    );
-                })}
+                {
+                    loading ? (
+                        <div className="w-full text-center">
+                            <h1 className='text-gray font-akagi text-lg'>
+                                Loading cart...
+                            </h1>
+                        </div>
+                    ) : orders.length === 0 ? (
+                        <div className="w-full text-center">
+                            <h1 className='text-gray font-akagi text-lg'>
+                                No bikes are added to cart.
+                            </h1>
+                        </div> 
+                    ) : (
+                        orders.map((order) => {
+                            return (
+                                <CartRentRow
+                                    key={order.id}
+                                    image={order.bike_types_mod.image_url}
+                                    name={order.bike_types_mod.name}
+                                    hour={order.duration_hours}
+                                    reservationdate={order.reservation_date}
+                                    starttime={order.start_time}
+                                    price={order.bike_types_mod.price}
+                                    checked={checkedItems[order.id] || false}
+                                    onCheck={() => handleCheckbox(order.id)}
+                                />
+                            );
+                        })
+                    )
+                }
                 
             </motion.div>
 

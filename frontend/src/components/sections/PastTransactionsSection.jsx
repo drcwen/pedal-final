@@ -6,7 +6,7 @@ import { fade } from "../../animations/fade"
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
-function TransactionsSection() {
+function PastTransactionsSection() {
 
     const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -81,15 +81,17 @@ function TransactionsSection() {
                 </div>
 
                 <div className='w-fit rounded-2xl border-3 border-blue grid grid-cols-2'>
-                    <button
-                        onClick={() => navigate("/transactions")} 
-                        className='cursor-pointer bg-blue px-6 py-1 rounded-tl-xl rounded-bl-xl flex items-center justify-center'>
-                        <h1 className='text-lg font-akagi text-[#FFFFFF] font-black'>Active</h1>
+                    <button 
+                        onClick={() => navigate("/transactions")}
+                        className='cursor-pointer px-6 py-1 rounded-tl-xl rounded-bl-xl flex items-center justify-center'
+                    >
+                        <h1 className='text-lg font-akagi text-blue font-black'>Active</h1>
                     </button>
 
-                    <button className='cursor-pointer px-6 py-1 rounded-tr-xl rounded-br-xl flex items-center justify-center'
-                        onClick={() => navigate("/past-transactions")} >
-                        <h1 className='text-lg font-akagi text-blue font-black'>Past</h1>
+                    <button
+                        onClick={() => navigate("/past-transactions")}
+                        className='cursor-pointer bg-blue px-6 py-1 rounded-tr-xl rounded-br-xl flex items-center justify-center'>
+                        <h1 className='text-lg font-akagi text-[#FFFFFF] font-black'>Past</h1>
                     </button>
                 </div>
 
@@ -141,4 +143,4 @@ function TransactionsSection() {
   )
 }
 
-export default TransactionsSection
+export default PastTransactionsSection
