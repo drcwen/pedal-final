@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "./lib/supabase";
 
 import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
+import Dashboard from "./components/management/Dashboard";
 import CreateAccount from "./pages/CreateAccount";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
