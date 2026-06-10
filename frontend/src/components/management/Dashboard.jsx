@@ -11,7 +11,7 @@ function Dashboard() {
         <div className='w-full h-screen bg-[#F2F2F2] flex'>
             <Sidebar active={'dashboard'}/>
 
-            <div className='flex flex-col flex-1 py-15 px-5 gap-5'>
+            <div className='flex flex-col flex-1 py-15 px-10 gap-5'>
 
                 {/*Upper Boards*/}
                 <div className='flex flex-row gap-5'>
@@ -98,21 +98,25 @@ function Dashboard() {
                 </div>
 
                 {/*Grid*/}
-                <div className='flex-1 grid grid-cols-2 grid-rows-2 gap-5'>
-                    <div className='bg-red-400'>
-                        <h1>Hello</h1>
+                <div className='flex-1 grid grid-cols-2 grid-rows-2 gap-8'>
+                    <div className='bg-[#ffffff] rounded-2xl p-7'>
+                        <h1 className='text-lg font-akagi text-[#505050] font-bold'>Ongoing Rentals</h1>
+
+                        <div className=''>
+
+                        </div>
                     </div>
 
-                    <div className='bg-red-400'>
-                        <h1>Hello</h1>
+                    <div className='bg-[#ffffff] rounded-2xl p-7'>
+                        <h1 className='text-lg font-akagi text-[#505050] font-bold'>Ongoing Rentals</h1>
                     </div>
 
-                    <div className='bg-red-400'>
-                        <h1>Hello</h1>
+                    <div className='bg-[#ffffff] rounded-2xl p-7'>
+                        <h1 className='text-lg font-akagi text-[#505050] font-bold'>Ongoing Rentals</h1>
                     </div>
 
-                    <div className='bg-red-400'>
-                        <h1>Hello</h1>
+                    <div className='bg-[#ffffff] rounded-2xl p-7'>
+                        <h1 className='text-lg font-akagi text-[#505050] font-bold'>Ongoing Rentals</h1>
                     </div>
                 </div>
             </div>

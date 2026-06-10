@@ -17,6 +17,8 @@ import EBankPayment from "./components/payment/EBankPayment";
 import Transactions from "./pages/Transactions";
 import PastTransactions from "./pages/PastTransactions";
 
+import POS from "./components/management/POS"
+
 function App() {
   const [session, setSession] = useState(null);
   const [role, setRole] = useState(null);
@@ -157,16 +159,16 @@ function App() {
         <>
           <Route path="/" element={<Dashboard />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/pos" element={<POS />} />
           <Route path="/transactions" element={<Transactions />} />
           <Route path="/past-transactions" element={<PastTransactions />} />
           <Route path="*" element={<Navigate to="/dashboard" />} />
         </>
       )}
 
-      {/* SAFETY NET */}
-      <Route path="*" element={<Navigate to="/" />} />
+      
     </Routes>
   );
 }
 
-export default App;
+export default App

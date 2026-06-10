@@ -1,30 +1,36 @@
 import { MdOutlineDashboard } from "react-icons/md";
 import SidebarTabs from "./SidebarTabs"
 import { MdOutlinePointOfSale } from "react-icons/md";
-
+import { useNavigate } from "react-router-dom";
 
 function Sidebar({active}) {
+
+    const navigate = useNavigate();
 
     const menu = [
   {
     name: "Dashboard",
     icon: MdOutlineDashboard,
     key: "dashboard",
+    route: "/dashboard",
   },
   {
     name: "POS",
     icon: MdOutlinePointOfSale,
     key: "pos",
+    route: "/pos",
   },
   {
     name: "Transaction History",
     icon: MdOutlinePointOfSale,
     key: "history",
+    route: "/history",
   },
   {
     name: "Monitoring",
     icon: MdOutlinePointOfSale,
     key: "monitoring",
+    route: "/monitoring",
   },
 ]
 
@@ -45,6 +51,7 @@ function Sidebar({active}) {
                             icon={item.icon}
                             name={item.name}
                             isActive={active === item.key}
+                            onClick={() => navigate(item.route)}
                         />
                     ))}
                 </div>
