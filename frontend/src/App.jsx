@@ -1,60 +1,113 @@
-import { Routes, Route, Navigate, useNavigate } from "react-router-dom"
-import { useEffect, useState } from "react"
-import { supabase } from "./lib/supabase"
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { supabase } from "./lib/supabase";
 
-import Login from "./pages/Login"
-import Dashboard from "./pages/Dashboard"
-import CreateAccount from "./pages/CreateAccount"
-import ForgotPassword from "./pages/ForgotPassword"
-import ResetPassword from "./pages/ResetPassword"
-import LandingPage from "./pages/LandingPage"
-import BikeExpand from "./components/layout/bikes/BikeExpand"
-import Cart from "./pages/Cart"
-import Practice from "./components/practice"
-import Reserve from "./pages/Reserve"
-import Checkout from "./pages/Checkout"
-import EBankPayment from "./components/payment/EBankPayment"
-import Transactions from "./pages/Transactions"
-import PastTransactions from "./pages/PastTransactions"
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import CreateAccount from "./pages/CreateAccount";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import LandingPage from "./pages/LandingPage";
+import BikeExpand from "./components/layout/bikes/BikeExpand";
+import Cart from "./pages/Cart";
+import Practice from "./components/practice";
+import Reserve from "./pages/Reserve";
+import Checkout from "./pages/Checkout";
+import EBankPayment from "./components/payment/EBankPayment";
+import Transactions from "./pages/Transactions";
+import PastTransactions from "./pages/PastTransactions";
 
 function App() {
-  const [session, setSession] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [isRecovery, setIsRecovery] = useState(false)
+  const [session, setSession] = useState(null);
+  const [role, setRole] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [isRecovery, setIsRecovery] = useState(false);
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+
+  const fetchUserRole = async (userId) => {
+    const { data, error } = await supabase
+      .from("profiles_mod")
+      .select("role")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Role fetch error:", error);
+      return "customer"; // fallback role
+    }
+
+    return data?.role || "customer";
+  };
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      setLoading(false)
-    })
+    const init = async () => {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
 
-    // Listen for auth changes
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session)
-        setLoading(false)
+        console.log("Initial Session:", session);
 
-        // Detect password recovery flow
-        if (event === "PASSWORD_RECOVERY") {
-          setIsRecovery(true)
-          navigate("/reset-password")
+        setSession(session);
+
+        // IMPORTANT: do NOT block loading for role
+        if (session?.user?.id) {
+          fetchUserRole(session.user.id)
+            .then((userRole) => {
+              console.log("Fetched role:", userRole);
+              setRole(userRole);
+            })
+            .catch((err) => {
+              console.error(err);
+              setRole("customer");
+            });
+        } else {
+          setRole(null);
         }
+      } catch (err) {
+        console.error("Init error:", err);
+      } finally {
+        setLoading(false); // ALWAYS STOP LOADING HERE
       }
-    )
+    };
 
-    return () => listener.subscription.unsubscribe()
-  }, [navigate])
+    init();
 
-  if (loading) return <h1>Loading...</h1>
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth Event:", event);
+      console.log("Session:", session);
+
+      setSession(session);
+
+      if (session?.user?.id) {
+        fetchUserRole(session.user.id)
+          .then(setRole)
+          .catch(() => setRole("customer"));
+      } else {
+        setRole(null);
+      }
+
+      setLoading(false);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
+
+  // ONLY block initial load
+  if (loading) {
+    return <h1>Loading...</h1>;
+  }
 
   return (
     <Routes>
+      <Route path="/prac" element={<Practice />} />
 
-      <Route path="/prac" element={<Practice/>}/>
-      {/* PASSWORD RECOVERY ROUTE */}
+      {/* PASSWORD RECOVERY */}
       {isRecovery && (
         <>
           <Route path="/reset-password" element={<ResetPassword />} />
@@ -62,35 +115,58 @@ function App() {
         </>
       )}
 
-      {/* AUTH ROUTES (NOT LOGGED IN) */}
+      {/* GUEST */}
       {!session && !isRecovery && (
         <>
+          <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/createaccount" element={<CreateAccount />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="*" element={<Navigate to="/" />} />
-          <Route path="/" element={<LandingPage />} />
-          
         </>
       )}
 
-      {/* PROTECTED ROUTES (LOGGED IN) */}
-      {session && !isRecovery && (
+      {/* CUSTOMER */}
+      {session && role === "customer" && (
         <>
-          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/" element={<LandingPage />} />
-          <Route path="*" element={<Navigate to="/" />} />
-          <Route path="/reserve" element={<Reserve/>} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/reserve" element={<Reserve />} />
           <Route path="/rent" element={<BikeExpand />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/ebank" element={<EBankPayment />} />
           <Route path="/transactions" element={<Transactions />} />
           <Route path="/past-transactions" element={<PastTransactions />} />
+          <Route path="*" element={<Navigate to="/" />} />
         </>
       )}
+
+      {/* CASHIER */}
+      {session && role === "cashier" && (
+        <>
+          <Route path="/" element={<PastTransactions />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/transactions" element={<Transactions />} />
+          <Route path="*" element={<Navigate to="/dashboard" />} />
+        </>
+      )}
+
+      {/* ADMIN */}
+      {session && role === "admin" && (
+        <>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/transactions" element={<Transactions />} />
+          <Route path="/past-transactions" element={<PastTransactions />} />
+          <Route path="*" element={<Navigate to="/dashboard" />} />
+        </>
+      )}
+
+      {/* SAFETY NET */}
+      <Route path="*" element={<Navigate to="/" />} />
     </Routes>
-  )
+  );
 }
 
-export default App
+export default App;
