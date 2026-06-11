@@ -27,6 +27,7 @@
     "slick-carousel": "^1.8.1",
     "swiper": "^12.1.4",
     "tailwind-datepicker-react": "^1.4.3",
+    "tailwind-scrollbar": "^4.0.2",
     "tailwindcss": "^4.2.4"
   },
   "devDependencies": {

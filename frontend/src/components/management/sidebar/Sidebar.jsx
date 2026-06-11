@@ -37,7 +37,7 @@ function Sidebar({active}) {
   return (
     <>
 
-        <div className='h-screen w-55 bg-[#FFFFFF] border-r border-r-[#C1C1C1]'>
+        <div className='hidden lg:block h-screen w-55 bg-[#FFFFFF] border-r border-r-[#C1C1C1]'>
             <div className='flex flex-col gap-5 px-3'>
                 {/*Logo*/}
                 <div className='p-10'>

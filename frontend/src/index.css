@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "tailwindcss";
+@plugin "tailwind-scrollbar";
 
 /* Thin */
 @font-face {

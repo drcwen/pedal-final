@@ -17,7 +17,7 @@ import EBankPayment from "./components/payment/EBankPayment";
 import Transactions from "./pages/Transactions";
 import PastTransactions from "./pages/PastTransactions";
 
-import POS from "./components/management/POS"
+import POS from "./components/management/POS/POS"
 
 function App() {
   const [session, setSession] = useState(null);

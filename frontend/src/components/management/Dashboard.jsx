@@ -1,7 +1,7 @@
 import { supabase } from "../../lib/supabase"
 import Sidebar from "./sidebar/Sidebar"
 import { MdDirectionsBike } from "react-icons/md";
-
+import { motion } from "motion/react"
 
 function Dashboard() {
 
@@ -11,7 +11,12 @@ function Dashboard() {
         <div className='w-full h-screen bg-[#F2F2F2] flex'>
             <Sidebar active={'dashboard'}/>
 
-            <div className='flex flex-col flex-1 py-15 px-10 gap-5'>
+            <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.25, ease: "easeInOut" }} 
+                className='flex flex-col flex-1 py-15 px-10 gap-5'>
 
                 {/*Upper Boards*/}
                 <div className='flex flex-row gap-5'>
@@ -119,7 +124,7 @@ function Dashboard() {
                         <h1 className='text-lg font-akagi text-[#505050] font-bold'>Ongoing Rentals</h1>
                     </div>
                 </div>
-            </div>
+            </motion.div>
         </div>
     </>
   )
