@@ -18,6 +18,7 @@ import Transactions from "./pages/Transactions";
 import PastTransactions from "./pages/PastTransactions";
 
 import POS from "./components/management/POS/POS"
+import WalkInRent from "./components/management/POS/walk in rent/WalkInRent"
 
 function App() {
   const [session, setSession] = useState(null);
@@ -151,6 +152,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/transactions" element={<Transactions />} />
           <Route path="*" element={<Navigate to="/dashboard" />} />
+          <Route path="/pos/create" element={<WalkInRent />}/>
         </>
       )}
 
@@ -163,6 +165,7 @@ function App() {
           <Route path="/transactions" element={<Transactions />} />
           <Route path="/past-transactions" element={<PastTransactions />} />
           <Route path="*" element={<Navigate to="/dashboard" />} />
+          <Route path="/pos/create" element={<WalkInRent />}/>
         </>
       )}
 

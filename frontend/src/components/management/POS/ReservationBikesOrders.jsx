@@ -6,7 +6,7 @@ function ReservationBikesOrders({ type, duration, start, end, remaining }) {
 
 
     const gridLayout =
-  "grid grid-cols-[1fr_100px_100px_100px_100px_1fr] items-center";
+  "md:grid md:grid-cols-[1fr_100px_100px_100px_100px_1fr] md:items-center";
 
   return (
     <>

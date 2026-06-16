@@ -2,6 +2,9 @@ import { MdOutlineDashboard } from "react-icons/md";
 import SidebarTabs from "./SidebarTabs"
 import { MdOutlinePointOfSale } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
+import { TfiMoreAlt } from "react-icons/tfi";
+import { FaHistory } from "react-icons/fa";
+import { IoIosPin } from "react-icons/io";
 
 function Sidebar({active}) {
 
@@ -22,16 +25,17 @@ function Sidebar({active}) {
   },
   {
     name: "Transaction History",
-    icon: MdOutlinePointOfSale,
+    icon: FaHistory,
     key: "history",
     route: "/history",
   },
   {
     name: "Monitoring",
-    icon: MdOutlinePointOfSale,
+    icon: IoIosPin,
     key: "monitoring",
     route: "/monitoring",
   },
+
 ]
 
   return (

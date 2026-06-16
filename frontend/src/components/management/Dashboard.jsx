@@ -2,6 +2,7 @@ import { supabase } from "../../lib/supabase"
 import Sidebar from "./sidebar/Sidebar"
 import { MdDirectionsBike } from "react-icons/md";
 import { motion } from "motion/react"
+import SidebarMobile from "./sidebar/SidebarMobile"
 
 function Dashboard() {
 
@@ -16,10 +17,12 @@ function Dashboard() {
                 animate={{ height: "auto", opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
                 transition={{ duration: 0.25, ease: "easeInOut" }} 
-                className='flex flex-col flex-1 py-15 px-10 gap-5'>
+                className='flex flex-col flex-1 lg:py-15 lg:px-10 p-7 gap-5'>
+
+                <SidebarMobile active={'dashboard'}/>
 
                 {/*Upper Boards*/}
-                <div className='flex flex-row gap-5'>
+                <div className='lg:flex lg:flex-row grid grid-cols-2 gap-5'>
                     <div className='bg-blue rounded-xl px-5 pl-6 py-5 flex flex-col gap-2'>
                         <div className='flex flex-row justify-between'>
                             <h1 className='font-akagi font-semibold text-md text-[#ffffff]'>Ongoing Rentals</h1>
@@ -103,7 +106,7 @@ function Dashboard() {
                 </div>
 
                 {/*Grid*/}
-                <div className='flex-1 grid grid-cols-2 grid-rows-2 gap-8'>
+                <div className='flex-1 lg:grid lg:grid-cols-2 lg:grid-rows-2 gap-8'>
                     <div className='bg-[#ffffff] rounded-2xl p-7'>
                         <h1 className='text-lg font-akagi text-[#505050] font-bold'>Ongoing Rentals</h1>
 
