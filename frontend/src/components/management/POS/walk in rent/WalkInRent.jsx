@@ -74,10 +74,17 @@ function WalkInRent() {
                             <div className='grid md:grid-cols-3 grid-cols-2 gap-3'>
                                 
                                 {info.map((bike) => (
-                                    <BikesTile 
-                                        name={bike.name}
-                                        image={bike.image_url}
-                                    />
+                                    <motion.div
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: "auto", opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        transition={{ duration: 0.3, ease: "easeInOut" }} 
+                                    >
+                                        <BikesTile 
+                                            name={bike.name}
+                                            image={bike.image_url}
+                                        />
+                                    </motion.div>
                                 ))}
                                 
                             </div>
