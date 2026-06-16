@@ -24,9 +24,19 @@ function ReservationRow({ name, ordercount, type, start }) {
                     <h1 className='font-akagi font-semibold text-gray text-lg'>{type}</h1>
                     <h1 className='font-akagi font-semibold text-gray text-lg'>{start}</h1>
 
-                    <div className='w-fit rounded-xl bg-red-600 hidden'>
-                        <h1 className='font-akagi font-black text-[#ffffff] px-5 py-1 cursor-pointer'>END</h1>
-                    </div>
+                    <AnimatePresence initial={false}>
+                        <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.3, ease: "easeInOut" }} 
+                            className={`w-fit rounded-xl bg-green-500 transition-all duration-300 
+                                ${dropdown === true ? "block" : "hidden"}
+                                `}
+                        >
+                            <h1 className='font-akagi font-black text-[#ffffff] px-5 py-1 cursor-pointer'>START</h1>
+                        </motion.div>
+                    </AnimatePresence>
                 </div>
                 <div 
                     onClick={() => setDropdown(!dropdown)}
