@@ -37,7 +37,7 @@ function WalkInRent() {
             <Sidebar active={'pos'}/>
             <SidebarMobile active={'pos'}/>
 
-            <div className='flex-1 p-4 pb-30 overflow-y-scroll scrollbar-thin scrollbar-thumb-[#B9B9B9] scrollbar-track-[#E2E2E2] min-[1330px]:pr-48'>
+            <div className='flex-1 p-4 pb-30 overflow-y-scroll scrollbar-thin scrollbar-thumb-[#B9B9B9] scrollbar-track-[#E2E2E2] min-[1330px]:pr-60'>
                 <div className='flex flex-col gap-5'>
                     <motion.div
                         initial={{ height: 0, opacity: 0 }}
@@ -74,29 +74,18 @@ function WalkInRent() {
                             <div className='grid md:grid-cols-3 grid-cols-2 gap-3'>
                                 
                                 {info.map((bike) => (
-                                    <BikesTile 
-                                        name={bike.name}
-                                        image={bike.image_url}
-                                    />
+                                    <motion.div
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: "auto", opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        transition={{ duration: 0.3, ease: "easeInOut" }} 
+                                    >
+                                        <BikesTile 
+                                            name={bike.name}
+                                            image={bike.image_url}
+                                        />
+                                    </motion.div>
                                 ))}
-
-                                <BikesTile  
-                                    name="Mountain Bike"
-                                    image="https://res.cloudinary.com/dp3vkgxtb/image/upload/v1775884918/solo_bike_mhxxvb.png"
-                                    
-                                />
-
-                                <BikesTile  
-                                    name="Mountain Bike"
-                                    image="https://res.cloudinary.com/dp3vkgxtb/image/upload/v1775884918/solo_bike_mhxxvb.png"
-                                    
-                                />
-
-                                <BikesTile  
-                                    name="Mountain Bike"
-                                    image="https://res.cloudinary.com/dp3vkgxtb/image/upload/v1775884918/solo_bike_mhxxvb.png"
-                                    
-                                />
                                 
                             </div>
                         </div>                    
