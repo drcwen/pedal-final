@@ -37,7 +37,7 @@ function WalkInRent() {
             <Sidebar active={'pos'}/>
             <SidebarMobile active={'pos'}/>
 
-            <div className='flex-1 p-10 overflow-y-scroll scrollbar-thin scrollbar-thumb-[#B9B9B9] scrollbar-track-[#E2E2E2] min-[1310px]:pr-50'>
+            <div className='flex-1 p-4 pb-30 overflow-y-scroll scrollbar-thin scrollbar-thumb-[#B9B9B9] scrollbar-track-[#E2E2E2] min-[1330px]:pr-48'>
                 <div className='flex flex-col gap-5'>
                     <motion.div
                         initial={{ height: 0, opacity: 0 }}
@@ -45,7 +45,7 @@ function WalkInRent() {
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.25, ease: "easeInOut" }} 
 
-                        className='p-10 bg-[#ffffff] rounded-xl flex flex-col gap-12'
+                        className='md:p-10 p-2 py-8 bg-[#ffffff] rounded-xl flex flex-col gap-12'
                     >
                         <div 
                             onClick={() => navigate("/pos")}
@@ -55,9 +55,9 @@ function WalkInRent() {
                             <h1 className='text-4xl font-akagi font-black tracking-wide text-blue'>Bikes</h1>
                         </div>
 
-                        <div className='h-full flex flex-col gap-7 px-5'>
+                        <div className='h-full flex flex-col gap-7 md:px-5 px-3'>
                             
-                            <div className='grid grid-cols-3 gap-3'>
+                            <div className='grid md:grid-cols-3 grid-cols-1 gap-3'>
                                 <div className='rounded-xl bg-blue px-6 py-2 text-center cursor-pointer'>
                                     <h1 className='font-akagi font-bold text-[#ffffff] '>All</h1>
                                 </div>
@@ -71,7 +71,7 @@ function WalkInRent() {
                                 </div>
                             </div>
 
-                            <div className='grid grid-cols-3 gap-3'>
+                            <div className='grid md:grid-cols-3 grid-cols-2 gap-3'>
                                 
                                 {info.map((bike) => (
                                     <BikesTile 
@@ -105,7 +105,7 @@ function WalkInRent() {
                     <div className='flex bg-[#ffffff] p-10 rounded-xl flex-col gap-6'>
                         <h1 className='font-akagi text-3xl font-black text-blue'>Walk-in Rent</h1>
 
-                        <div className='min-h-70 grid grid-cols-2 gap-10'>
+                        <div className='min-h-70 md:grid md:grid-cols-2 flex flex-col gap-10'>
                             <div className='flex flex-col gap-4'>
                                 <div className='flex flex-row justify-between items-center'>
                                     
@@ -124,7 +124,7 @@ function WalkInRent() {
 
     
                             </div>
-                            <div className='flex flex-col justify-between'>
+                            <div className='flex flex-col gap-6 justify-between'>
                                 <div className='bg-white p-6 rounded-xl flex flex-col gap-3'>
                                     <h1 className='text-2xl font-bold font-akagi text-[#6D7172]'>Payment</h1>
 
