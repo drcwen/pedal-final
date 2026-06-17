@@ -21,12 +21,12 @@ function BikeCardDark({ bike, reservationData }) {
       <div className="md:flex md:flex-col md:gap-3 flex flex-col gap-5 md:items-start items-center">
 
         <div className='md:flex md:flex-col md:text-start text-center'>
-          <h1 className="text-2xl font-bold text-darkblue hover:underline transition-all duration-300">
+          <h1 className="text-2xl font-bold text-darkblue hover:underline transition-all duration-300 font-akagi">
             {bike.name}
           </h1>
 
           <div className='flex flex-row gap-3 items-center justify-center lg:justify-start'>
-            <h1 className="text-gray font-bold">
+            <h1 className="text-gray font-bold font-akagi">
               ₱{bike.price}/hr
             </h1>
 

@@ -19,11 +19,11 @@ function BikeCard({ bike }) {
       <div className="md:flex md:flex-col md:gap-3 flex flex-col gap-5 md:items-start items-center">
 
         <div className='md:flex md:flex-col md:text-start text-center'>
-          <h1 className="text-2xl font-bold text-darkblue hover:underline transition-all duration-300">
+          <h1 className="text-2xl font-bold text-darkblue hover:underline transition-all duration-300 font-akagi">
             {bike.name}
           </h1>
 
-          <h1 className="text-gray font-bold">
+          <h1 className="text-gray font-bold font-akagi">
             ₱{bike.price}/hr
           </h1>
         </div>
@@ -31,7 +31,7 @@ function BikeCard({ bike }) {
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="cursor-pointer bg-blue px-4 py-2 rounded-lg text-[#f7f7f7] font-bold"
+          className="cursor-pointer bg-blue px-4 py-2 rounded-lg text-[#f7f7f7] font-bold font-akagi"
           onClick={() => navigate("/reserve")}
         >
           Rent Now
