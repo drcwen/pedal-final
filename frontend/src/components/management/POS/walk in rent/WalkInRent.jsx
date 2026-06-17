@@ -14,6 +14,7 @@ function WalkInRent() {
     
     const navigate = useNavigate();
     const [info, setInfo] = useState([]);
+    const [proceed, setProceed] = useState(false);
 
     useEffect(() => {
         const fetchBikes = async () => {
@@ -128,8 +129,10 @@ function WalkInRent() {
                                     </div>
                                 </div>
 
-                                <div className='w-fit self-end bg-yellow rounded-xl px-8 py-3 text-center'>
-                                    <h1 className='text-xl font-bold font-akagi text-darkblue'>Payment</h1>
+                                <div
+                                    onClick={() => setProceed("true")}
+                                    className='w-fit self-end bg-yellow rounded-xl px-8 py-1 text-center'>
+                                    <h1 className='text-xl font-bold font-akagi text-darkblue'>Proceed</h1>
                                 </div>
                             </div>
                         </div>
