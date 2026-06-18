@@ -18,25 +18,25 @@ function ProceedWalkInRent() {
                     <h1 className='text-3xl font-akagi font-bold text-navyblue'>Walk-in Rent</h1>
 
                     <div className='flex flex-col gap-2'>
-                        <div className='grid grid-cols-[150px_1fr] items-center'>
-                            <h1 className='text-md font-akagi font-bold text-[#6D7172]'>First Name:</h1>
+                        <div className='grid lg:grid-cols-[150px_1fr] grid-cols-[90px_1fr] items-center'>
+                            <h1 className='md:text-md text-sm font-akagi font-bold text-[#6D7172]'>First Name:</h1>
                             <div className='bg-[#D9D9D9] rounded-lg px-3 py-1 flex items-center'>
-                                <input className='w-full text-md font-akagi font-bold text-[#6D7172]'></input>
+                                <input className='w-full md:text-md text-sm font-akagi font-bold text-[#6D7172]'></input>
                             </div>
                         </div>
 
-                        <div className='grid grid-cols-[150px_1fr] items-center'>
-                            <h1 className='text-md font-akagi font-bold text-[#6D7172]'>Last Name:</h1>
+                        <div className='grid lg:grid-cols-[150px_1fr] grid-cols-[90px_1fr] items-center'>
+                            <h1 className='md:text-md text-sm font-akagi font-bold text-[#6D7172]'>Last Name:</h1>
                             <div className='bg-[#D9D9D9] rounded-lg px-3 py-1 flex items-center'>
-                                <input className='w-full text-md font-akagi font-bold text-[#6D7172]'></input>
+                                <input className='w-full md:text-md text-sm font-akagi font-bold text-[#6D7172]'></input>
                             </div>
                             
                         </div>
 
-                        <div className='grid grid-cols-[150px_1fr]'>
-                            <h1 className='text-md font-akagi font-bold text-[#6D7172]'>ID Type:</h1>
+                        <div className='grid lg:grid-cols-[150px_1fr] grid-cols-[90px_1fr] items-center'>
+                            <h1 className='md:text-md text-sm font-akagi font-bold text-[#6D7172]'>ID Type:</h1>
                             <div className='bg-[#D9D9D9] rounded-lg px-3 py-1 flex items-center'>
-                                <input className='w-full text-md font-akagi font-bold text-[#6D7172]'></input>
+                                <input className='w-full md:text-md text-sm font-akagi font-bold text-[#6D7172]'></input>
                             </div>
                         </div>
 
@@ -51,7 +51,7 @@ function ProceedWalkInRent() {
                         <div className='text-md font-akagi font-bold text-[#6D7172]'>GPS ID</div>
                         <div className='text-md font-akagi font-bold text-[#6D7172]'>Amount</div>
 
-                        <OrderRow quantity='2' model='Mountain Bike' price='120' selectedBikeId={bikeId} selectedGpsId={gpsId} onBikeChange={setBikeId} onGpsChange={setGpsId}/>
+                        <OrderRow quantity='2' model='Solo Kiddie Bike' price='120' selectedBikeId={bikeId} selectedGpsId={gpsId} onBikeChange={setBikeId} onGpsChange={setGpsId}/>
 
                     </div>
                 </div>

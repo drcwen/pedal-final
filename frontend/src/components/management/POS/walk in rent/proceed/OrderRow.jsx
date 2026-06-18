@@ -22,12 +22,12 @@ function OrderRow({ quantity, model, price, selectedBikeId,  selectedGpsId, onBi
     <>
         <h1 className='text-md font-akagi font-medium text-[#6D7172]'>{quantity}</h1>
         <h1 className='text-md font-akagi font-medium text-[#6D7172]'>{model}</h1>
-        <div className='flex items-center justify-center'>
-            <DropDown options={bikeIds} placeholder="Select Bike ID" onChange={onBikeChange} value={selectedBikeId}/>
+        <div className=''>
+            <DropDown options={bikeIds} placeholder="Bike ID" onChange={onBikeChange} value={selectedBikeId}/>
         </div>
         
-        <div className='flex items-center justify-center '>
-            <DropDown options={gpsIds} placeholder="Select GPS ID" onChange={onGpsChange} value={selectedGpsId}/>
+        <div className=''>
+            <DropDown options={gpsIds} placeholder="GPS ID" onChange={onGpsChange} value={selectedGpsId}/>
         </div>
         <h1 className='text-md font-akagi font-medium text-[#6D7172]'>{price}</h1>
     </>
