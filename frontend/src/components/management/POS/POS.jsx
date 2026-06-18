@@ -83,7 +83,6 @@ function POS() {
                                     <h1 className='lg:text-xl text-md font-akagi font-bold text-darkblue tracking-wider'>ADD</h1>
                                 </div>
 
-
                             </div>
                         </div>
                     </div>

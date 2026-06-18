@@ -8,12 +8,13 @@ import { motion } from "motion/react"
 import { IoChevronBack } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 import BikesTile from "./BikesTile"
-
+import ProceedWalkInRent from "./proceed/ProceedWalkInRent"
 
 function WalkInRent() {
     
     const navigate = useNavigate();
     const [info, setInfo] = useState([]);
+    const [proceed, setProceed] = useState(false);
 
     useEffect(() => {
         const fetchBikes = async () => {
@@ -128,9 +129,13 @@ function WalkInRent() {
                                     </div>
                                 </div>
 
-                                <div className='w-fit self-end bg-yellow rounded-xl px-8 py-3 text-center'>
+                                <div 
+                                    onClick={() => {setProceed(true)}}
+                                    className='w-fit self-end bg-yellow rounded-xl px-8 py-3 text-center'>
                                     <h1 className='text-xl font-bold font-akagi text-darkblue'>Payment</h1>
                                 </div>
+
+                                {proceed && <ProceedWalkInRent/>}
                             </div>
                         </div>
                     </div>

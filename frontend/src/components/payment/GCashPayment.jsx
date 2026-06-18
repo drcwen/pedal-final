@@ -63,10 +63,7 @@ function GCashPayment({payment, onClose}) {
                                 className='text-sm font-akagi text-black/30 hover:underline duration-300 cursor-pointer transition-all'>Cancel</h1>
                         </div>
                     </div>
-
                 </div>
-
-
             </div>
 
         </div>

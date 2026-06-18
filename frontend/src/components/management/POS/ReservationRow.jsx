@@ -1,5 +1,4 @@
 
-import { supabase } from "../../../lib/supabase"
 import { RiArrowDropDownLine } from "react-icons/ri";
 import { RiArrowDropUpLine } from "react-icons/ri";
 import { motion, AnimatePresence } from "motion/react"
