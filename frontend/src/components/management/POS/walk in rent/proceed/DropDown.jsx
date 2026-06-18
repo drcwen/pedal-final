@@ -1,39 +1,48 @@
-import { RiArrowDropDownLine } from "react-icons/ri";
-import { RiArrowDropUpLine } from "react-icons/ri";
+import { RiArrowDropDownLine, RiArrowDropUpLine } from "react-icons/ri";
 import { useState } from "react";
 
-function DropDown( {select, options, } ) {
+function DropDown({ value, options = [], onChange, placeholder = "Select" }) {
+  const [isOpen, setIsOpen] = useState(false);
 
-    const [dropDown, setDropDown] = useState(false);
+  const handleSelect = (option) => {
+    onChange(option);
+    setIsOpen(false);
+  };
 
   return (
-    <>
-
-        <div 
-            onClick={() => setDropDown(!dropDown)}
-            className='rounded-lg border border-[#9E9E9E] grid grid-cols-[1fr_20px] px-2 relative items-center'>
-            <div className='px-15'>
-                <h1 className='text-md font-akagi font-medium text-[#6D7172] opacity-50'>{select}</h1>
-            </div>
-            
-            {dropDown ? (
-                <>
-                <RiArrowDropUpLine className='text-3xl text-gray'/>
-                <div className='w-full absolute top-8 left-0 text-left bg-[#ffffff] rounded-lg border border-[#9E9E9E] z-50'>
-                    <option className='w-full text-md font-akagi font-medium text-[#6D7172] hover:bg-gray hover:text-[#ffffff] px-2 py-1 rounded-lg'>{options}</option>
-                    <option className='w-full text-md font-akagi font-medium text-[#6D7172] hover:bg-gray hover:text-[#ffffff] px-2 py-1 rounded-lg'>{options}</option>
-                    <option className='w-full text-md font-akagi font-medium text-[#6D7172] hover:bg-gray hover:text-[#ffffff] px-2 py-1 rounded-lg'>{options}</option>
-                    <option className='w-full text-md font-akagi font-medium text-[#6D7172] hover:bg-gray hover:text-[#ffffff] px-2 py-1 rounded-lg'>{options}</option>
-                </div>
-                </>
-            ): (
-                <RiArrowDropDownLine className='text-3xl text-gray'/>
-            )}
+    <div className="relative">
+      <div
+        onClick={() => setIsOpen(!isOpen)}
+        className="rounded-lg border border-[#9E9E9E] grid grid-cols-[1fr_20px] px-2 items-center cursor-pointer"
+      >
+        <div className="py-1 px-12">
+          <h1 className="text-md font-akagi font-medium text-[#6D7172]">
+            {value || placeholder}
+          </h1>
         </div>
 
-    </>  
+        {isOpen ? (
+          <RiArrowDropUpLine className="text-3xl text-gray" />
+        ) : (
+          <RiArrowDropDownLine className="text-3xl text-gray" />
+        )}
+      </div>
 
-    )
+      {isOpen && (
+        <div className="absolute top-full left-0 w-full bg-white rounded-lg border border-[#9E9E9E] z-50 mt-1">
+          {options.map((option, index) => (
+            <div
+              key={index}
+              onClick={() => handleSelect(option)}
+              className="text-md font-akagi font-medium text-[#6D7172] hover:bg-gray hover:text-white px-2 py-2 cursor-pointer"
+            >
+              {option}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
-export default DropDown
+export default DropDown;
