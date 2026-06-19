@@ -135,7 +135,7 @@ function WalkInRent() {
                                     <h1 className='text-xl font-bold font-akagi text-darkblue'>Payment</h1>
                                 </div>
 
-                                {proceed && <ProceedWalkInRent/>}
+                                {proceed && <ProceedWalkInRent onClose={() => setProceed(false)}/>}
                             </div>
                         </div>
                     </div>

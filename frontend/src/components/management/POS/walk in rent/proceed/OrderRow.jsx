@@ -4,6 +4,9 @@ import DropDown from "./DropDown"
 
 function OrderRow({ quantity, model, price, selectedBikeId,  selectedGpsId, onBikeChange, onGpsChange}) {
 
+        const [bikeId, setBikeId] = useState("");
+        const [gpsId, setGpsId] = useState("");
+
         const bikeIds = [
             "G1",
             "G2",
