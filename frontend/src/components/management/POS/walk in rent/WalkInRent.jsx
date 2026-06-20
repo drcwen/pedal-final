@@ -9,27 +9,35 @@ import { IoChevronBack } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 import BikesTile from "./BikesTile"
 import ProceedWalkInRent from "./proceed/ProceedWalkInRent"
+import { FaTrash } from "react-icons/fa";
 
 function WalkInRent() {
     
     const navigate = useNavigate();
     const [info, setInfo] = useState([]);
     const [proceed, setProceed] = useState(false);
+    const [openBikeId, setOpenBikeId] = useState(null);
+
+    const [bikeData, setBikeData] = useState({});
+    const [cart, setCart] = useState([]);
+
+    const handleDelete = (bikeId) => {
+        setCart(prev => prev.filter(item => item.bikeId !== bikeId));
+    };
+
 
     useEffect(() => {
+        console.log(cart);
         const fetchBikes = async () => {
-            const { data, error } = await supabase
+            const { data } = await supabase
                 .from("bike_types_mod")
                 .select("*")
-
-            console.log("DATA:", data)
-            console.log("ERROR:", error)
 
             setInfo(data || [])
         }
 
         fetchBikes()
-    }, [])
+    }, [cart])
 
   return (
     <>
@@ -76,14 +84,22 @@ function WalkInRent() {
                                 
                                 {info.map((bike) => (
                                     <motion.div
+                                        key={bike.id}
                                         initial={{ height: 0, opacity: 0 }}
                                         animate={{ height: "auto", opacity: 1 }}
                                         exit={{ height: 0, opacity: 0 }}
-                                        transition={{ duration: 0.3, ease: "easeInOut" }} 
+                                        transition={{ duration: 0.3, ease: "easeInOut" }}
                                     >
                                         <BikesTile 
+                                            key={bike.id}
+                                            bikeId={bike.id}
                                             name={bike.name}
                                             image={bike.image_url}
+                                            isOpen={openBikeId === bike.id}
+                                            onClick={() => setOpenBikeId(bike.id)}
+                                            bikeData={bikeData}
+                                            setBikeData={setBikeData}
+                                            setCart={setCart}
                                         />
                                     </motion.div>
                                 ))}
@@ -97,20 +113,39 @@ function WalkInRent() {
 
                         <div className='min-h-70 md:grid md:grid-cols-2 flex flex-col gap-10'>
                             <div className='flex flex-col gap-4'>
-                                <div className='flex flex-row justify-between items-center'>
-                                    
-                                    <div className='flex flex-row gap-4 items-center'>
-                                        <div className='bg-yellow p-2 rounded-lg'>
-                                            <img 
-                                                src='https://res.cloudinary.com/dp3vkgxtb/image/upload/v1775884918/solo_bike_mhxxvb.png'
-                                                className='w-10'
-                                            />
-                                        </div>
-                                        <h1 className='text-lg font-bold font-akagi text-[#6D7172]'>Hello</h1>
-                                    </div>
+                                {cart.map((item) => (
+                                    <div key={item.bikeId} className='flex flex-row justify-between items-center'>
+                                        
+                                        <div className='flex flex-row gap-4 items-center'>
+                                            <div className='bg-yellow p-2 rounded-lg'>
+                                                <img src={item.image} className='w-10' />
+                                            </div>
 
-                                    <h1 className='text-lg font-bold font-akagi text-[#6D7172]'>P200</h1>
-                                </div>
+                                            <div>
+                                                <h1 className='text-lg font-bold font-akagi text-[#6D7172]'>
+                                                    {item.name}
+                                                </h1>
+
+                                                <p className='text-sm text-gray'>
+                                                    {item.quantity}x • {item.hours} hrs
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div className='flex flex-row gap-4 items-center'>
+                                            <h1 className='text-lg font-bold font-akagi text-[#6D7172]'>
+                                                ₱{item.total}
+                                            </h1>
+
+                                            <button
+                                                onClick={() => handleDelete(item.bikeId)}
+                                                className='text-red-500 font-bold text-sm hover:opacity-70'
+                                            >
+                                                <FaTrash/> 
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
 
     
                             </div>

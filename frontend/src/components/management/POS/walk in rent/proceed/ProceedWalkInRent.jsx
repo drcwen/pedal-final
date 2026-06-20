@@ -1,7 +1,5 @@
 import { supabase } from "../../../../../lib/supabase"
 import { useEffect, useState } from "react";
-import { RiArrowDropDownLine } from "react-icons/ri";
-import { RiArrowDropUpLine } from "react-icons/ri";
 import OrderRow from "./OrderRow"
 
 function ProceedWalkInRent({onClose}) {
@@ -23,8 +21,8 @@ function ProceedWalkInRent({onClose}) {
 
   return (
     <>
-        <div className='xl:px-70 lg:px-30 md:px-10 fixed inset-0 bg-black/60 flex items-center justify-center'>
-            <div className='bg-[#ffffff] w-full rounded-xl p-10 flex flex-col gap-8 '>
+        <div className='xl:px-70 lg:px-30 md:px-10 py-10 fixed inset-0 bg-black/60 flex items-center justify-center'>
+            <div className='bg-[#ffffff] w-full h-full overflow-y-scroll scrollbar-thin scrollbar-thumb-[#B9B9B9] scrollbar-track-[#E2E2E2] rounded-xl p-10 flex flex-col gap-8 '>
 
                 <div className='flex flex-col gap-6'>
                     <h1 className='text-3xl font-akagi font-bold text-navyblue'>Walk-in Rent</h1>
@@ -55,7 +53,7 @@ function ProceedWalkInRent({onClose}) {
                     </div>
                 </div>
 
-                <div className='w-full lg:h-60 h-40 overflow-y-scroll scrollbar-thin scrollbar-thumb-[#B9B9B9] scrollbar-track-[#E2E2E2] px-10'>
+                <div className='w-full px-10'>
                     <div className='grid grid-cols-[100px_1fr_1fr_1fr_120px] text-center items-center gap-2'>
                         <div className='text-md font-akagi font-bold text-[#6D7172]'>Qty</div>
                         <div className='text-md font-akagi font-bold text-[#6D7172]'>Model</div>
@@ -99,27 +97,27 @@ function ProceedWalkInRent({onClose}) {
 
                 <div className='flex flex-col gap-3 px-30 '>
                     <div className='flex flex-row justify-between items-center'>
-                        <h1 className='text-xl font-bold font-akagi text-[#6D7172]'>Total</h1>
-                        <h1 className='text-2xl font-bold font-akagi text-[#6D7172]'>P240</h1>
+                        <h1 className='text-lg font-bold font-akagi text-[#6D7172]'>Total</h1>
+                        <h1 className='text-xl font-bold font-akagi text-[#6D7172]'>P240</h1>
                     </div>
 
                     <div className='flex flex-row justify-between items-center'>
-                        <h1 className='lg:text-xl font-bold font-akagi text-[#6D7172]'>Amount Tendered</h1>
-                        <h1 className='lg:text-xl font-medium font-akagi text-[#6D7172]'>P240</h1>
+                        <h1 className='lg:text-lg font-bold font-akagi text-[#6D7172]'>Amount Tendered</h1>
+                        <h1 className='lg:text-lg font-medium font-akagi text-[#6D7172]'>P240</h1>
                     </div>
 
                     <div className='flex flex-row justify-between items-center'>
-                        <h1 className='lg:text-xl font-bold font-akagi text-[#6D7172]'>Change</h1>
-                        <h1 className='lg:text-xl font-medium font-akagi text-[#6D7172]'>P240</h1>
+                        <h1 className='lg:text-lg font-bold font-akagi text-[#6D7172]'>Change</h1>
+                        <h1 className='lg:text-lg font-medium font-akagi text-[#6D7172]'>P240</h1>
                     </div>
 
                     <div className='flex flex-row justify-between items-center'>
-                        <h1 className='lg:text-xl font-bold font-akagi text-[#6D7172]'>Payment Method</h1>
-                        <h1 className='lg:text-xl font-medium font-akagi text-[#6D7172]'>GCash</h1>
+                        <h1 className='lg:text-lg font-bold font-akagi text-[#6D7172]'>Payment Method</h1>
+                        <h1 className='lg:text-lg font-medium font-akagi text-[#6D7172]'>GCash</h1>
                     </div>
 
                     <div className='flex flex-row justify-between items-center pl-10'>
-                        <h1 className='lg:text-xl font-medium font-akagi text-[#6D7172]'>Reference No:</h1>
+                        <h1 className='lg:text-lg font-medium font-akagi text-[#6D7172]'>Reference No:</h1>
                         <input className='rounded-lg px-2 py-1 border border-[#c4c6c7] text-xl font-medium font-akagi text-[#6D7172]'/>
                     </div>
                 </div>
