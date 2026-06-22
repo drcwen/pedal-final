@@ -19,6 +19,7 @@ import PastTransactions from "./pages/PastTransactions";
 
 import POS from "./components/management/POS/POS"
 import WalkInRent from "./components/management/POS/walk in rent/WalkInRent"
+import TransactionHistory from "./components/management/transaction history/TransactionHistory"
 
 function App() {
   const [session, setSession] = useState(null);
@@ -166,6 +167,7 @@ function App() {
           <Route path="/past-transactions" element={<PastTransactions />} />
           <Route path="*" element={<Navigate to="/dashboard" />} />
           <Route path="/pos/create" element={<WalkInRent />}/>
+          <Route path="/history" element={<TransactionHistory />}/>
         </>
       )}
 

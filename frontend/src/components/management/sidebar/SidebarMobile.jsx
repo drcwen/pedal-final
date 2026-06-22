@@ -5,10 +5,17 @@ import { useNavigate } from "react-router-dom";
 import { TfiMoreAlt } from "react-icons/tfi";
 import { FaHistory } from "react-icons/fa";
 import { IoIosPin } from "react-icons/io";
+import { useState } from 'react';
 
 function SidebarMobile({active}) {
 
     const navigate = useNavigate();
+
+    const [more, setMore] = useState(false);
+
+    const handleMore = () => {
+      setMore((prev) => !prev); // toggle open/close
+    };
 
     const menu = [
   {
@@ -31,11 +38,19 @@ function SidebarMobile({active}) {
   },
   {
     name: "More",
-    icon: TfiMoreAlt,
-    key: "more",
-    route: "",
-  }
-]
+      icon: TfiMoreAlt,
+      key: "more",
+      route: handleMore, // function directly
+    },
+  ];
+
+  const handleClick = (item) => {
+    if (typeof item.route === "function") {
+      item.route();
+    } else {
+      navigate(item.route);
+    }
+  };
 
   return (
     <>
@@ -48,12 +63,17 @@ function SidebarMobile({active}) {
                         icon={item.icon}
                         name={item.name}
                         isActive={active === item.key}
-                        onClick={() => navigate(item.route)}
+                        onClick={() => handleClick(item)}
                     />
                 ))}
 
                 
             </div>
+
+            {more && 
+              <div className='absolute bottom-14 right-0 left-0 bg-blue rounded-full px-6 py-3'>
+                <h1 className='text-[#ffffff] font-akagi font-bold'>Hello</h1>
+              </div>}
         </div>
       
     </>
