@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { TfiMoreAlt } from "react-icons/tfi";
 import { FaHistory } from "react-icons/fa";
 import { IoIosPin } from "react-icons/io";
+import { MdOutlineInventory } from "react-icons/md";
 
 function Sidebar({active}) {
 
@@ -34,6 +35,12 @@ function Sidebar({active}) {
     icon: IoIosPin,
     key: "monitoring",
     route: "/monitoring",
+  },
+  {
+    name: "Inventory",
+    icon: MdOutlineInventory,
+    key: "inventory",
+    route: "/inventory",
   },
 
 ]

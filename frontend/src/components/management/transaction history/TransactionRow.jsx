@@ -13,8 +13,8 @@ function TransactionRow() {
     <>
         <div className='flex flex-col gap-2 bg-[#F0F0F0] p-2 rounded-lg border border-[#C9C9C9]'>
             
-            <div className='grid grid-cols-[40px_1fr_1fr_1fr_1fr_1fr_20px] items-center text-center'>
-                <div className='bg-blue rounded-lg p-1 text-center w-fit px-3 text-[#ffffff] font-bold font-akagi'>2</div>
+            <div className='md:grid md:grid-cols-[40px_1fr_1fr_1fr_1fr_1fr_20px] items-center'>
+                <div className='bg-blue rounded-lg p-1 w-fit px-3 text-[#ffffff] font-bold font-akagi'>2</div>
 
                 <div className='flex justify-center font-akagi font-bold text-gray'>
                     20260326-001
