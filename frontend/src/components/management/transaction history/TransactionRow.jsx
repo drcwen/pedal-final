@@ -56,7 +56,7 @@ function TransactionRow() {
                         transition={{ duration: 0.3, ease: "easeInOut" }}
                         className=' overflow-hidden flex flex-col gap-4'
                     >
-                        <div className='grid grid-cols-[40px_1fr_70px_70px_90px_100px_100px_40px] items-center gap-2 px-10'>
+                        <div className='md:grid md:grid-cols-[40px_1fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-2 px-10'>
                             <div className=''>
                                 
                             </div>

@@ -17,11 +17,11 @@ function TransactionHistory() {
             <SidebarMobile active={'history'}/>
 
             <div className='flex-1 p-5'>
-                <div className='flex flex-col bg-[#ffffff] w-full h-full rounded-xl md:p-10 p-4 py-7 gap-5'>
+                <div className='flex flex-col bg-[#ffffff] w-full h-full rounded-xl md:p-10 p-6 py-7 gap-5'>
 
-                    <h1 className='text-4xl font-akagi font-bold tracking-wide text-blue'>Transaction History</h1>
+                    <h1 className='md:text-4xl text-2xl font-akagi font-bold tracking-wide text-blue'>Transaction History</h1>
 
-                    <div className='flex flex-col justify-between'>
+                    <div className='flex md:flex-row flex-col justify-between md:items-center py-3 gap-3'>
                         <Calendar 
                             value={dates} 
                             onChange={(e) => setDates(e.value)} 
@@ -33,7 +33,7 @@ function TransactionHistory() {
                             selectOtherMonths
                             className="w-fit" 
                             appendTo={document.body} 
-                            inputClassName="w-fit rounded-xl bg-[#D9D9D9] cursor-pointer font-akagi font-bold text-[#505050] border border-[#D9D9D9] px-4 py-3 focus:outline-none" 
+                            inputClassName="w-fit rounded-xl bg-[#D9D9D9] cursor-pointer font-akagi font-bold text-[#505050] border border-[#D9D9D9] md:px-4 md:py-3 px-2 py-2 focus:outline-none" 
                             pt={{ 
                                 panel: 
                                 { 
@@ -57,17 +57,24 @@ function TransactionHistory() {
                                 }, 
                                 table: 
                                 {
-                                    className: "w-full cursor-pointer border-separate border-spacing-y-2 border-spacing-x-4 text-center"
-                                } 
+                                    className: "w-full font-akagi text-[#505050] cursor-pointer border-separate border-spacing-y-2 border-spacing-x-4 text-center"
+                                }
                             }} 
                         />
+
+                        <div className='pr-10'>
+                            <input 
+                                placeholder='Search'
+                                className='bg-[#DBDBDB] focus:outline-none rounded-xl px-2 py-2 font-akagi font-bold text-[#505050]'/>
+                            
+                        </div>
                     </div>
 
                     <div className='flex-1 overflow-y-scroll scrollbar-thin scrollbar-thumb-[#B9B9B9] scrollbar-track-[#E2E2E2] md:pr-7 pr-2 flex flex-col gap-3'>
 
                         <div className='flex flex-col gap-2'>
 
-                            <div className='hidden grid grid-cols-[40px_1fr_1fr_1fr_1fr_1fr_20px] items-center text-center p-2'>
+                            <div className='hidden md:grid md:grid-cols-[40px_1fr_1fr_1fr_1fr_1fr_20px] items-center text-center p-2'>
                                 <div className=''></div>
                                 <div className='flex justify-center font-akagi font-medium text-[#9E9E9E]'>
                                     ID

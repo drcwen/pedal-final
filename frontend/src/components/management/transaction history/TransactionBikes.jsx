@@ -10,7 +10,7 @@ function TransactionBikes() {
   return (
     <>
         
-        <div className='grid grid-cols-[40px_1fr_70px_70px_90px_100px_100px_40px] items-center gap-2 px-10'>
+        <div className='md:grid md:grid-cols-[40px_1fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-2 px-10'>
             <div className='bg-yellow p-1 rounded-lg'>
                 <img className='w-10' src='https://res.cloudinary.com/dp3vkgxtb/image/upload/v1775884920/go_kart_upmxbh.png'></img>
             </div>

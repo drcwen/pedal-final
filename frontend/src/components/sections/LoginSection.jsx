@@ -33,7 +33,7 @@ function LoginSection() {
         const {error} = await supabase.auth.signInWithOAuth({
             provider: 'google',
             option: {
-                redirectTo: 'http://localhost:5173/dashboard'
+                redirectTo: `${window.location.origin}/dashboard`
             }
         })
 
@@ -88,7 +88,7 @@ function LoginSection() {
 
                     <div className='items-center text-center flex flex-col gap-10'>
 
-                        <h1 className='md:text-5xl text-3xl font-bold tracking-wide text-darkblue'>LOGIN</h1>
+                        <h1 className='md:text-5xl text-3xl font-black font-akagi tracking-wide text-darkblue'>LOGIN</h1>
 
                         <div className='flex flex-row gap-5 items-center justify-center'>
 
