@@ -44,7 +44,7 @@ function StaticNavigationPC() {
       <div
         className={`w-full fixed top-0 left-0 z-50 transition-colors duration-300 bg-darkblue`}
       >
-        <div className='md:px-30 md:py-7 px-10 py-8 flex justify-between flex-row items-center'>
+        <div className='md:px-30 md:py-5 px-10 py-5 flex justify-between flex-row items-center'>
           <div className='lg:flex hidden'>
             <h1 onClick={() => navigate("/")}
               className='font-akagi text-2xl cursor-pointer font-black tracking-wide text-white text-shadow-lg hover:text-yellow transition-all duration-300 hover:scale-110'>
