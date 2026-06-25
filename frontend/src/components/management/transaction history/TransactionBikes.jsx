@@ -10,37 +10,49 @@ function TransactionBikes() {
   return (
     <>
         
-        <div className='md:grid md:grid-cols-[40px_1fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-2 px-10'>
-            <div className='bg-yellow p-1 rounded-lg'>
-                <img className='w-10' src='https://res.cloudinary.com/dp3vkgxtb/image/upload/v1775884920/go_kart_upmxbh.png'></img>
+        <div className=' border-1 shadow-md border-[#DBDBDB] p-3 rounded-lg flex flex-col gap-4'>
+            <div className='flex flex-row justify-between items-center'>
+                <div className='flex flex-row gap-3 items-center'>
+                    <div className='items-center bg-yellow p-1 rounded-lg'>
+                        <img 
+                            src='https://res.cloudinary.com/dp3vkgxtb/image/upload/v1775884918/solo_bike_mhxxvb.png'
+                            className='w-6'
+                        />
+                    </div>
+
+                    <h1 className='text-md font-akagi font-bold text-gray'>Mountain Bike</h1>
+                </div>
+
+                <h1 className='text-md font-akagi font-bold text-gray'>P150</h1>
             </div>
 
-            <div className='flex justify-center font-akagi font-bold text-gray'>
-                Mountain Bike
-            </div>
+            <div className='flex px-3'>
+                <div className='w-full grid grid-cols-3 gap-2'>
+                    <div className='flex flex-col'>
+                        <h1 className='text-sm font-akagi font-bold text-gray'>UNIT ID</h1>
+                        <h1 className='text-sm font-akagi font-medium text-gray'>J3</h1>
+                    </div>
 
-            <div className='flex justify-center font-akagi font-bold text-gray'>
-                J13
-            </div>
+                    <div className='flex flex-col'>
+                        <h1 className='text-sm font-akagi font-bold text-gray'>GPS ID</h1>
+                        <h1 className='text-sm font-akagi font-medium text-gray'>jipies3</h1>
+                    </div>
 
-            <div className='flex justify-center font-akagi font-bold text-gray'>
-                jipies3
-            </div>
+                    <div className='flex flex-col'>
+                        <h1 className='text-sm font-akagi font-bold text-gray'>DURATION</h1>
+                        <h1 className='text-sm font-akagi font-medium text-gray'>3 Hours</h1>
+                    </div>
 
-            <div className='flex justify-center font-akagi font-bold text-gray'>
-                1 Hour
-            </div>
+                    <div className='flex flex-col'>
+                        <h1 className='text-sm font-akagi font-bold text-gray'>START</h1>
+                        <h1 className='text-sm font-akagi font-medium text-gray'>1:00 PM</h1>
+                    </div>
 
-            <div className='flex justify-center font-akagi font-bold text-gray'>
-                10:48AM
-            </div>
-
-            <div className='flex justify-center font-akagi font-bold text-gray'>
-                11:48AM
-            </div>
-
-            <div className='flex justify-center font-akagi font-bold text-gray'>
-                P150
+                    <div className='flex flex-col'>
+                        <h1 className='text-sm font-akagi font-bold text-gray'>END</h1>
+                        <h1 className='text-sm font-akagi font-medium text-gray'>4:00 PM</h1>
+                    </div>
+                </div>
             </div>
         </div>
                             

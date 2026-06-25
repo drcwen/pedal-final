@@ -11,12 +11,12 @@ function TransactionRow() {
 
   return (
     <>
-        <div className='flex flex-col gap-2 bg-[#F0F0F0] p-2 rounded-lg border border-[#C9C9C9]'>
+        <div className='flex flex-col gap-6 bg-[#F0F0F0] p-2 rounded-lg border border-[#C9C9C9]'>
             
-            <div className='md:grid md:grid-cols-[40px_1fr_1fr_1fr_1fr_1fr_20px] items-center'>
+            <div className={`md:grid md:grid-cols-[40px_1fr_1fr_1fr_1fr_1fr_20px] flex flex-row justify-between items-center`}>
                 <div className='bg-blue rounded-lg p-1 w-fit px-3 text-[#ffffff] font-bold font-akagi'>2</div>
 
-                <div className='flex justify-center font-akagi font-bold text-gray'>
+                <div className='hidden md:flex justify-center font-akagi font-bold text-gray'>
                     20260326-001
                 </div>
 
@@ -26,10 +26,10 @@ function TransactionRow() {
                 <div className='flex justify-center font-akagi font-medium text-gray'>
                     Walk-in
                 </div>
-                <div className='flex justify-center font-akagi font-medium text-gray'>
+                <div className='hidden md:flex justify-center font-akagi font-medium text-gray'>
                     10:48AM
                 </div>
-                <div className='flex justify-center font-akagi font-medium text-gray'>
+                <div className='hidden md:flex justify-center font-akagi font-medium text-gray'>
                     Completed
                 </div>
 
@@ -54,43 +54,10 @@ function TransactionRow() {
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.3, ease: "easeInOut" }}
-                        className=' overflow-hidden flex flex-col gap-4'
+                        className='md:px-10 px-2'
                     >
-                        <div className='md:grid md:grid-cols-[40px_1fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-2 px-10'>
-                            <div className=''>
-                                
-                            </div>
 
-                            <div className='flex justify-center font-akagi font-medium text-gray/50'>
-                                Type
-                            </div>
-
-                            <div className='flex justify-center font-akagi font-medium text-gray/50'>
-                                ID
-                            </div>
-
-                            <div className='flex justify-center font-akagi font-medium text-gray/50'>
-                                GPS
-                            </div>
-
-                            <div className='flex justify-center font-akagi font-medium text-gray/50'>
-                                Duration
-                            </div>
-
-                            <div className='flex justify-center font-akagi font-medium text-gray/50'>
-                                Start
-                            </div>
-
-                            <div className='flex justify-center font-akagi font-medium text-gray/50'>
-                                End
-                            </div>
-
-                            <div className='flex justify-center font-akagi font-medium text-gray/50'>
-                                Price
-                            </div>
-                        </div>
-
-                        <div className='flex flex-col gap-3'>
+                        <div className='md:grid md:grid-cols-3 flex flex-col gap-3 pb-5'>
                             <TransactionBikes/>
                             <TransactionBikes/>
                             <TransactionBikes/>

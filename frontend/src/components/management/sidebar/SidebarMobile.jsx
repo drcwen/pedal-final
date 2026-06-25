@@ -8,7 +8,7 @@ import { IoIosPin } from "react-icons/io";
 import { MdOutlineInventory } from "react-icons/md";
 import { useState } from 'react';
 import { motion, AnimatePresence } from "motion/react"
-
+import { supabase } from "../../../lib/supabase"
 
 function SidebarMobile({active}) {
 
@@ -16,8 +16,19 @@ function SidebarMobile({active}) {
 
     const [more, setMore] = useState(false);
 
+    const handleLogout = async () => {
+      const { error } = await supabase.auth.signOut()
+
+      if (error) {
+          console.log(error.message)
+      }
+
+      navigate("/login");
+  }
+
+
     const handleMore = () => {
-      setMore((prev) => !prev); // toggle open/close
+      setMore((prev) => !prev);
     };
 
     const menu = [
@@ -41,11 +52,11 @@ function SidebarMobile({active}) {
   },
   {
     name: "More",
-      icon: TfiMoreAlt,
-      key: "more",
-      route: handleMore,
-    },
-  ];
+    icon: TfiMoreAlt,
+    key: "more",
+    route: handleMore,
+  },
+];
 
   const moreMenu = [
     {
@@ -53,6 +64,12 @@ function SidebarMobile({active}) {
       icon: MdOutlineInventory,
       key: "inventory",
       route: "/inventory",
+    },
+    {
+    name: "Sign out",
+      icon: TfiMoreAlt,
+      key: "signout",
+      route: handleLogout,
     },
   ]
 
