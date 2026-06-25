@@ -24,7 +24,7 @@ function POS() {
                 animate={{ height: "auto", opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
                 transition={{ duration: 0.25, ease: "easeInOut" }} 
-                className='flex-1 lg:py-15 lg:px-10'>
+                className='flex-1 lg:p-5'>
 
                 <SidebarMobile active={'pos'}/>
                     

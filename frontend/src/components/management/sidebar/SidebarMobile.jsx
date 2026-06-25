@@ -9,6 +9,7 @@ import { MdOutlineInventory } from "react-icons/md";
 import { useState } from 'react';
 import { motion, AnimatePresence } from "motion/react"
 import { supabase } from "../../../lib/supabase"
+import { PiSignOutBold } from "react-icons/pi";
 
 function SidebarMobile({active}) {
 
@@ -24,7 +25,7 @@ function SidebarMobile({active}) {
       }
 
       navigate("/login");
-  }
+    }
 
 
     const handleMore = () => {
@@ -66,8 +67,14 @@ function SidebarMobile({active}) {
       route: "/inventory",
     },
     {
+      name: "Monitoring",
+      icon: IoIosPin,
+      key: "monitoring",
+      route: "/monitoring",
+    },
+    {
     name: "Sign out",
-      icon: TfiMoreAlt,
+      icon: PiSignOutBold,
       key: "signout",
       route: handleLogout,
     },
