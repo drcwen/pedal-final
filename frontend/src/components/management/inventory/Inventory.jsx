@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion } from "motion/react"
 import { FaPlus } from "react-icons/fa";
 import { FaTools } from "react-icons/fa";
-import BikeRow from "./BikeRow"
+import BikeRow from "./Bikes/BikeRow"
 
 function Inventory() {
 

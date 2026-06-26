@@ -11,7 +11,7 @@ function BikeRow() {
 
   return (
     <>
-            <div className='bg-[#EBEBEB] w-full rounded-lg px-3 py-1 border border-[#c9c9c9]'>
+            <div className='bg-[#EBEBEB] w-full rounded-lg px-3 py-2 border border-[#c9c9c9]'>
                 <div className='grid md:grid-cols-[70px_1fr_1fr_1fr_1fr_20px] grid-cols-[1fr_1fr_20px] gap-4 items-center text-center font-akagi text-md lg:text-lg font-bold text-gray'>
                     <div className='hidden md:flex items-center justify-center'>
                         <img 
@@ -57,7 +57,7 @@ function BikeRow() {
                                 className='flex flex-col gap-7 py-5'
                             >
                                 <div className='flex flex-col gap-3'>
-                                    <div className='grid md:grid-cols-3 xl:grid-cols-5 grid-cols-2 gap-2 text-center font-akagi text-md font-bold text-gray'>
+                                    <div className='xl:px-8 grid md:grid-cols-3 xl:grid-cols-5 grid-cols-2 gap-2 text-center font-akagi text-md font-bold text-gray'>
                                         <div className='border border-[#c9c9c9] hover:scale-103 hover:shadow-2xl duration-300 transition-all rounded-lg shadow-lg flex flex-col gap-2 py-2 items-center'>
                                             <h1>Total Qty</h1>
                                             <h1 className='text-xl'>1</h1>
@@ -86,7 +86,7 @@ function BikeRow() {
                                 </div>
 
                                 <div className='flex flex-col gap-3'>
-                                    <div className='px-3 grid grid-cols-[1fr_1fr_1fr_1fr_1fr_30px] gap-2 font-akagi font-bold text-gray/50 text-md text-center'>
+                                    <div className='hidden px-3 md:grid md:grid-cols-[1fr_1fr_1fr_1fr_1fr_30px] gap-2 font-akagi font-bold text-gray/50 text-md text-center'>
                                         <div className=''>
                                             ID
                                         </div>
@@ -112,7 +112,13 @@ function BikeRow() {
                                         </div>
                                     </div>
 
-                                    <BikeInventoryInfo />
+                                    <div className='flex flex-col gap-2'>
+                                        <BikeInventoryInfo />
+                                        <BikeInventoryInfo />
+                                        <BikeInventoryInfo />
+                                        <BikeInventoryInfo />
+                                        <BikeInventoryInfo />
+                                    </div>
 
                                     <div className='w-full flex items-center justify-center'>
                                         <div className='bg-blue text-md font-akagi py-2 items-center cursor-pointer px-3 font-bold text-[#ffffff] rounded-lg flex flex-row gap-3'>
