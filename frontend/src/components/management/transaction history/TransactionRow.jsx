@@ -63,7 +63,7 @@ function TransactionRow() {
                             <MdOutlineKeyboardArrowRight className='text-xl font-bold text-gray'/>
                         </div>
 
-                        <div className='md:grid md:grid-cols-3 flex flex-col gap-3 pb-5'>
+                        <div className='md:grid md:grid-cols-2 xl:grid-cols-3 flex flex-col gap-3 pb-5'>
                             <TransactionBikes/>
                             <TransactionBikes/>
                             <TransactionBikes/>

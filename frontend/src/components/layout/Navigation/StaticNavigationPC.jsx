@@ -105,7 +105,7 @@ function StaticNavigationPC() {
       </div>
 
       <div
-        className={`fixed top-24 left-0 z-[999] w-full transform transition-transform duration-300
+        className={`fixed top-19 left-0 z-[999] w-full transform transition-transform duration-300
           ${menu ? "translate-x-0 opacity-100" : "-translate-x-full opacity-0"}`}
       >
         <NavMobile />

@@ -1,28 +1,37 @@
-
+import { MdModeEditOutline } from "react-icons/md";
 
 function BikeInventoryInfo() {
 
   return (
     <>
 
-            <div className='grid grid-cols-[70px_1fr_1fr_1fr_1fr_20px] gap-4 items-center text-center font-akagi font-bold text-gray'>
-                <div className='flex items-center justify-center'>
-                    <img 
-                        className='w-15'
-                        src='https://res.cloudinary.com/dp3vkgxtb/image/upload/v1775884920/go_kart_upmxbh.png'
-                    />
-                </div>
+            <div className='px-3 bg-[#ffffff] border border-[#C9C9C9] rounded-lg py-2 grid grid-cols-[1fr_1fr_1fr_1fr_1fr_30px] gap-2 font-akagi font-bold text-gray text-md text-center'>
+              <div className=''>
+                  M01
+              </div>
 
-                <h1>Mountain Bike</h1>
+              <div className=''>
+                  123
+              </div>
 
-                <h1>1</h1>
+              <div className=''>
+                  12/22/2026
+              </div>
 
-                <h1>150</h1>
+              <div className=''>
+                  P5000
+              </div>
 
-                <h1></h1>
+              <div className=''>
+                  Rented
+              </div>
 
-                <h1></h1>
-            </div>
+              <div className='flex items-center justify-center'>
+                  <div className='bg-blue rounded-lg p-1'>
+                      <MdModeEditOutline className='text-[#ffffff] text-lg'/>
+                  </div>
+              </div>
+          </div>
     </>
   )
 }

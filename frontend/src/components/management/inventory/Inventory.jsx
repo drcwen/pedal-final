@@ -87,7 +87,7 @@ function Inventory() {
                     {activeTab === "Bike" &&
 
                         <div className='flex flex-col gap-3'>
-                            <div className='grid grid-cols-[70px_1fr_1fr_1fr_1fr_20px] gap-4 items-center text-center font-akagi font-bold text-gray'>
+                            <div className='hidden md:grid md:grid-cols-[70px_1fr_1fr_1fr_1fr_20px] gap-4 items-center text-center font-akagi font-bold text-gray'>
                                 <h1/>
 
                                 <h1>Type</h1>
