@@ -5,10 +5,16 @@ import { motion } from "motion/react"
 import { FaPlus } from "react-icons/fa";
 import { FaTools } from "react-icons/fa";
 import BikeRow from "./Bikes/BikeRow"
+import { MdModeEditOutline } from "react-icons/md";
+import { RiArrowDropDownLine, RiArrowDropUpLine } from "react-icons/ri";
+import { RiImageAddFill } from "react-icons/ri";
+import GPSRow from "./GPS/GPSRow"
 
 function Inventory() {
 
     const [activeTab, setActiveTab] = useState("Bike");
+    const [addType, setAddType] = useState(false);
+    const [addGPS, setAddGPS] = useState(false);
 
   return (
     <>
@@ -69,9 +75,30 @@ function Inventory() {
                                 <div className='bg-gray/20 rounded-xl flex items-center px-3 cursor-pointer'>
                                     <FaTools className='text-lg md:text-xl text-red-500'/>
                                 </div>
-                                <div className='w-fit cursor-pointer bg-blue hover:bg-blue/70 hover:text-[#ffffff] duration-300 transition-all items-center text-center rounded-xl flex flex-row justify-between gap-3 px-3 py-2 md:text-lg text-md font-akagi font-bold text-[#ffffff]'>
+                                <div 
+                                    onClick={() => {setAddType(true)}}
+                                    className='w-fit cursor-pointer bg-blue hover:bg-blue/70 hover:text-[#ffffff] duration-300 transition-all items-center text-center rounded-xl flex flex-row justify-between gap-3 px-3 py-2 md:text-lg text-md font-akagi font-bold text-[#ffffff]'
+                                >
                                     <FaPlus className='text-md md:text-bold text-[#ffffff]'/>
                                     Bike Type
+                                </div>
+                            </motion.div>
+                        }
+
+                        {activeTab === "gps" &&
+
+                            <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: "auto", opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.25, ease: "easeInOut" }}   
+                                className='flex md:flex-row gap-3'
+                            >
+                                <div 
+                                    onClick={() => {setAddGPS(true)}}
+                                    className='w-fit cursor-pointer bg-blue hover:bg-blue/70 hover:text-[#ffffff] duration-300 transition-all items-center text-center rounded-xl flex flex-row justify-between gap-3 px-3 py-2 md:text-lg text-md font-akagi font-bold text-[#ffffff]'>
+                                    <FaPlus className='text-md md:text-bold text-[#ffffff]'/>
+                                    Add New GPS
                                 </div>
                             </motion.div>
                         }
@@ -79,8 +106,22 @@ function Inventory() {
 
                     {activeTab === "gps" &&
 
-                        <div className='flex md:flex-row gap-3'>
-                            <h1>tite</h1>
+                        <div className='flex flex-col gap-3'>
+                            <div className='hidden w-full md:grid md:grid-cols-[1fr_1fr_1fr_100px_50px] gap-2 text-center items-center font-akagi font-bold text-[#9E9E9E]'>
+                                <div className=''>GPS Name</div>
+                                <div className=''>Battery Life</div>
+                                <div className=''>Status</div>
+                                <div className=''>
+                                    
+                                </div>
+                                <div className=''>
+                                    
+                                </div>
+                            </div>
+
+                            <div className='flex flex-col gap-2'>
+                                <GPSRow />
+                            </div>
                         </div>
                     }
 
@@ -111,6 +152,106 @@ function Inventory() {
                         </div>
                     }
                 </div>
+
+                {addGPS === true &&
+                    <div className='fixed inset-0 bg-black/60 flex items-center justify-center'>
+                        <div className='bg-[#ffffff] p-5 rounded-xl flex flex-col gap-5'>
+
+                            <div className='flex flex-col gap-4 font-akagi font-bold text-gray'>
+                                <div className='flex flex-col gap-1'>
+                                    <h1>New GPS Name</h1>
+                                    <input 
+                                        className='font-medium bg-[#EBEBEB] text-[#505050]/50 rounded-lg py-1 px-2'
+                                        placeholder='Enter bike type name'/>
+                                </div>
+
+                                <div className='flex flex-col gap-1'>
+                                    <h1>New SIM Number</h1>
+                                    <input 
+                                        className='font-medium bg-[#EBEBEB] text-[#505050]/50 rounded-lg py-1 px-2'
+                                        placeholder='Enter bike type name'/>
+                                </div>
+
+                                <div className='flex flex-col gap-1'>
+                                    <h1>New Unique ID/IMEI</h1>
+                                    <input 
+                                        className='font-medium bg-[#EBEBEB] text-[#505050]/50 rounded-lg py-1 px-2'
+                                        placeholder='Enter bike type name'/>
+
+                                </div>
+
+                                <div className='w-full flex flex-row gap-2 justify-end'>
+                                    <div 
+                                        onClick={() => {setAddGPS(false)}}
+                                        className='bg-red-500 rounded-lg px-2 py-1 text-[#ffffff] hover:bg-red-500 transition-all duration-300 hover:scale-103 cursor-pointer'>
+                                        Cancel
+                                    </div>
+
+                                    <div className='bg-green-500 rounded-lg px-2 py-1 text-[#ffffff] hover:bg-green-500 transition-all duration-300 hover:scale-103 cursor-pointer'>
+                                        Save
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>    
+                }
+
+                {addType === true && 
+                    <div className='fixed inset-0 bg-black/60 flex items-center justify-center'>
+                        <div className='bg-[#ffffff] p-5 rounded-xl flex md:flex-row flex-col gap-5'>
+                            <div className='flex flex-col cursor-pointer gap-2 items-center justify-center'>
+                                <div className='bg-[#EBEBEB] p-10 rounded-xl'>
+                                    <RiImageAddFill className='text-7xl text-gray'/>
+                                </div>
+
+                                <h1 className='text-lg font-akagi font-medium cursor-pointer hover:underline text-gray'>Upload Image</h1>
+                            </div>
+
+                            <div className='flex flex-col gap-4 font-akagi font-bold text-gray'>
+                                <div className='flex flex-col gap-1'>
+                                    <h1>New Bike Type</h1>
+                                    <input 
+                                        className='font-medium bg-[#EBEBEB] text-[#505050]/50 rounded-lg py-1 px-2'
+                                        placeholder='Enter bike type name'/>
+                                </div>
+
+                                <div className='flex flex-col gap-1'>
+                                    <h1>Set Maximum Capacity</h1>
+                                    <input 
+                                        className='font-medium bg-[#EBEBEB] text-[#505050]/50 rounded-lg py-1 px-2'
+                                        placeholder='Enter bike type name'/>
+                                </div>
+
+                                <div className='flex flex-col gap-1'>
+                                    <h1>Set Rent Price Per Hour</h1>
+                                    <div className='flex flex-row gap-3 items-center'>
+                                        <input 
+                                            className='font-medium bg-[#EBEBEB] text-[#505050]/50 rounded-lg py-1 px-2'
+                                            placeholder='Enter bike type name'/>
+
+                                        <h1 className='font-light'>pesos/hr</h1>
+                                    </div>
+                                </div>
+
+                                <div className='w-full flex flex-row gap-2 justify-end'>
+                                    <div 
+                                        onClick={() => {setAddType(false)}}
+                                        className='bg-red-500 rounded-lg px-2 py-1 text-[#ffffff] hover:bg-red-500 transition-all duration-300 hover:scale-103 cursor-pointer'>
+                                        Cancel
+                                    </div>
+
+                                    <div className='bg-green-500 rounded-lg px-2 py-1 text-[#ffffff] hover:bg-green-500 transition-all duration-300 hover:scale-103 cursor-pointer'>
+                                        Save
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>    
+                }
 
             </motion.div>
         </div>

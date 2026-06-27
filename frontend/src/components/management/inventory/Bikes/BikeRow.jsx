@@ -4,10 +4,12 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react"
 import BikeInventoryInfo from "./BikeInventoryInfo"
 import { FaPlus } from "react-icons/fa";
+import { RiImageAddFill } from "react-icons/ri";
 
 function BikeRow() {
 
     const [dropDown, setDropDown] = useState(false);
+    const [addBike, setAddBike] = useState(false);
 
   return (
     <>
@@ -121,7 +123,9 @@ function BikeRow() {
                                     </div>
 
                                     <div className='w-full flex items-center justify-center'>
-                                        <div className='bg-blue text-md font-akagi py-2 items-center cursor-pointer px-3 font-bold text-[#ffffff] rounded-lg flex flex-row gap-3'>
+                                        <div 
+                                            onClick={() => {setAddBike(true)}}
+                                            className='bg-blue text-md font-akagi py-2 items-center cursor-pointer px-3 font-bold text-[#ffffff] rounded-lg flex flex-row gap-3'>
                                             <FaPlus className='text-[#ffffff] text-md'/>
                                             Add New Bike
                                         </div>
@@ -132,6 +136,49 @@ function BikeRow() {
                     }
                 </AnimatePresence>
                 </div>
+
+                {addBike === true &&
+                    <div className='fixed inset-0 bg-black/60 flex items-center justify-center'>
+                        <div className='bg-[#ffffff] p-5 rounded-xl flex md:flex-row flex-col gap-5'>
+                            <div className='flex flex-col cursor-pointer gap-2 items-center justify-center'>
+                                <div className='bg-[#EBEBEB] p-10 rounded-xl'>
+                                    <RiImageAddFill className='text-7xl text-gray'/>
+                                </div>
+
+                                <h1 className='text-lg font-akagi font-medium cursor-pointer hover:underline text-gray'>Upload Image</h1>
+                            </div>
+
+                            <div className='flex flex-col gap-4 font-akagi font-bold text-gray'>
+                                <div className='flex flex-col gap-1'>
+                                    <h1>Set Quantity</h1>
+                                    <input 
+                                        className='font-medium bg-[#EBEBEB] text-[#505050]/50 rounded-lg py-1 px-2'
+                                        placeholder='Enter bike type name'/>
+                                </div>
+
+                                <div className='flex flex-col gap-1'>
+                                    <h1>Add Bike ID</h1>
+                                    <input 
+                                        className='font-medium bg-[#EBEBEB] text-[#505050]/50 rounded-lg py-1 px-2'
+                                        placeholder='Enter bike type name'/>
+                                </div>
+
+                                <div className='w-full flex flex-row gap-2 justify-end'>
+                                    <div 
+                                        onClick={() => {setAddBike(false)}}
+                                        className='bg-red-500 rounded-lg px-2 py-1 text-[#ffffff] hover:bg-red-500 transition-all duration-300 hover:scale-103 cursor-pointer'>
+                                        Cancel
+                                    </div>
+
+                                    <div className='bg-green-500 rounded-lg px-2 py-1 text-[#ffffff] hover:bg-green-500 transition-all duration-300 hover:scale-103 cursor-pointer'>
+                                        Save
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>    
+                }
 
     </>
   )
