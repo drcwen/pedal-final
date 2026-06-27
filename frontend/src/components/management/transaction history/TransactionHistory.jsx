@@ -15,14 +15,16 @@ function TransactionHistory() {
 
         <div className='w-full h-screen md:bg-[#F2F2F2] flex'>
             <Sidebar active={'history'}/>
-            <SidebarMobile active={'history'}/>
 
             <motion.div
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: "auto", opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.25, ease: "easeInOut" }}  
+                transition={{ duration: 0.25, ease: "easeInOut" }} 
                 className='flex-1 p-5'>
+
+                <SidebarMobile active={'history'}/>
+                
                 <div className='flex flex-col bg-[#ffffff] w-full h-full rounded-xl md:p-10 px-3 py-7 gap-5 overflow-y-scroll scrollbar-thin scrollbar-thumb-[#B9B9B9] scrollbar-track-[#E2E2E2]'>
 
                     <h1 className='md:text-4xl text-2xl font-akagi font-bold tracking-wide text-blue'>Transaction History</h1>
