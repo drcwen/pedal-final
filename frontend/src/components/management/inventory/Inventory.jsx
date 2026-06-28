@@ -113,6 +113,7 @@ function Inventory() {
                                 }
                             </div>
 
+                            {/*GPS Inventory*/}
                             {activeTab === "gps" &&
 
                                 <div className='flex flex-col gap-3'>
@@ -134,6 +135,7 @@ function Inventory() {
                                 </div>
                             }
 
+                            {/*Bike Inventory*/}
                             {activeTab === "Bike" &&
 
                                 <div className='flex flex-col gap-3'>
@@ -162,6 +164,7 @@ function Inventory() {
                             }
                         </div>
 
+                        {/*Add GPS*/}
                         {addGPS === true &&
                             <div className='fixed inset-0 bg-black/60 flex items-center justify-center'>
                                 <div className='bg-[#ffffff] p-5 rounded-xl flex flex-col gap-5'>
@@ -170,21 +173,21 @@ function Inventory() {
                                         <div className='flex flex-col gap-1'>
                                             <h1>New GPS Name</h1>
                                             <input 
-                                                className='font-medium bg-[#EBEBEB] text-[#505050]/50 rounded-lg py-1 px-2'
+                                                className='focus:outline-none font-medium bg-[#EBEBEB] text-[#505050]/50 rounded-lg py-1 px-2'
                                                 placeholder='Enter bike type name'/>
                                         </div>
 
                                         <div className='flex flex-col gap-1'>
                                             <h1>New SIM Number</h1>
                                             <input 
-                                                className='font-medium bg-[#EBEBEB] text-[#505050]/50 rounded-lg py-1 px-2'
+                                                className='focus:outline-none font-medium bg-[#EBEBEB] text-[#505050]/50 rounded-lg py-1 px-2'
                                                 placeholder='Enter bike type name'/>
                                         </div>
 
                                         <div className='flex flex-col gap-1'>
                                             <h1>New Unique ID/IMEI</h1>
                                             <input 
-                                                className='font-medium bg-[#EBEBEB] text-[#505050]/50 rounded-lg py-1 px-2'
+                                                className='focus:outline-none font-medium bg-[#EBEBEB] text-[#505050]/50 rounded-lg py-1 px-2'
                                                 placeholder='Enter bike type name'/>
 
                                         </div>
@@ -207,6 +210,7 @@ function Inventory() {
                             </div>    
                         }
 
+                        {/*Add Bike Type*/}
                         {addType === true && 
                             <div className='fixed inset-0 bg-black/60 flex items-center justify-center'>
                                 <div className='bg-[#ffffff] p-5 rounded-xl flex md:flex-row flex-col gap-5'>
@@ -222,14 +226,14 @@ function Inventory() {
                                         <div className='flex flex-col gap-1'>
                                             <h1>New Bike Type</h1>
                                             <input 
-                                                className='font-medium bg-[#EBEBEB] text-[#505050]/50 rounded-lg py-1 px-2'
+                                                className='focus:outline-none font-medium bg-[#EBEBEB] text-[#505050]/50 rounded-lg py-1 px-2'
                                                 placeholder='Enter bike type name'/>
                                         </div>
 
                                         <div className='flex flex-col gap-1'>
                                             <h1>Set Maximum Capacity</h1>
                                             <input 
-                                                className='font-medium bg-[#EBEBEB] text-[#505050]/50 rounded-lg py-1 px-2'
+                                                className='focus:outline-none font-medium bg-[#EBEBEB] text-[#505050]/50 rounded-lg py-1 px-2'
                                                 placeholder='Enter bike type name'/>
                                         </div>
 
@@ -237,7 +241,7 @@ function Inventory() {
                                             <h1>Set Rent Price Per Hour</h1>
                                             <div className='flex flex-row gap-3 items-center'>
                                                 <input 
-                                                    className='font-medium bg-[#EBEBEB] text-[#505050]/50 rounded-lg py-1 px-2'
+                                                    className='focus:outline-none font-medium bg-[#EBEBEB] text-[#505050]/50 rounded-lg py-1 px-2'
                                                     placeholder='Enter bike type name'/>
 
                                                 <h1 className='font-light'>pesos/hr</h1>

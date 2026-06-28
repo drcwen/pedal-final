@@ -9,6 +9,7 @@ import { MdOutlineInventory } from "react-icons/md";
 import { FaUserCircle } from "react-icons/fa";
 import { PiSignOutBold } from "react-icons/pi";
 import { supabase } from "../../../lib/supabase"
+import { MdManageAccounts } from "react-icons/md";
 
 function Sidebar({active}) {
 
@@ -54,6 +55,12 @@ function Sidebar({active}) {
     icon: MdOutlineInventory,
     key: "inventory",
     route: "/inventory",
+  },
+  {
+    name: "Manage Accounts",
+    icon: MdManageAccounts,
+    key: "accounts",
+    route: "/accounts",
   },
 
 ]

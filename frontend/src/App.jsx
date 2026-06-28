@@ -22,6 +22,8 @@ import WalkInRent from "./components/management/POS/walk in rent/WalkInRent"
 import TransactionHistory from "./components/management/transaction history/TransactionHistory"
 import Inventory from "./components/management/inventory/Inventory"
 import Monitoring from "./components/management/monitoring/Monitoring"
+import ManageAccount from "./components/management/manage account/ManageAccount"
+import AccountDetails from "./components/management/manage account/AccountDetails"
 
 function App() {
   const [session, setSession] = useState(null);
@@ -172,6 +174,8 @@ function App() {
           <Route path="/history" element={<TransactionHistory />}/>
           <Route path="/inventory" element={<Inventory/>}/>
           <Route path="/monitoring" element={<Monitoring/>}/>
+          <Route path="/accounts" element={<ManageAccount/>}/>
+          <Route path="/accounts/02000223436" element={<AccountDetails/>}/>
         </>
       )}
 

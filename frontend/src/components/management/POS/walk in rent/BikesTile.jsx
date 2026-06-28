@@ -74,7 +74,7 @@ function WalkInRent({image, name, isOpen, onClick, bikeId, bikeData, setBikeData
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}className='flex flex-col w-full gap-3'>
-                    <div className='flex flex-row justify-between px-4 items-center'>
+                    <div className='flex md:flex-row flex-col justify-between px-4 md:items-center'>
                         <h1 className='text-md font-akagi font-medium text-[#ffffff]'>Quantity</h1>
                         <div className='rounded-lg border-2 border-[#ffffff] grid grid-cols-3 font-akagi font-medium'>
                             <div
@@ -117,7 +117,7 @@ function WalkInRent({image, name, isOpen, onClick, bikeId, bikeData, setBikeData
                         </div>
                     </div>
 
-                    <div className='flex flex-row justify-between px-4 items-center'>
+                    <div className='flex md:flex-row flex-col justify-between px-4 md:items-center'>
                         <h1 className='text-md font-akagi font-medium text-[#ffffff]'>Hours</h1>
                         <div className='rounded-lg border-2 border-[#ffffff] grid grid-cols-3 font-akagi font-medium'>
                             <div
