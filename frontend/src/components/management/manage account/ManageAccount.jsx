@@ -6,12 +6,14 @@ import { IoArchive } from "react-icons/io5";
 import { BsPersonPlusFill } from "react-icons/bs";
 import AccountCard from "./AccountCard"
 import { useNavigate } from "react-router-dom";
+import { IoChevronBack } from "react-icons/io5";
 
 function ManageAccount() {
 
     const [activeTab, setActiveTab] = useState("Cashier");
     const navigate = useNavigate();
 
+    const [archive, setArchive] = useState(false);
   return (
     <>
 
@@ -68,8 +70,10 @@ function ManageAccount() {
                             <input className='bg-[#DBDBDB] focus:outline-none px-2 py-1 text-lg font-akagi font-bold text-[#9E9E9E] rounded-xl' placeholder='Search'/>
                             
                             {/*Archive Button*/}
-                            <IoArchive className='text-blue text-4xl hover:text-blue/70 transition-all duration-300'/>
-                            
+                            <IoArchive 
+                                onClick={() => setArchive(true)}
+                                className='text-blue text-4xl hover:text-blue/70 transition-all duration-300'/>
+
                             {/*Add Account Button*/}
                             <BsPersonPlusFill className='text-blue text-4xl hover:text-blue/70 transition-all duration-300'/>
                         </div>
@@ -116,7 +120,25 @@ function ManageAccount() {
 
                     </div>
 
-                    
+                    {/*Archive*/}
+                    {archive === true &&
+                        <>
+                            <div className='fixed inset-0 bg-black/60 flex flex-col items-center justify-center p-10 xl:p-30'>
+
+                                <div className='w-full h-full rounded-xl p-5 bg-[#ffffff] pt-7'>
+                                    <div className='flex flex-row gap-1'>
+                                        <IoChevronBack 
+                                            onClick={() => setArchive(false)}
+                                            className='text-3xl text-gray cursor-pointer'
+                                        />
+                                        {activeTab === 'Cashier' ? <h1 className='md:text-4xl text-2xl font-akagi font-bold tracking-wide text-blue'>Cashier Archive</h1> : <h1 className='md:text-4xl text-2xl font-akagi font-bold tracking-wide text-blue'>Admin Archive</h1>}
+                                    </div>
+                                </div>
+                                
+                                
+                            </div>
+                        </>
+                    }
                 </div>
 
             </motion.div>

@@ -111,7 +111,7 @@ function AccountDetails() {
                             Work Details
                         </div>
 
-                        <div className='flex flex-col gap-3 font-akagi text-lg text-[#505050]'>
+                        <div className='flex flex-col gap-3 font-akagi md:text-lg text-[#505050]'>
                             <div className='flex flex-col'>
                                 <h1 className='font-medium'>Position</h1>
                                 <div className='w-fit border border-[#505050]/30 rounded-lg px-2 py-1'>
