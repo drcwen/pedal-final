@@ -69,12 +69,12 @@ function AccountDetails() {
                     
                     {/*Basic Information*/}
                     <div className='w-full flex flex-col gap-5 md:px-5 tracking-wide'>
-                        <div className=' flex flex-row gap-3 items-center font-akagi font-bold text-[#505050] text-xl'>
+                        <div className=' flex flex-row gap-3 items-center font-akagi font-bold text-[#505050] text-lg md:text-xl'>
                             <IoPersonSharp className='text-[#148BB8] text-2xl'/>
                             Basic Information
                         </div>
 
-                        <div className='flex flex-col md:grid md:grid-cols-2 gap-3 font-akagi text-lg text-[#505050]'>
+                        <div className='flex flex-col md:grid md:grid-cols-2 gap-3 font-akagi text-sm md:text-lg text-[#505050]'>
                             <div className='flex flex-col'>
                                 <h1 className='font-medium'>Username</h1>
                                 <h1 className='font-bold'>Wendel Derraco</h1>
@@ -104,14 +104,14 @@ function AccountDetails() {
 
                     <div className='w-full h-0.5 bg-gray/50 rounded-full'/>
 
-                    {/*Basic Information*/}
+                    {/*Work Details*/}
                     <div className='w-full flex flex-col gap-5 md:px-5 tracking-wide'>
-                        <div className=' flex flex-row gap-3 items-center font-akagi font-bold text-[#505050] text-xl'>
+                        <div className=' flex flex-row gap-3 items-center font-akagi font-bold text-[#505050] text-lg md:text-xl'>
                             <MdWork className='text-[#148BB8] text-2xl'/>
                             Work Details
                         </div>
 
-                        <div className='flex flex-col gap-3 font-akagi md:text-lg text-[#505050]'>
+                        <div className='flex flex-col gap-3 font-akagi text-sm md:text-lg text-[#505050]'>
                             <div className='flex flex-col'>
                                 <h1 className='font-medium'>Position</h1>
                                 <div className='w-fit border border-[#505050]/30 rounded-lg px-2 py-1'>

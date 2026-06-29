@@ -14,6 +14,7 @@ function ManageAccount() {
     const navigate = useNavigate();
 
     const [archive, setArchive] = useState(false);
+    const [addAccount, setAddAccount] = useState(false);
   return (
     <>
 
@@ -75,7 +76,9 @@ function ManageAccount() {
                                 className='text-blue text-4xl hover:text-blue/70 transition-all duration-300'/>
 
                             {/*Add Account Button*/}
-                            <BsPersonPlusFill className='text-blue text-4xl hover:text-blue/70 transition-all duration-300'/>
+                            <BsPersonPlusFill 
+                                onClick={() => setAddAccount(true)}
+                                className='text-blue text-4xl hover:text-blue/70 transition-all duration-300'/>
                         </div>
                     </div>
 
@@ -132,6 +135,71 @@ function ManageAccount() {
                                             className='text-3xl text-gray cursor-pointer'
                                         />
                                         {activeTab === 'Cashier' ? <h1 className='md:text-4xl text-2xl font-akagi font-bold tracking-wide text-blue'>Cashier Archive</h1> : <h1 className='md:text-4xl text-2xl font-akagi font-bold tracking-wide text-blue'>Admin Archive</h1>}
+                                    </div>
+                                </div>
+                                
+                                
+                            </div>
+                        </>
+                    }
+
+                    {/*Archive*/}
+                    {addAccount === true &&
+                        <>
+                            <div className='fixed inset-0 bg-black/60 flex flex-col items-center justify-center p-10 xl:p-30'>
+
+                                <div className='w-fit rounded-xl p-5 md:p-13 bg-[#ffffff] pt-7 flex flex-col gap-7'>
+                                    <div className='flex flex-row gap-1'>
+                                        <IoChevronBack 
+                                            onClick={() => setAddAccount(false)}
+                                            className='text-3xl text-gray cursor-pointer'
+                                        />
+                                        <h1 className='md:text-4xl text-2xl font-akagi font-bold tracking-wide text-blue'>Add Account</h1>
+                                    </div>
+
+                                    <div className='grid grid-cols-2 gap-3 font-akagi font-medium text-md md:text-lg text-gray items-center'>
+                                        <h1>Position</h1>
+                                        <select className='md:w-64 rounded-lg border border-gray px-3 py-1 focus:outline-none'>
+                                            <option value='Admin'>Admin</option>
+                                            <option value='Cashier'>Cashier</option>
+                                        </select>
+
+                                        <h1>Role</h1>
+                                        <select className='md:w-64 rounded-lg border border-gray px-3 py-1 focus:outline-none'>
+                                            <option value='Admin'>Admin</option>
+                                            <option value='Cashier'>Cashier</option>
+                                        </select>
+
+                                        <h1>Employee ID</h1>
+                                        <input className='rounded-lg border border-gray px-3 py-1 focus:outline-none'/>
+
+                                        <h1>First Name</h1>
+                                        <input className='rounded-lg border border-gray px-3 py-1 focus:outline-none'/>
+
+                                        <h1>Middle Name</h1>
+                                        <input className='rounded-lg border border-gray px-3 py-1 focus:outline-none'/>
+
+                                        <h1>Last Name</h1>
+                                        <input className='rounded-lg border border-gray px-3 py-1 focus:outline-none'/>
+
+                                        <h1>Contact #</h1>
+                                        <input className='rounded-lg border border-gray px-3 py-1 focus:outline-none'/>
+
+                                        <h1>Email</h1>
+                                        <input className='rounded-lg border border-gray px-3 py-1 focus:outline-none'/>
+
+                                        <h1>Default Password</h1>
+                                        <input className='rounded-lg border border-gray px-3 py-1 focus:outline-none'/>
+                                    </div>
+
+                                    <div className='flex flex-row gap-3 font-akagi font-bold text-[#ffffff]'>
+                                        <div className='bg-red-500 rounded-lg px-3 py-1'>
+                                            Cancel
+                                        </div>
+
+                                        <div className='bg-yellow-500 rounded-lg px-3 py-1 text-navyblue'>
+                                            Add Account
+                                        </div>
                                     </div>
                                 </div>
                                 
