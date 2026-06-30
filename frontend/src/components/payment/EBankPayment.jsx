@@ -42,6 +42,7 @@ function EBankPayment() {
                 payment_method: "E-Bank",
                 total_amount: checkoutTotal,
                 amount_paid: checkoutTotal,
+                type: "reservation"
                 },
             ])
             .select();

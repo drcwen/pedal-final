@@ -2,14 +2,12 @@
 import { RiArrowDropDownLine } from "react-icons/ri";
 import { RiArrowDropUpLine } from "react-icons/ri";
 import { motion, AnimatePresence } from "motion/react"
-import ReservationBikesOrders from "./ReservationBikesOrders"
 import { useState } from 'react';
+import OngoingBikesOrders from "./OngoingBikesOrders"
 
-function ReservationRow({ name, ordercount, type, start }) {
+function OngoingRow({ name, ordercount, type, start }) {
 
     const [dropdown, setDropdown] = useState(false);
-    const gridLayout =
-  "md:grid md:grid-cols-[1fr_100px_100px_100px_100px_1fr] md:items-center";
 
   return (
     <>
@@ -31,10 +29,10 @@ function ReservationRow({ name, ordercount, type, start }) {
                                 transition={{ duration: 0.3, ease: "easeInOut" }} 
                                 className={`md:py-0 ${dropdown === true ? "block py-4" : "hidden"}`}>
                             <div
-                                className={`w-fit rounded-xl bg-green-500 transition-all duration-300 
+                                className={`w-fit rounded-xl bg-red-500 transition-all duration-300 
                                     `}
                             >
-                                <h1 className='font-akagi font-black text-[#ffffff] px-5 py-1 cursor-pointer'>START</h1>
+                                <h1 className='font-akagi font-black text-[#ffffff] px-5 py-1 cursor-pointer'>END</h1>
                             </div>
                         </motion.div>
                     </AnimatePresence>
@@ -59,23 +57,47 @@ function ReservationRow({ name, ordercount, type, start }) {
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.3, ease: "easeInOut" }}
-                        className='w-full flex flex-col overflow-hidden'>
-                        <div className='w-full md:flex md:flex-col md:gap-3'>
-                            <div className={`${gridLayout} md:w-full font-semibold md:py-3 hidden`}>
-                                <div className='flex justify-center text-sm font-akagi text-gray'>Type</div>
-                                <div className='flex justify-center text-sm font-akagi text-gray'>Duration</div>
-                                <div className='flex justify-center text-sm font-akagi text-gray'>Start Time</div>
-                                <div className='flex justify-center text-sm font-akagi text-gray'>End Time</div>
-                                <div className='flex justify-center text-sm font-akagi text-gray'>Remaining</div>
-                                <div className='flex justify-center text-sm font-akagi text-gray'></div>
-                            </div>
+                        className='w-full flex flex-col overflow-hidden py-5'>
+                        <div className='w-full md:grid md:grid-cols-3 flex flex-col gap-3'>
+                            <OngoingBikesOrders 
+                                bikeId='W13'
+                                gpsId='jipies13'
+                                type='Mountain Bike' 
+                                price='P150' 
+                                duration='1 Hour' 
+                                start='1:00 PM' 
+                                end='2:00 PM' 
+                                remaining='1 Hour'
+                            />
 
-                            <div className='h-0.5 w-full bg-black/10'></div>
+                            <OngoingBikesOrders 
+                                type='Mountain Bike' 
+                                price='P150' 
+                                duration='1 Hour' 
+                                start='1:00 PM' 
+                                end='2:00 PM' 
+                                remaining='1 Hour'
+                            />
 
-                            <ReservationBikesOrders type={"Mountain Bike"} duration={"3 Hours"} start={"1:00 PM"} end={"4:00 PM"} remaining={"00:30"}/>
-                            <ReservationBikesOrders type={"Mountain Bike"} duration={"3 Hours"} start={"1:00 PM"} end={"4:00 PM"} remaining={"00:30"}/>
-                            <ReservationBikesOrders type={"Mountain Bike"} duration={"3 Hours"} start={"1:00 PM"} end={"4:00 PM"} remaining={"00:30"}/>
-                            <ReservationBikesOrders type={"Mountain Bike"} duration={"3 Hours"} start={"1:00 PM"} end={"4:00 PM"} remaining={"00:30"}/>
+                            <OngoingBikesOrders 
+                                type='Mountain Bike' 
+                                price='P150' 
+                                duration='1 Hour' 
+                                start='1:00 PM' 
+                                end='2:00 PM' 
+                                remaining='1 Hour'
+                            />
+
+                            <OngoingBikesOrders 
+                                type='Mountain Bike' 
+                                price='P150' 
+                                duration='1 Hour' 
+                                start='1:00 PM' 
+                                end='2:00 PM' 
+                                remaining='1 Hour'
+                            />
+
+
                         </div>
                     </motion.div>
                 )}
@@ -86,4 +108,4 @@ function ReservationRow({ name, ordercount, type, start }) {
   )
 }
 
-export default ReservationRow
+export default OngoingRow

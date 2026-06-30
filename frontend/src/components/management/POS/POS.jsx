@@ -2,7 +2,8 @@ import { supabase } from "../../../lib/supabase"
 import Sidebar from "../sidebar/Sidebar"
 import SidebarMobile from "../sidebar/SidebarMobile"
 import { FaPlus } from "react-icons/fa6";
-import ReservationRow from "./ReservationRow"
+import ReservationRow from "./reservation/ReservationRow"
+import OngoingRow from "./ongoing/OngoingRow.jsx"
 import { useState } from 'react';
 import { motion } from "motion/react"
 import { useNavigate } from "react-router-dom";
@@ -118,8 +119,8 @@ function POS() {
                                 transition={{ duration: 0.25, ease: "easeInOut" }} 
                                 className='flex flex-col gap-3'
                             >
-                                <ReservationRow name={"Wendel Derraco"} ordercount={"4 Bikes"} type={"Reservation"} start={"11:59 AM"}/>
-                                <ReservationRow name={"Wendel Derraco"} ordercount={"4 Bikes"} type={"Reservation"} start={"11:59 AM"}/>
+                                <OngoingRow name={"Wendel Derraco"} ordercount={"4 Bikes"} type={"Walk-in"} start={"11:59 AM"}/>
+                                <OngoingRow name={"Wendel Derraco"} ordercount={"4 Bikes"} type={"Reservation"} start={"11:59 AM"}/>
                             </motion.div>
                         )}
                         

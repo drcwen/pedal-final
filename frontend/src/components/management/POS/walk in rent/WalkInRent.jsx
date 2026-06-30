@@ -2,7 +2,7 @@ import { supabase } from "../../../../lib/supabase"
 import Sidebar from "../../sidebar/Sidebar"
 import SidebarMobile from "../../sidebar/SidebarMobile"
 import { FaPlus } from "react-icons/fa6";
-import ReservationRow from "../ReservationRow"
+import ReservationRow from "../reservation/ReservationRow"
 import { useState, useEffect } from 'react';
 import { motion } from "motion/react"
 import { IoChevronBack } from "react-icons/io5";
