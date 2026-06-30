@@ -58,7 +58,7 @@ function ReservationRow({ name, ordercount, type, start }) {
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.3, ease: "easeInOut" }}
                         className='w-full flex flex-col overflow-hidden py-5'>
-                        <div className='w-full md:grid md:grid-cols-3 flex flex-col gap-3'>
+                        <div className='w-full md:grid md:grid-cols-2 xl:grid-cols-3 flex flex-col gap-3'>
                             <ReservationBikesOrders 
                                 type='Mountain Bike' 
                                 price='P150' 

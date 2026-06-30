@@ -1,13 +1,13 @@
 import { MdModeEditOutline } from "react-icons/md";
 
-function BikeInventoryInfo() {
+function BikeInventoryInfo({ bikeCode, status }) {
 
   return (
     <>
 
             <div className='md:px-3 px-6 bg-[#ffffff] border border-[#C9C9C9] rounded-lg py-2 flex flex-row justify-between md:grid md:grid-cols-[1fr_1fr_1fr_1fr_1fr_30px] gap-2 font-akagi font-bold text-gray text-md text-center'>
               <div className=''>
-                  M01
+                  {bikeCode}
               </div>
 
               <div className='hidden md:block'>
@@ -23,7 +23,7 @@ function BikeInventoryInfo() {
               </div>
 
               <div className=''>
-                  Rented
+                  {status}
               </div>
 
               <div className='flex items-center justify-center'>

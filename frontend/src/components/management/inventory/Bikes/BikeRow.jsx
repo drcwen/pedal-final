@@ -5,11 +5,30 @@ import { motion, AnimatePresence } from "motion/react"
 import BikeInventoryInfo from "./BikeInventoryInfo"
 import { FaPlus } from "react-icons/fa";
 import { RiImageAddFill } from "react-icons/ri";
+import { supabase } from "../../../../lib/supabase"
 
-function BikeRow() {
+function BikeRow({bikeType, capacity, price, image, bikes}) {
 
     const [dropDown, setDropDown] = useState(false);
     const [addBike, setAddBike] = useState(false);
+
+    const totalBikes = bikes.length;
+    
+    const availableCount = bikes.filter(
+        bike => bike.status === "Available"
+    ).length;
+
+    const rentedCount = bikes.filter(
+        bike => bike.status === "Rented"
+    ).length;
+
+    const maintenanceCount = bikes.filter(
+        bike => bike.status === "Under Maintenance"
+    ).length;
+
+    const lostCount = bikes.filter(
+        bike => bike.status === "Lost"
+    ).length;
 
   return (
     <>
@@ -18,15 +37,15 @@ function BikeRow() {
                     <div className='hidden md:flex items-center justify-center'>
                         <img 
                             className=' w-10'
-                            src='https://res.cloudinary.com/dp3vkgxtb/image/upload/v1775884920/go_kart_upmxbh.png'
+                            src={image}
                         />
                     </div>
 
-                    <h1>Mountain Bike</h1>
+                    <h1>{bikeType}</h1>
 
-                    <h1 className='hidden md:block'>1</h1>
+                    <h1 className='hidden md:block'>{capacity}</h1>
 
-                    <h1 className='hidden md:block'>150</h1>
+                    <h1 className='hidden md:block'>{price}</h1>
 
                     <div className={`w-full flex flex-row justify-center items-center`}>
                         <div className={`bg-blue flex flex-row gap-2 px-5 py-1 rounded-lg items-center cursor-pointer ${dropDown === true ? 'block' : 'hidden'}`}>
@@ -62,27 +81,27 @@ function BikeRow() {
                                     <div className='xl:px-8 grid md:grid-cols-3 xl:grid-cols-5 grid-cols-2 gap-2 text-center font-akagi text-md font-bold text-gray'>
                                         <div className='border border-[#c9c9c9] hover:scale-103 hover:shadow-2xl duration-300 transition-all rounded-lg shadow-lg flex flex-col gap-2 py-2 items-center'>
                                             <h1>Total Qty</h1>
-                                            <h1 className='text-xl'>1</h1>
+                                            <h1 className='text-xl'>{totalBikes}</h1>
                                         </div>
 
                                         <div className='border border-[#c9c9c9] hover:scale-103 hover:shadow-2xl duration-300 transition-all rounded-lg shadow-lg flex flex-col gap-2 py-2 items-center'>
                                             <h1>Available</h1>
-                                            <h1 className='text-xl'>1</h1>
+                                            <h1 className='text-xl'>{availableCount}</h1>
                                         </div>
 
                                         <div className='border border-[#c9c9c9] hover:scale-103 hover:shadow-2xl duration-300 transition-all rounded-lg shadow-lg flex flex-col gap-2 py-2 items-center'>
                                             <h1>Currently Rented</h1>
-                                            <h1 className='text-xl'>1</h1>
+                                            <h1 className='text-xl'>{rentedCount}</h1>
                                         </div>
 
                                         <div className='border border-[#c9c9c9] hover:scale-103 hover:shadow-2xl duration-300 transition-all rounded-lg shadow-lg flex flex-col gap-2 py-2 items-center'>
                                             <h1>Under Maintenance</h1>
-                                            <h1 className='text-xl'>1</h1>
+                                            <h1 className='text-xl'>{maintenanceCount}</h1>
                                         </div>
 
                                         <div className='border border-[#c9c9c9] hover:scale-103 hover:shadow-2xl duration-300 transition-all rounded-lg shadow-lg flex flex-col gap-2 py-2 items-center'>
                                             <h1>Lost</h1>
-                                            <h1 className='text-xl'>1</h1>
+                                            <h1 className='text-xl'>{lostCount}</h1>
                                         </div>
                                     </div>
                                 </div>
@@ -115,11 +134,15 @@ function BikeRow() {
                                     </div>
 
                                     <div className='flex flex-col gap-2'>
-                                        <BikeInventoryInfo />
-                                        <BikeInventoryInfo />
-                                        <BikeInventoryInfo />
-                                        <BikeInventoryInfo />
-                                        <BikeInventoryInfo />
+                                        {
+                                            bikes.map((bike) => (
+                                                <BikeInventoryInfo 
+                                                    key={bike.id}
+                                                    bikeCode={bike.code}
+                                                    status={bike.status}
+                                                />
+                                            ))
+                                        }
                                     </div>
 
                                     <div className='w-full flex items-center justify-center'>

@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "motion/react"
 import { MdModeEditOutline } from "react-icons/md";
 import { RiArrowDropDownLine, RiArrowDropUpLine } from "react-icons/ri";
 
-function GPSRow() {
+function GPSRow({name, battery, status}) {
 
     const [dropDown, setDropDown] = useState(false);
 
@@ -13,9 +13,9 @@ function GPSRow() {
 
         <div className='w-full bg-[#EBEBEB] rounded-xl py-2 border border-[#C9C9C9]'>
             <div className='px-3 md:px-0 flex flex-row justify-between md:grid md:grid-cols-[1fr_1fr_1fr_100px_50px] gap-2 text-center items-center font-akagi font-bold text-[#9E9E9E]'>
-                <div className=''>GPS Name</div>
-                <div className=''>Battery Life</div>
-                <div className='hidden md:block'>Status</div>
+                <div className=''>{name}</div>
+                <div className=''>{battery}</div>
+                <div className='hidden md:block'>{status}</div>
                 <div className='hidden bg-blue rounded-lg py-1 md:flex md:flex-row gap-2 items-center justify-center'>
                     <MdModeEditOutline className='text-lg text-[#ffffff]'/>
                     <h1 className='text-lg font-akagi font-bold text-[#ffffff]'>Edit</h1>

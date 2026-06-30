@@ -1,6 +1,6 @@
 import Sidebar from "../sidebar/Sidebar"
 import SidebarMobile from "../sidebar/SidebarMobile"
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "motion/react"
 import { FaPlus } from "react-icons/fa";
 import { FaTools } from "react-icons/fa";
@@ -10,6 +10,7 @@ import { RiArrowDropDownLine, RiArrowDropUpLine } from "react-icons/ri";
 import { RiImageAddFill } from "react-icons/ri";
 import GPSRow from "./GPS/GPSRow"
 import Maintenance from "./Bikes/Maintenance"
+import { supabase } from "../../../lib/supabase"
 
 function Inventory() {
 
@@ -17,7 +18,48 @@ function Inventory() {
     const [addType, setAddType] = useState(false);
     const [addGPS, setAddGPS] = useState(false);
 
+    const [bikeTypes, setBikeTypes] = useState([]);
+    const [gps, setGPS] = useState([]);
+
     const [maintenance, setMaintenance] = useState(false);
+
+    useEffect(() => {
+        
+        const fetchGPS = async () => {
+            const {data, error} = await supabase
+                .from("gps_mod")
+                .select(`*`);
+
+            if(!error) {
+                setGPS(data || []);
+            }
+
+            console.log(data);
+        }
+
+        const fetchBikes = async () => {
+            const {data, error} = await supabase
+                .from("bike_types_mod")
+                .select(`*,
+                    bikes_mod (
+                    id,
+                    code,
+                    bike_type_id,
+                    status
+                    )`
+                );
+
+            if(!error) {
+                setBikeTypes(data || []);
+            }
+
+            console.log(data);
+        }
+
+        fetchBikes();
+        fetchGPS();
+    
+    }, [])
 
   return (
     <>
@@ -130,7 +172,15 @@ function Inventory() {
                                     </div>
 
                                     <div className='flex flex-col gap-2'>
-                                        <GPSRow />
+                                        {gps.map((jipies) => (
+                                            <GPSRow 
+                                                key={jipies.id}
+                                                name={jipies.code}
+                                                status={jipies.status}
+                                                battery={jipies.battery_life + `%`}
+                                            />
+                                        ))
+                                        }
                                     </div>
                                 </div>
                             }
@@ -154,11 +204,17 @@ function Inventory() {
                                     </div>
 
                                     <div className='flex flex-col gap-2'>
-                                        <BikeRow />
-                                        <BikeRow />
-                                        <BikeRow />
-                                        <BikeRow />
-                                        <BikeRow />
+
+                                        {bikeTypes.map((bikeType) => (
+                                            <BikeRow    
+                                                key={bikeType.id}
+                                                image={bikeType.image_url}
+                                                bikeType={bikeType.name}
+                                                capacity={bikeType.capacity}
+                                                price={bikeType.price}
+                                                bikes={bikeType.bikes_mod}
+                                            />
+                                        ))}
                                     </div>
                                 </div>
                             }
