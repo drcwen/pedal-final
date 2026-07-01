@@ -1,12 +1,13 @@
 import Sidebar from "../sidebar/Sidebar"
 import SidebarMobile from "../sidebar/SidebarMobile"
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "motion/react"
 import { IoArchive } from "react-icons/io5";
 import { BsPersonPlusFill } from "react-icons/bs";
 import AccountCard from "./AccountCard"
 import { useNavigate } from "react-router-dom";
 import { IoChevronBack } from "react-icons/io5";
+import { supabase } from "../../../lib/supabase"
 
 function ManageAccount() {
 
@@ -15,6 +16,34 @@ function ManageAccount() {
 
     const [archive, setArchive] = useState(false);
     const [addAccount, setAddAccount] = useState(false);
+
+    const [adminAccounts, setAdminAccounts] = useState([]);
+    const [cashierAccounts, setCashierAccounts] = useState([]);
+
+    useEffect(() => {
+        const fetchAdminAccounts = async () => {
+            const {data, error} = await supabase
+                .from("profiles_mod")
+                .select("*")
+                .eq("role", "admin")
+
+                setAdminAccounts(data || []);
+        }
+
+        fetchAdminAccounts();
+
+        const fetchCashierAccounts = async () => {
+            const {data, error} = await supabase
+                .from("profiles_mod")
+                .select("*")
+                .eq("role", "cashier")
+
+                setCashierAccounts(data || []);
+        }
+
+        fetchAdminAccounts();
+        fetchCashierAccounts();
+    }, [])
   return (
     <>
 
@@ -93,11 +122,13 @@ function ManageAccount() {
                                     transition={{ duration: 0.25, ease: "easeInOut" }}  
                                     className='w-full grid grid-cols-2 xl:grid-cols-5 lg:grid-grid-cols-4 md:grid-cols-3 gap-5 text-center'
                                 >
-                                    <AccountCard onClick={() => navigate('/accounts/02000223436')}/>
-                                    <AccountCard />
-                                    <AccountCard />
-                                    <AccountCard />
-                                    <AccountCard />
+                                    {cashierAccounts.map((cashier) => (
+                                        <AccountCard
+                                            onClick={() => navigate(`/accounts/${cashier.id}`)}
+                                            key={cashier.id}
+                                            fullName={cashier.first_name + " " + cashier.last_name}
+                                        />
+                                    ))}
                                     
                                 </motion.div>
                             </>
@@ -112,10 +143,14 @@ function ManageAccount() {
                                     transition={{ duration: 0.25, ease: "easeInOut" }}  
                                     className='w-full grid grid-cols-2 xl:grid-cols-5 lg:grid-cols-4 md:grid-cols-3 gap-5 text-center'
                                 >
-                                    <AccountCard onClick={() => navigate('/accounts/02000223436')}/>
-                                    <AccountCard />
-                                    <AccountCard />
-                                    <AccountCard />
+
+                                    {adminAccounts.map((admin) => (
+                                        <AccountCard
+                                            onClick={() => navigate(`/accounts/${admin.id}`)}
+                                            key={admin.id}
+                                            fullName={admin.first_name + " " + admin.last_name}
+                                        />
+                                    ))}
                                     
                                 </motion.div>
                             </>
