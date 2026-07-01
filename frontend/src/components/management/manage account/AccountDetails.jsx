@@ -9,7 +9,7 @@ import { RiEdit2Line } from "react-icons/ri";
 import { IoPersonSharp } from "react-icons/io5";
 import { MdWork } from "react-icons/md";
 
-function AccountDetails() {
+function AccountDetails({ fullName, role, email, contact, id, branch }) {
 
     const navigate = useNavigate();
 
@@ -44,15 +44,15 @@ function AccountDetails() {
                             <div className='flex flex-col gap-1'>
                                 {/*Name and Account Type*/}
                                 <div className='flex flex-row gap-3 font-akagi font-bold text-[#505050] items-center'>
-                                    <h1 className='md:text-3xl text-lg'>Wendel Derraco</h1>
+                                    <h1 className='md:text-3xl text-lg'>{fullName}</h1>
                                     <div className='px-3 py-1 bg-[#148BB8] rounded-lg'>
-                                        <h1 className='text-lg text-[#ffffff] uppercase tracking-wide'>cashier</h1>
+                                        <h1 className='text-lg text-[#ffffff] uppercase tracking-wide'>{role}</h1>
                                     </div>
                                 </div>
                                 
                                 {/*Details and Branch*/}
                                 <div className='hidden md:flex md:flex-row gap-3 font-akagi font-bold tracking-wide text-[#505050] items-center'>
-                                    <h1 className='text-xl font-medium'>Cashier Account</h1>
+                                    <h1 className='text-xl font-medium first-letter:uppercase'>{role} Account</h1>
                                     <h1 className='text-xl font-medium'>•</h1>
                                     <h1 className='text-xl font-medium'>Main Branch</h1>
                                 </div>
@@ -77,22 +77,22 @@ function AccountDetails() {
                         <div className='flex flex-col md:grid md:grid-cols-2 gap-3 font-akagi text-sm md:text-lg text-[#505050]'>
                             <div className='flex flex-col'>
                                 <h1 className='font-medium'>Username</h1>
-                                <h1 className='font-bold'>Wendel Derraco</h1>
+                                <h1 className='font-bold'>{fullName}</h1>
                             </div>
 
                             <div className='flex flex-col'>
                                 <h1 className='font-medium'>Email Address</h1>
-                                <h1 className='font-bold'>derraco.223436@caloocan.sti.edu.ph</h1>
+                                <h1 className='font-bold'>{email}</h1>
                             </div>
 
                             <div className='flex flex-col'>
                                 <h1 className='font-medium'>Contact Number</h1>
-                                <h1 className='font-bold'>0912 345 6789</h1>
+                                <h1 className='font-bold'>{contact}</h1>
                             </div>
 
                             <div className='flex flex-col'>
                                 <h1 className='font-medium'>Employee ID</h1>
-                                <h1 className='font-bold'>cashier-12457723</h1>
+                                <h1 className='font-bold'>{id}</h1>
                             </div>
 
                             <div className='flex flex-col'>
@@ -115,14 +115,14 @@ function AccountDetails() {
                             <div className='flex flex-col'>
                                 <h1 className='font-medium'>Position</h1>
                                 <div className='w-fit border border-[#505050]/30 rounded-lg px-2 py-1'>
-                                    <h1 className='font-bold'>Cashier</h1>
+                                    <h1 className='font-bold first-letter:uppercase'>{role}</h1>
                                 </div>
                                 
                             </div>
 
                             <div className='flex flex-col'>
                                 <h1 className='font-medium'>Branch/Location</h1>
-                                <h1 className='font-bold'>La Mesa Eco Park</h1>
+                                <h1 className='font-bold'>{branch}</h1>
                             </div>
 
                         </div>

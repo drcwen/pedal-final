@@ -1,187 +1,215 @@
-import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { supabase } from "./lib/supabase";
+  import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+  import { useEffect, useState } from "react";
+  import { supabase } from "./lib/supabase";
 
-import Login from "./pages/Login";
-import Dashboard from "./components/management/Dashboard";
-import CreateAccount from "./pages/CreateAccount";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-import LandingPage from "./pages/LandingPage";
-import BikeExpand from "./components/layout/bikes/BikeExpand";
-import Cart from "./pages/Cart";
-import Practice from "./components/practice";
-import Reserve from "./pages/Reserve";
-import Checkout from "./pages/Checkout";
-import EBankPayment from "./components/payment/EBankPayment";
-import Transactions from "./pages/Transactions";
-import PastTransactions from "./pages/PastTransactions";
+  import Login from "./pages/Login";
+  import Dashboard from "./components/management/Dashboard";
+  import CreateAccount from "./pages/CreateAccount";
+  import ForgotPassword from "./pages/ForgotPassword";
+  import ResetPassword from "./pages/ResetPassword";
+  import LandingPage from "./pages/LandingPage";
+  import BikeExpand from "./components/layout/bikes/BikeExpand";
+  import Cart from "./pages/Cart";
+  import Practice from "./components/practice";
+  import Reserve from "./pages/Reserve";
+  import Checkout from "./pages/Checkout";
+  import EBankPayment from "./components/payment/EBankPayment";
+  import Transactions from "./pages/Transactions";
+  import PastTransactions from "./pages/PastTransactions";
 
-import POS from "./components/management/POS/POS"
-import WalkInRent from "./components/management/POS/walk in rent/WalkInRent"
-import TransactionHistory from "./components/management/transaction history/TransactionHistory"
-import Inventory from "./components/management/inventory/Inventory"
-import Monitoring from "./components/management/monitoring/Monitoring"
-import ManageAccount from "./components/management/manage account/ManageAccount"
-import AccountDetails from "./components/management/manage account/AccountDetails"
+  import POS from "./components/management/POS/POS"
+  import WalkInRent from "./components/management/POS/walk in rent/WalkInRent"
+  import TransactionHistory from "./components/management/transaction history/TransactionHistory"
+  import Inventory from "./components/management/inventory/Inventory"
+  import Monitoring from "./components/management/monitoring/Monitoring"
+  import ManageAccount from "./components/management/manage account/ManageAccount"
+  import AccountDetails from "./components/management/manage account/AccountDetails"
 
-function App() {
-  const [session, setSession] = useState(null);
-  const [role, setRole] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [isRecovery, setIsRecovery] = useState(false);
+  function App() {
+    const [session, setSession] = useState(null);
+    const [role, setRole] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [isRecovery, setIsRecovery] = useState(false);
 
-  const navigate = useNavigate();
+    const navigate = useNavigate();
 
-  const fetchUserRole = async (userId) => {
-    const { data, error } = await supabase
-      .from("profiles_mod")
-      .select("role")
-      .eq("id", userId)
-      .maybeSingle();
+    const [allAccountID, setAllAccountID] = useState([]);
 
-    if (error) {
-      console.error("Role fetch error:", error);
-      return "customer"; // fallback role
-    }
+    const fetchUserRole = async (userId) => {
+      const { data, error } = await supabase
+        .from("profiles_mod")
+        .select("role")
+        .eq("id", userId)
+        .maybeSingle();
 
-    return data?.role || "customer";
-  };
+      if (error) {
+        console.error("Role fetch error:", error);
+        return "customer"; // fallback role
+      }
 
-  useEffect(() => {
-    const init = async () => {
-      try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+      return data?.role || "customer";
+    };
 
-        console.log("Initial Session:", session);
+    useEffect(() => {
+
+      const fetchAllAccountID = async () => {
+      const { data, error } = await supabase
+        .from("profiles_mod")
+        .select("*");
+
+        setAllAccountID(data || []);
+      }
+
+      const init = async () => {
+        try {
+          const {
+            data: { session },
+          } = await supabase.auth.getSession();
+
+          console.log("Initial Session:", session);
+
+          setSession(session);
+
+          if (session?.user?.id) {
+            fetchUserRole(session.user.id)
+              .then((userRole) => {
+                console.log("Fetched role:", userRole);
+                setRole(userRole);
+              })
+              .catch((err) => {
+                console.error(err);
+                setRole("customer");
+              });
+          } else {
+            setRole(null);
+          }
+        } catch (err) {
+          console.error("Init error:", err);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      init();
+      fetchAllAccountID();
+
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange((event, session) => {
+        console.log("Auth Event:", event);
+        console.log("Session:", session);
 
         setSession(session);
 
-        // IMPORTANT: do NOT block loading for role
         if (session?.user?.id) {
           fetchUserRole(session.user.id)
-            .then((userRole) => {
-              console.log("Fetched role:", userRole);
-              setRole(userRole);
-            })
-            .catch((err) => {
-              console.error(err);
-              setRole("customer");
-            });
+            .then(setRole)
+            .catch(() => setRole("customer"));
         } else {
           setRole(null);
         }
-      } catch (err) {
-        console.error("Init error:", err);
-      } finally {
-        setLoading(false); // ALWAYS STOP LOADING HERE
-      }
-    };
 
-    init();
+        setLoading(false);
+      });
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth Event:", event);
-      console.log("Session:", session);
+      return () => {
+        subscription.unsubscribe();
+      };
+    }, [navigate]);
 
-      setSession(session);
+    // ONLY block initial load
+    if (loading) {
+      return <h1>Loading...</h1>;
+    }
 
-      if (session?.user?.id) {
-        fetchUserRole(session.user.id)
-          .then(setRole)
-          .catch(() => setRole("customer"));
-      } else {
-        setRole(null);
-      }
+    return (
+      <Routes>
+        <Route path="/prac" element={<Practice />} />
 
-      setLoading(false);
-    });
+        {/* PASSWORD RECOVERY */}
+        {isRecovery && (
+          <>
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="*" element={<Navigate to="/reset-password" />} />
+          </>
+        )}
 
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [navigate]);
+        {/* GUEST */}
+        {!session && !isRecovery && (
+          <>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/createaccount" element={<CreateAccount />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="*" element={<Navigate to="/" />} />
+          </>
+        )}
 
-  // ONLY block initial load
-  if (loading) {
-    return <h1>Loading...</h1>;
+        {/* CUSTOMER */}
+        {session && role === "customer" && (
+          <>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/reserve" element={<Reserve />} />
+            <Route path="/rent" element={<BikeExpand />} />
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/ebank" element={<EBankPayment />} />
+            <Route path="/transactions" element={<Transactions />} />
+            <Route path="/past-transactions" element={<PastTransactions />} />
+            <Route path="*" element={<Navigate to="/" />} />
+          </>
+        )}
+
+        {/* CASHIER */}
+        {session && role === "cashier" && (
+          <>
+            <Route path="/" element={<PastTransactions />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/transactions" element={<Transactions />} />
+            <Route path="*" element={<Navigate to="/dashboard" />} />
+            <Route path="/pos/create" element={<WalkInRent />}/>
+          </>
+        )}
+
+        {/* ADMIN */}
+        {session && role === "admin" && (
+          <>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/pos" element={<POS />} />
+            <Route path="/transactions" element={<Transactions />} />
+            <Route path="/past-transactions" element={<PastTransactions />} />
+            <Route path="*" element={<Navigate to="/dashboard" />} />
+            <Route path="/pos/create" element={<WalkInRent />}/>
+            <Route path="/history" element={<TransactionHistory />}/>
+            <Route path="/inventory" element={<Inventory/>}/>
+            <Route path="/monitoring" element={<Monitoring/>}/>
+            <Route path="/accounts" element={<ManageAccount/>}/>
+            
+            {allAccountID.map((accountId) => (
+              <Route 
+                path={`/accounts/${accountId.id}`} 
+                element={
+                  <AccountDetails
+                    key={accountId.id}
+                    fullName={accountId.first_name + " " + accountId.last_name}
+                    role={accountId.role}
+                    email={accountId.email}
+                    contact={accountId.contact}
+                    id={accountId.id}
+                    branch={accountId.branch}
+                  />
+                }
+              />
+            ))}
+            
+          </>
+        )}
+
+        
+      </Routes>
+    );
   }
 
-  return (
-    <Routes>
-      <Route path="/prac" element={<Practice />} />
-
-      {/* PASSWORD RECOVERY */}
-      {isRecovery && (
-        <>
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="*" element={<Navigate to="/reset-password" />} />
-        </>
-      )}
-
-      {/* GUEST */}
-      {!session && !isRecovery && (
-        <>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/createaccount" element={<CreateAccount />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="*" element={<Navigate to="/" />} />
-        </>
-      )}
-
-      {/* CUSTOMER */}
-      {session && role === "customer" && (
-        <>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/reserve" element={<Reserve />} />
-          <Route path="/rent" element={<BikeExpand />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/checkout" element={<Checkout />} />
-          <Route path="/ebank" element={<EBankPayment />} />
-          <Route path="/transactions" element={<Transactions />} />
-          <Route path="/past-transactions" element={<PastTransactions />} />
-          <Route path="*" element={<Navigate to="/" />} />
-        </>
-      )}
-
-      {/* CASHIER */}
-      {session && role === "cashier" && (
-        <>
-          <Route path="/" element={<PastTransactions />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/transactions" element={<Transactions />} />
-          <Route path="*" element={<Navigate to="/dashboard" />} />
-          <Route path="/pos/create" element={<WalkInRent />}/>
-        </>
-      )}
-
-      {/* ADMIN */}
-      {session && role === "admin" && (
-        <>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/pos" element={<POS />} />
-          <Route path="/transactions" element={<Transactions />} />
-          <Route path="/past-transactions" element={<PastTransactions />} />
-          <Route path="*" element={<Navigate to="/dashboard" />} />
-          <Route path="/pos/create" element={<WalkInRent />}/>
-          <Route path="/history" element={<TransactionHistory />}/>
-          <Route path="/inventory" element={<Inventory/>}/>
-          <Route path="/monitoring" element={<Monitoring/>}/>
-          <Route path="/accounts" element={<ManageAccount/>}/>
-          <Route path="/accounts/02000223436" element={<AccountDetails/>}/>
-        </>
-      )}
-
-      
-    </Routes>
-  );
-}
-
-export default App
+  export default App

@@ -3,11 +3,13 @@ import { RiArrowDropDownLine } from "react-icons/ri";
 import { RiArrowDropUpLine } from "react-icons/ri";
 import { motion, AnimatePresence } from "motion/react"
 import ReservationBikesOrders from "./ReservationBikesOrders"
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from "../../../../lib/supabase"
 
-function ReservationRow({ name, ordercount, type, start }) {
+function ReservationRow({ name, ordercount, type, start, bikeDetails }) {
 
     const [dropdown, setDropdown] = useState(false);
+
 
   return (
     <>
@@ -18,7 +20,7 @@ function ReservationRow({ name, ordercount, type, start }) {
                 <div className='w-full md:grid md:grid-cols-5 gap-5 items-center md:text-center flex flex-row'>
                     <h1 className='font-akagi font-bold text-gray text-lg'>{name}</h1>
                     <h1 className={`${dropdown === true ? "hidden md:block" : "block"} font-akagi font-semibold text-gray text-lg`}>{ordercount}</h1>
-                    <h1 className='hidden md:block font-akagi font-semibold text-gray text-lg'>{type}</h1>
+                    <h1 className='hidden md:block font-akagi font-semibold text-gray text-lg first-letter:uppercase'>{type}</h1>
                     <h1 className='hidden md:block font-akagi font-semibold text-gray text-lg'>{start}</h1>
 
                     <AnimatePresence initial={false}>
@@ -59,42 +61,15 @@ function ReservationRow({ name, ordercount, type, start }) {
                         transition={{ duration: 0.3, ease: "easeInOut" }}
                         className='w-full flex flex-col overflow-hidden py-5'>
                         <div className='w-full md:grid md:grid-cols-2 xl:grid-cols-3 flex flex-col gap-3'>
-                            <ReservationBikesOrders 
-                                type='Mountain Bike' 
-                                price='P150' 
-                                duration='1 Hour' 
-                                start='1:00 PM' 
-                                end='2:00 PM' 
-                                remaining='1 Hour'
-                            />
-
-                            <ReservationBikesOrders 
-                                type='Mountain Bike' 
-                                price='P150' 
-                                duration='1 Hour' 
-                                start='1:00 PM' 
-                                end='2:00 PM' 
-                                remaining='1 Hour'
-                            />
-
-                            <ReservationBikesOrders 
-                                type='Mountain Bike' 
-                                price='P150' 
-                                duration='1 Hour' 
-                                start='1:00 PM' 
-                                end='2:00 PM' 
-                                remaining='1 Hour'
-                            />
-
-                            <ReservationBikesOrders 
-                                type='Mountain Bike' 
-                                price='P150' 
-                                duration='1 Hour' 
-                                start='1:00 PM' 
-                                end='2:00 PM' 
-                                remaining='1 Hour'
-                            />
-
+                            
+                            {bikeDetails.map((order) => (
+                                <ReservationBikesOrders 
+                                    key={order.id}
+                                    type={order.bike_types_mod.name}
+                                    price={"P" + order.bike_types_mod.price}
+                                    duration={order.duration_hours + " Hours"}
+                                    start={order.start_time}/>
+                            ))}
 
                         </div>
                     </motion.div>

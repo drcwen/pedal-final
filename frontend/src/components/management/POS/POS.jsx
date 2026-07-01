@@ -4,7 +4,7 @@ import SidebarMobile from "../sidebar/SidebarMobile"
 import { FaPlus } from "react-icons/fa6";
 import ReservationRow from "./reservation/ReservationRow"
 import OngoingRow from "./ongoing/OngoingRow.jsx"
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from "motion/react"
 import { useNavigate } from "react-router-dom";
 
@@ -12,6 +12,32 @@ function POS() {
 
     const [activeTab, setActiveTab] = useState("ongoing");
     const navigate = useNavigate();
+
+    const [transactions, setTransactions] = useState([]);
+
+    useEffect(() => {
+        const fetchTransactions = async () => {
+            const { data, error } = await supabase
+                .from("transactions_mod")
+                .select(`
+                    *,
+                    customer:profiles_mod!transactions_mod_user_id_fkey1 (
+                    *
+                    ),
+                    orders_mod (
+                    *,
+                    bike_types_mod (
+                        *
+                    )
+                    )
+                `);
+
+            setTransactions(data || []);
+            
+        }
+
+        fetchTransactions();
+    }, [])
 
   return (
     <>
@@ -100,13 +126,16 @@ function POS() {
                                 transition={{ duration: 0.25, ease: "easeInOut" }} 
                                 className='flex flex-col gap-3'
                             >
-                                <ReservationRow name={"Wendel Derraco"} ordercount={"4 Bikes"} type={"Reservation"} start={"11:59 AM"}/>
-                                <ReservationRow name={"Wendel Derraco"} ordercount={"4 Bikes"} type={"Reservation"} start={"11:59 AM"}/>
-                                <ReservationRow name={"Wendel Derraco"} ordercount={"4 Bikes"} type={"Reservation"} start={"11:59 AM"}/>
-                                <ReservationRow name={"Wendel Derraco"} ordercount={"4 Bikes"} type={"Reservation"} start={"11:59 AM"}/>
-                                <ReservationRow name={"Wendel Derraco"} ordercount={"4 Bikes"} type={"Reservation"} start={"11:59 AM"}/>
-                                <ReservationRow name={"Wendel Derraco"} ordercount={"4 Bikes"} type={"Reservation"} start={"11:59 AM"}/>
-                                <ReservationRow name={"Wendel Derraco"} ordercount={"4 Bikes"} type={"Reservation"} start={"11:59 AM"}/>
+                                {transactions.map((trans) => (
+                                    <ReservationRow 
+                                        key={trans.id}
+                                        name={trans.customer.first_name + " " + trans.customer.last_name}
+                                        ordercount={`${trans.orders_mod.length === 1 ? trans.orders_mod.length + " Bike" : trans.orders_mod.length + " Bikes"}`}
+                                        type={trans.type}
+                                        start={trans.orders_mod[0].start_time}
+                                        bikeDetails={trans.orders_mod}
+                                    />
+                                ))}
                             </motion.div >
 
                         )}
