@@ -1,6 +1,6 @@
 
 
-function ReservationBikesOrders({ type, price, duration, start, end, remaining }) {
+function ReservationBikesOrders({ type, price, duration, start, end, remaining, image }) {
 
   return (
     <>
@@ -10,7 +10,7 @@ function ReservationBikesOrders({ type, price, duration, start, end, remaining }
                   {/*Image*/}
                   <div className='items-center bg-yellow p-1 rounded-lg'>
                       <img 
-                          src='https://res.cloudinary.com/dp3vkgxtb/image/upload/v1775884918/solo_bike_mhxxvb.png'
+                          src={image}
                           className='w-6'
                       />
                   </div>

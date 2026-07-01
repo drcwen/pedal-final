@@ -68,7 +68,8 @@ function ReservationRow({ name, ordercount, type, start, bikeDetails }) {
                                     type={order.bike_types_mod.name}
                                     price={"P" + order.bike_types_mod.price}
                                     duration={order.duration_hours + " Hours"}
-                                    start={order.start_time}/>
+                                    start={order.start_time}
+                                    image={order.bike_types_mod.image_url}/>
                             ))}
 
                         </div>
