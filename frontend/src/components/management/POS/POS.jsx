@@ -30,7 +30,8 @@ function POS() {
                         *
                     )
                     )
-                `);
+                `)
+                .eq("status", "pending");
 
             setTransactions(data || []);
             
@@ -129,7 +130,7 @@ function POS() {
                                 {transactions.map((trans) => (
                                     <ReservationRow 
                                         key={trans.id}
-                                        name={trans.customer.first_name + " " + trans.customer.last_name}
+                                        name={trans.customer.first_name === null ? trans.customer.full_name : trans.customer.first_name + " " + trans.customer.last_name}
                                         ordercount={`${trans.orders_mod.length === 1 ? trans.orders_mod.length + " Bike" : trans.orders_mod.length + " Bikes"}`}
                                         type={trans.type}
                                         start={trans.orders_mod[0].start_time}

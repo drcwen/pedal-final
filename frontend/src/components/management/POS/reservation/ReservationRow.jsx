@@ -10,6 +10,29 @@ function ReservationRow({ name, ordercount, type, start, bikeDetails }) {
 
     const [dropdown, setDropdown] = useState(false);
 
+    function calculateEndTime(startTime, durationHours) {
+        const date = new Date(`1970-01-01T${startTime}`);
+        date.setHours(date.getHours() + durationHours);
+
+        return date.toTimeString().slice(0, 8);
+    }
+
+
+    function Countdown() {
+        const [seconds, setSeconds] = useState(120);
+
+        useEffect(() => {
+            if (seconds <= 0) return;
+
+            const interval = setInterval(() => {
+            setSeconds((prev) => prev - 1);
+            }, 1000);
+
+            return () => clearInterval(interval);
+        }, [seconds]);
+
+        return <h1>{seconds} seconds left</h1>;
+    }
 
   return (
     <>
@@ -67,12 +90,16 @@ function ReservationRow({ name, ordercount, type, start, bikeDetails }) {
                                     key={order.id}
                                     type={order.bike_types_mod.name}
                                     price={"P" + order.bike_types_mod.price}
-                                    duration={order.duration_hours + " Hours"}
+                                    duration={order.duration_hours === 1 ? order.duration_hours + " Hour" : order.duration_hours + " Hours"}
                                     start={order.start_time}
-                                    image={order.bike_types_mod.image_url}/>
+                                    image={order.bike_types_mod.image_url}
+                                    end={calculateEndTime(order.start_time, order.duration_hours)}
+                                    remaining={"-"}
+                                />
                             ))}
 
                         </div>
+
                     </motion.div>
                 )}
             </AnimatePresence>
