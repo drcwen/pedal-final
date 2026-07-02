@@ -44,13 +44,17 @@ function AssignBikes({onClose, fullName, bikeDetails, transaction}) {
                         <div className='hidden md:block text-md font-akagi font-bold text-[#6D7172]'>Bike ID</div>
                         <div className='hidden md:block text-md font-akagi font-bold text-[#6D7172]'>GPS ID</div>
                         <div className='hidden md:block text-md font-akagi font-bold text-[#6D7172]'>Amount</div>
+                    
+                    </div>
 
+                    <div className='flex flex-col gap-3 md:grid md:grid-cols-[100px_1fr_1fr_1fr_120px] md:text-center md:items-center gap-2'>
                         {bikeDetails.map((order) => (
                             <OrderRow
                                 key={order.id}
                                 duration={order.duration_hours}
                                 model={order.bike_types_mod.name}
                                 price={"P" + order.bike_types_mod.price * order.duration_hours}
+                                image={order.bike_types_mod.image_url}
                                 selectedBikeId={selectedItems[order.id]?.bikeId || ""}
                                 selectedGpsId={selectedItems[order.id]?.gpsId || ""}
                                 onBikeChange={(bikeId) =>
@@ -90,7 +94,7 @@ function AssignBikes({onClose, fullName, bikeDetails, transaction}) {
                         <h1 className='lg:text-lg font-medium font-akagi text-[#6D7172]'>{"P" + transaction.amount_paid}</h1>
                     </div>
 
-                    <div className='flex flex-row justify-between items-center'>
+                    <div className={`${transaction.change_amount === null ? "hidden" : "block"} flex flex-row justify-between items-center`}>
                         <h1 className='lg:text-lg font-bold font-akagi text-[#6D7172]'>Change</h1>
                         <h1 className='lg:text-lg font-medium font-akagi text-[#6D7172]'>{transaction.change_amount === null ? "-" : transaction.change_amount}</h1>
                     </div>
@@ -102,7 +106,7 @@ function AssignBikes({onClose, fullName, bikeDetails, transaction}) {
 
                     <div className='flex flex-row justify-between items-center md:pl-10'>
                         <h1 className='lg:text-lg font-medium font-akagi text-[#6D7172]'>Reference No:</h1>
-                        <input className='rounded-lg px-2 py-1 border border-[#c4c6c7] text-xl font-medium font-akagi text-[#6D7172]'/>
+                        <h1 className='lg:text-lg font-medium font-akagi text-[#6D7172]'>{transaction.reference_number}</h1>
                     </div>
                 </div>
 
