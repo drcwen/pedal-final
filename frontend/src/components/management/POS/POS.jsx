@@ -135,6 +135,8 @@ function POS() {
                                         type={trans.type}
                                         start={trans.orders_mod[0].start_time}
                                         bikeDetails={trans.orders_mod}
+                                        customer={trans.customer}
+                                        transaction={trans}
                                     />
                                 ))}
                             </motion.div >

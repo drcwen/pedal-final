@@ -5,10 +5,12 @@ import { motion, AnimatePresence } from "motion/react"
 import ReservationBikesOrders from "./ReservationBikesOrders"
 import { useState, useEffect } from 'react';
 import { supabase } from "../../../../lib/supabase"
+import AssignBikes from "./AssignBikes"
 
-function ReservationRow({ name, ordercount, type, start, bikeDetails }) {
+function ReservationRow({ name, ordercount, type, start, bikeDetails, customer, transaction }) {
 
     const [dropdown, setDropdown] = useState(false);
+    const [startRow, setStartRow] = useState(false);
 
     function calculateEndTime(startTime, durationHours) {
         const date = new Date(`1970-01-01T${startTime}`);
@@ -52,6 +54,7 @@ function ReservationRow({ name, ordercount, type, start, bikeDetails }) {
                                 animate={{ height: "auto", opacity: 1 }}
                                 exit={{ height: 0, opacity: 0 }}
                                 transition={{ duration: 0.3, ease: "easeInOut" }} 
+                                onClick={() => {setStartRow(true)}}
                                 className={`md:py-0 ${dropdown === true ? "block py-4" : "hidden"}`}>
                             <div
                                 className={`w-fit rounded-xl bg-green-500 transition-all duration-300 
@@ -95,6 +98,7 @@ function ReservationRow({ name, ordercount, type, start, bikeDetails }) {
                                     image={order.bike_types_mod.image_url}
                                     end={calculateEndTime(order.start_time, order.duration_hours)}
                                     remaining={"-"}
+                                    
                                 />
                             ))}
 
@@ -103,6 +107,17 @@ function ReservationRow({ name, ordercount, type, start, bikeDetails }) {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {startRow &&
+                <>
+                    <AssignBikes
+                        key={customer.id}
+                        fullName={customer.first_name === null ? customer.full_name : customer.first_name + " " + customer.last_name}
+                        bikeDetails={bikeDetails}
+                        transaction={transaction}
+                        onClose={() => setStartRow(false)}/>  
+                </>
+            }
         </div>
                                 
     </>
