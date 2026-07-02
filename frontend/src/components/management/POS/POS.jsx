@@ -3,7 +3,7 @@ import Sidebar from "../sidebar/Sidebar"
 import SidebarMobile from "../sidebar/SidebarMobile"
 import { FaPlus } from "react-icons/fa6";
 import ReservationRow from "./reservation/ReservationRow"
-import OngoingRow from "./ongoing/OngoingRow.jsx"
+import OngoingRow from "./ongoing/OngoingRow"
 import { useState, useEffect } from 'react';
 import { motion } from "motion/react"
 import { useNavigate } from "react-router-dom";
