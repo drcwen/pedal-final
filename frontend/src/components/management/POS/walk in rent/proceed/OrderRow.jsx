@@ -28,7 +28,8 @@ function OrderRow({ duration, model, price, selectedBikeId,  selectedGpsId, onBi
                 .from("bikes_mod")
                 .select(`code,
                 bike_types_mod!inner(name)`)
-                .eq("bike_types_mod.name", model);
+                .eq("bike_types_mod.name", model)
+                .eq("status", "Available");
             
             setBikeId(data.map((bike) => bike.code));
         }
@@ -37,6 +38,7 @@ function OrderRow({ duration, model, price, selectedBikeId,  selectedGpsId, onBi
             const {data, error} = await supabase
                 .from("gps_mod")
                 .select("code")
+                .eq("status", "Available")
             
             setGpsId(data.map((gps) => gps.code));
         }
@@ -47,7 +49,7 @@ function OrderRow({ duration, model, price, selectedBikeId,  selectedGpsId, onBi
 
   return (
     <>
-        <h1 className='text-md font-akagi font-medium text-[#6D7172]'>{duration}</h1>
+        <h1 className='text-md font-akagi font-medium text-[#6D7172]'>{duration === 1 ? duration + " hour" : duration +  " hours"}</h1>
         <h1 className='text-md font-akagi font-medium text-[#6D7172]'>{model}</h1>
         <div className=''>
             <DropDown options={bikeId} placeholder="Bike ID" onChange={onBikeChange} value={selectedBikeId}/>
