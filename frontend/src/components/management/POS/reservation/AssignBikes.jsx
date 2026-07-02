@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import OrderRow from "../walk in rent/proceed/OrderRow"
+import OrderRow from "./OrderRow"
 
 function AssignBikes({onClose, fullName, bikeDetails, transaction}) {
 
@@ -7,21 +7,14 @@ function AssignBikes({onClose, fullName, bikeDetails, transaction}) {
     const [confirmProceed, setConfirmProceed] = useState(false);
     const [confirmBack, setConfirmBack] = useState(false);
 
-    const orders = [
-        { id: 1, quantity: 2, model: "Solo Kiddie Bike", price: 120 },
-        { id: 2, quantity: 1, model: "Mountain Bike", price: 200 },
-        { id: 3, quantity: 1, model: "Road Bike", price: 180 },
-        { id: 3, quantity: 1, model: "Road Bike", price: 180 },
-    ];
-
     useEffect(() => {
     console.log("Selected Items:", selectedItems);
     }, [selectedItems]);
 
   return (
     <>
-        <div className='xl:px-70 lg:px-30 md:px-10 py-10 fixed inset-0 bg-black/60 flex items-center justify-center'>
-            <div className='bg-[#ffffff] w-full h-full overflow-y-scroll scrollbar-thin scrollbar-thumb-[#B9B9B9] scrollbar-track-[#E2E2E2] rounded-xl p-10 flex flex-col gap-8 '>
+        <div className='xl:px-70 lg:px-30 md:px-10 py-10 px-5 fixed inset-0 bg-black/60 flex items-center justify-center'>
+            <div className='bg-[#ffffff] w-full h-full overflow-y-scroll scrollbar-thin scrollbar-thumb-[#B9B9B9] scrollbar-track-[#E2E2E2] rounded-xl md:p-10 p-5 py-10 flex flex-col gap-8 '>
 
                 <div className='flex flex-col gap-6'>
                     <h1 className='text-3xl font-akagi font-bold text-navyblue'>Assign Bikes</h1>
@@ -44,13 +37,13 @@ function AssignBikes({onClose, fullName, bikeDetails, transaction}) {
                     </div>
                 </div>
 
-                <div className='w-full px-10'>
-                    <div className='grid grid-cols-[100px_1fr_1fr_1fr_120px] text-center items-center gap-2'>
-                        <div className='text-md font-akagi font-bold text-[#6D7172]'>Duration</div>
-                        <div className='text-md font-akagi font-bold text-[#6D7172]'>Model</div>
-                        <div className='text-md font-akagi font-bold text-[#6D7172]'>Bike ID</div>
-                        <div className='text-md font-akagi font-bold text-[#6D7172]'>GPS ID</div>
-                        <div className='text-md font-akagi font-bold text-[#6D7172]'>Amount</div>
+                <div className='w-full md:px-10'>
+                    <div className='md:grid md:grid-cols-[100px_1fr_1fr_1fr_120px] md:text-center md:items-center gap-2'>
+                        <div className='hidden md:block text-md font-akagi font-bold text-[#6D7172]'>Duration</div>
+                        <div className='hidden md:block text-md font-akagi font-bold text-[#6D7172]'>Model</div>
+                        <div className='hidden md:block text-md font-akagi font-bold text-[#6D7172]'>Bike ID</div>
+                        <div className='hidden md:block text-md font-akagi font-bold text-[#6D7172]'>GPS ID</div>
+                        <div className='hidden md:block text-md font-akagi font-bold text-[#6D7172]'>Amount</div>
 
                         {bikeDetails.map((order) => (
                             <OrderRow
@@ -86,7 +79,7 @@ function AssignBikes({onClose, fullName, bikeDetails, transaction}) {
 
                 <div className='h-0.5 w-full rounded-lg bg-black/30'/>
 
-                <div className='flex flex-col gap-3 px-30 '>
+                <div className='flex flex-col gap-3 md:px-30 '>
                     <div className='flex flex-row justify-between items-center'>
                         <h1 className='text-lg font-bold font-akagi text-[#6D7172]'>Total</h1>
                         <h1 className='text-xl font-bold font-akagi text-[#6D7172]'>{"P" + transaction.total_amount}</h1>
@@ -107,7 +100,7 @@ function AssignBikes({onClose, fullName, bikeDetails, transaction}) {
                         <h1 className='lg:text-lg font-medium font-akagi text-[#6D7172]'>{transaction.payment_method}</h1>
                     </div>
 
-                    <div className='flex flex-row justify-between items-center pl-10'>
+                    <div className='flex flex-row justify-between items-center md:pl-10'>
                         <h1 className='lg:text-lg font-medium font-akagi text-[#6D7172]'>Reference No:</h1>
                         <input className='rounded-lg px-2 py-1 border border-[#c4c6c7] text-xl font-medium font-akagi text-[#6D7172]'/>
                     </div>
