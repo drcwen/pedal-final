@@ -33,7 +33,7 @@ function BikeRow({bikeType, capacity, price, image, bikes}) {
   return (
     <>
             <div className='bg-[#EBEBEB] w-full rounded-lg px-3 py-2 border border-[#c9c9c9]'>
-                <div className='grid md:grid-cols-[70px_1fr_1fr_1fr_1fr_20px] grid-cols-[1fr_1fr_20px] gap-4 items-center text-center font-akagi text-md lg:text-lg font-bold text-gray'>
+                <div className='grid md:grid-cols-[70px_1fr_1fr_1fr_1fr_20px] grid-cols-[1fr_1fr_20px] gap-4 items-center md:text-center font-akagi text-md lg:text-lg font-bold text-gray'>
                     <div className='hidden md:flex items-center justify-center'>
                         <img 
                             className=' w-10'
