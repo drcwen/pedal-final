@@ -37,17 +37,17 @@ function AssignBikes({onClose, fullName, bikeDetails, transaction}) {
                     </div>
                 </div>
 
-                <div className='w-full md:px-10'>
-                    <div className='md:grid md:grid-cols-[100px_1fr_1fr_1fr_120px] md:text-center md:items-center gap-2'>
-                        <div className='hidden md:block text-md font-akagi font-bold text-[#6D7172]'>Duration</div>
+                <div className='w-full md:px-10 flex flex-col gap-5'>
+                    <div className='md:grid md:grid-cols-[100px_1fr_1fr_1fr_120px] md:text-center md:items-center gap-2 px-3'>
                         <div className='hidden md:block text-md font-akagi font-bold text-[#6D7172]'>Model</div>
+                        <div className='hidden md:block text-md font-akagi font-bold text-[#6D7172]'>Duration</div>
                         <div className='hidden md:block text-md font-akagi font-bold text-[#6D7172]'>Bike ID</div>
                         <div className='hidden md:block text-md font-akagi font-bold text-[#6D7172]'>GPS ID</div>
                         <div className='hidden md:block text-md font-akagi font-bold text-[#6D7172]'>Amount</div>
                     
                     </div>
 
-                    <div className='flex flex-col gap-3 md:grid md:grid-cols-[100px_1fr_1fr_1fr_120px] md:text-center md:items-center gap-2'>
+                    <div className='flex flex-col gap-3'>
                         {bikeDetails.map((order) => (
                             <OrderRow
                                 key={order.id}

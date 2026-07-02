@@ -34,8 +34,11 @@ function OrderRow({ duration, image, model, price, selectedBikeId,  selectedGpsI
 
   return (
     <>
-        <h1 className='hidden md:block text-md font-akagi font-medium text-[#6D7172]'>{duration === 1 ? duration + " hour" : duration +  " hours"}</h1>
+    <div className='md:bg-[#F0F0F0] md:grid md:grid-cols-[100px_1fr_1fr_1fr_120px] md:text-center md:items-center gap-3 md:px-3 md:py-2 md:rounded-xl md:border md:dborder-[#DBDBDB]'>
+
         <h1 className='hidden md:block text-md font-akagi font-medium text-[#6D7172]'>{model}</h1>
+        <h1 className='hidden md:block text-md font-akagi font-medium text-[#6D7172]'>{duration === 1 ? duration + " hour" : duration +  " hours"}</h1>
+
         <div className='hidden md:block'>
             <DropDown options={bikeId} placeholder="Bike ID" onChange={onBikeChange} value={selectedBikeId}/>
         </div>
@@ -71,6 +74,7 @@ function OrderRow({ duration, image, model, price, selectedBikeId,  selectedGpsI
             </div>
 
         </div>
+    </div>
     </>
   );
 }

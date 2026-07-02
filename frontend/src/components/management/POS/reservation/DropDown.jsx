@@ -13,9 +13,9 @@ function DropDown({ value, options = [], onChange, placeholder = "Select" }) {
     <div className="relative">
       <div
         onClick={() => setIsOpen(!isOpen)}
-        className="rounded-lg border border-[#9E9E9E] grid grid-cols-[1fr_20px] px-2 items-center cursor-pointer"
+        className="rounded-lg border border-[#9E9E9E]/50 grid grid-cols-[1fr_20px] px-2 items-center cursor-pointer"
       >
-        <div className="py-1 px-2">
+        <div className="py-2 px-2">
           <h1 className="text-md font-akagi font-medium text-[#6D7172]">
             {value || placeholder}
           </h1>
