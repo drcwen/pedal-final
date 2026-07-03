@@ -21,6 +21,8 @@ function WalkInRent() {
     const [bikeData, setBikeData] = useState({});
     const [cart, setCart] = useState([]);
 
+    const [bikeAvailability, setBikeAvailability] = useState([]);
+
     const handleDelete = (bikeId) => {
         setCart(prev => prev.filter(item => item.bikeId !== bikeId));
     };
@@ -31,12 +33,20 @@ function WalkInRent() {
         const fetchBikes = async () => {
             const { data } = await supabase
                 .from("bike_types_mod")
-                .select("*")
+                .select(`
+                    *,
+                    bikes_mod (
+                    id,
+                    status
+                    )
+                `)
+                .eq("bikes_mod.status", "Available")
 
             setInfo(data || [])
         }
 
         fetchBikes()
+
     }, [cart])
 
   return (
@@ -83,25 +93,29 @@ function WalkInRent() {
                             <div className='grid md:grid-cols-3 grid-cols-2 gap-3'>
                                 
                                 {info.map((bike) => (
-                                    <motion.div
-                                        key={bike.id}
-                                        initial={{ height: 0, opacity: 0 }}
-                                        animate={{ height: "auto", opacity: 1 }}
-                                        exit={{ height: 0, opacity: 0 }}
-                                        transition={{ duration: 0.3, ease: "easeInOut" }}
-                                    >
-                                        <BikesTile 
+                                    <>
+                                        
+                                        <motion.div
                                             key={bike.id}
-                                            bikeId={bike.id}
-                                            name={bike.name}
-                                            image={bike.image_url}
-                                            isOpen={openBikeId === bike.id}
-                                            onClick={() => setOpenBikeId(bike.id)}
-                                            bikeData={bikeData}
-                                            setBikeData={setBikeData}
-                                            setCart={setCart}
-                                        />
-                                    </motion.div>
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: "auto", opacity: 1 }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            transition={{ duration: 0.3, ease: "easeInOut" }}
+                                        >
+                                            <BikesTile 
+                                                key={bike.id}
+                                                bikeId={bike.id}
+                                                name={bike.name}
+                                                availableBikes={bike.bikes_mod.length}
+                                                image={bike.image_url}
+                                                isOpen={openBikeId === bike.id}
+                                                onClick={() => setOpenBikeId(bike.id)}
+                                                bikeData={bikeData}
+                                                setBikeData={setBikeData}
+                                                setCart={setCart}
+                                            />
+                                        </motion.div>
+                                    </>
                                 ))}
                                 
                             </div>
@@ -116,7 +130,7 @@ function WalkInRent() {
                                 {cart.map((item) => (
                                     <div key={item.bikeId} className='flex flex-row justify-between items-center'>
                                         
-                                        <div className='flex flex-row gap-4 items-center'>
+                                        <div className='flex flex-row gap-4 items-center font-akagi font-bold'>
                                             <div className='bg-yellow p-2 rounded-lg'>
                                                 <img src={item.image} className='w-10' />
                                             </div>
@@ -170,7 +184,10 @@ function WalkInRent() {
                                     <h1 className='text-xl font-bold font-akagi text-darkblue'>Payment</h1>
                                 </div>
 
-                                {proceed && <ProceedWalkInRent onClose={() => setProceed(false)}/>}
+                                {proceed && 
+                                    <ProceedWalkInRent 
+                                        onClose={() => setProceed(false)}
+                                        cart={cart}/>}
                             </div>
                         </div>
                     </div>

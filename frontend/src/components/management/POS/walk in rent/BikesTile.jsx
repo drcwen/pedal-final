@@ -8,7 +8,7 @@ import { motion } from "motion/react"
 import { IoChevronBack } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 
-function WalkInRent({image, name, isOpen, onClick, bikeId, bikeData, setBikeData, setCart}) {
+function WalkInRent({image, name, availableBikes, isOpen, onClick, bikeId, bikeData, setBikeData, setCart}) {
     
     const navigate = useNavigate();
 
@@ -32,7 +32,7 @@ function WalkInRent({image, name, isOpen, onClick, bikeId, bikeData, setBikeData
                     ...updated[existingIndex],
                     quantity,
                     hours,
-                    total: quantity * hours * 200 // example price
+                    total: quantity * hours * 200
                 };
                 return updated;
             }
@@ -58,6 +58,7 @@ function WalkInRent({image, name, isOpen, onClick, bikeId, bikeData, setBikeData
             onClick={onClick}
             className={`rounded-xl bg-[#EBEBEB] p-4 flex flex-col items-center text-center justify-center gap-4 border border-[#C8C8C8] cursor-pointer
                 ${isOpen == true ? `bg-blue` : `bg-[#EBEBEB]`}
+                ${availableBikes === 0 ? `opacity-50 bg-black pointer-events-none` : ``}
             `}>
             <img 
                 className='w-30'
@@ -74,6 +75,8 @@ function WalkInRent({image, name, isOpen, onClick, bikeId, bikeData, setBikeData
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}className='flex flex-col w-full gap-3'>
+
+                <div className='bg-navyblue rounded-lg px-2 py-1 font-akagi font-medium text-sm text-yellow'>{availableBikes === 0 ? "No Available Units" : availableBikes + " units available"}</div>
                     <div className='flex md:flex-row flex-col justify-between px-4 md:items-center'>
                         <h1 className='text-md font-akagi font-medium text-[#ffffff]'>Quantity</h1>
                         <div className='rounded-lg border-2 border-[#ffffff] grid grid-cols-3 font-akagi font-medium'>
@@ -88,7 +91,7 @@ function WalkInRent({image, name, isOpen, onClick, bikeId, bikeData, setBikeData
                                         quantity: Math.max(0, (prev[bikeId]?.quantity || 0) - 1)
                                     }
                                 }));
-}}
+                                }}
                                 className='px-2 text-[#ffffff] cursor-pointer'
                             >
                                 -
@@ -106,7 +109,10 @@ function WalkInRent({image, name, isOpen, onClick, bikeId, bikeData, setBikeData
                                         ...prev,
                                         [bikeId]: {
                                             ...prev[bikeId],
-                                            quantity: (prev[bikeId]?.quantity || 0) + 1
+                                            quantity: Math.min(
+                                                availableBikes,
+                                                (prev[bikeId]?.quantity || 0) + 1
+                                            )
                                         }
                                     }));
                                 }}
