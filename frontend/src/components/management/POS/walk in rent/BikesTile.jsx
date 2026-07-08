@@ -51,7 +51,8 @@ function WalkInRent({image, price, name, availableBikes, isOpen, onClick, bikeId
             className={`rounded-xl bg-[#EBEBEB] p-4 flex flex-col items-center text-center justify-center gap-4 border border-[#C8C8C8] cursor-pointer
                 ${isOpen == true ? `bg-blue` : `bg-[#EBEBEB]`}
                 ${availableBikes === 0 ? `opacity-50 bg-black pointer-events-none` : ``}
-            `}>
+            `}
+        >
             <img 
                 className='w-30'
                 src={image}/>
@@ -59,14 +60,17 @@ function WalkInRent({image, price, name, availableBikes, isOpen, onClick, bikeId
                 ${isOpen == true ? `text-[#ffffff]` : `text-[#505050] `}
                 `}
             >
-                {name}</h1>
+                {name}
+            </h1>
+            
             {isOpen && (
                 <motion.div
-            key="content"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}className='flex flex-col w-full gap-3'>
+                    key="content"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}className='flex flex-col w-full gap-3'
+                >
 
                 <div className='bg-navyblue rounded-lg px-2 py-1 font-akagi font-medium text-sm text-yellow'>{availableBikes === 0 ? "No Available Units" : availableBikes + " units available"}</div>
                     <div className='flex md:flex-row flex-col justify-between px-4 md:items-center'>

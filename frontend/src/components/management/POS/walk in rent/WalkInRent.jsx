@@ -189,13 +189,13 @@ function WalkInRent() {
 
                                     <div className='grid grid-cols-2 gap-3 pb-5'>
                                         <div 
-                                            onClick={grandTotal === 0 ? undefined : () => {setGcash(true), setCash(!cash)}}
+                                            onClick={grandTotal === 0 ? undefined : () => {setGcash(true), cash === true ? setCash(!cash) : ""}}
                                             className={`border-2 border-gray rounded-lg text-center py-2 ${gcash === true ? `bg-gray text-[#ffffff]` : `bg-transparent `}`}>
                                             <h1 className={`text-xl font-bold font-akagi ${gcash === true ? `text-[#fffffff]` : `text-gray`}`}>GCash</h1>
                                         </div>
 
                                         <div 
-                                            onClick={grandTotal === 0 ? undefined : () => {setCash(true), gcash === true ? setGcash(!gcash) : ""}}
+                                            onClick={() => {grandTotal === 0 ? undefined : setCash(true), gcash === true ? setGcash(!gcash) : ""}}
                                             className={`border-2 border-gray rounded-lg text-center py-2 ${cash === true ? `bg-gray text-[#ffffff]` : `bg-transparent`}`}>
                                             <h1 className={`text-xl font-bold font-akagi ${cash === true ? `text-[#fffffff]` : `text-gray`}`}>Cash</h1>
                                         </div>
@@ -303,6 +303,7 @@ function WalkInRent() {
                                                     className={`rounded-lg p-1 border border-[#ffffff] text-center items-center justify-center ${cashAmount === null ? `bg-[#ffffff] text-gray` : `text-[#ffffff]`}`}>
                                                     Custom
                                                 </div>
+
                                             </div>
                                             <div className='pt-5'>
                                                 <input 
@@ -311,31 +312,27 @@ function WalkInRent() {
                                                     onChange={handleChange}
                                                     className='bg-[#fffffff] border-2 border-white w-full text-[#ffffff] rounded-xl focus:outline-none px-3 py-1 font-bold'/>
                                             </div>
+
                                         </div>
                                     }
                                 </div>
 
                                 <div 
                                     onClick={() => {setProceed(true)}}
-                                    className='w-fit self-end bg-yellow rounded-xl px-8 py-3 text-center'>
+                                    className={`${cashAmount < grandTotal ? "hidden":"block"} w-fit self-end bg-yellow rounded-xl px-8 py-3 text-center`}>
                                     <h1 className='text-xl font-bold font-akagi text-darkblue'>Payment</h1>
                                 </div>
 
-                                {cashAmount >= grandTotal ? 
-                                 (
+                                {proceed && 
                                     <ProceedWalkInRent 
                                         onClose={() => setProceed(false)}
                                         cart={cart}
                                         cartTotal={grandTotal}
                                         cashTendered={cashAmount}
-                                        paymentMethod={gcash === true ? "GCash" : "Cash"}/>
-                                        
-                                 ) : (
-                                    <div className=''>
-                                        tite
-                                    </div>
-                                 )
+                                        paymentMethod={gcash === true ? "GCash" : "Cash"}
+                                    />   
                                 }
+
                             </div>
                         </div>
                     </div>
