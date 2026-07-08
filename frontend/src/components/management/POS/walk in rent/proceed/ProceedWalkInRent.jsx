@@ -88,7 +88,7 @@ function ProceedWalkInRent({onClose, cart, cartTotal, cashTendered, paymentMetho
 
                 <div className='h-0.5 w-full rounded-lg bg-black/30'/>
 
-                <div className='flex flex-col gap-3 md:px-30 '>
+                <div className='flex flex-col gap-3 md:px-30 px-7'>
                     <div className='flex flex-row justify-between items-center'>
                         <h1 className='text-lg font-bold font-akagi text-[#6D7172]'>Total</h1>
                         <h1 className='text-xl font-bold font-akagi text-[#6D7172]'>{"P"+cartTotal}</h1>

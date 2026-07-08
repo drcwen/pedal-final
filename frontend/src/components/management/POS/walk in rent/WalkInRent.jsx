@@ -189,13 +189,13 @@ function WalkInRent() {
 
                                     <div className='grid grid-cols-2 gap-3 pb-5'>
                                         <div 
-                                            onClick={() => {setGcash(true), setCash(!cash)}}
+                                            onClick={grandTotal === 0 ? undefined : () => {setGcash(true), setCash(!cash)}}
                                             className={`border-2 border-gray rounded-lg text-center py-2 ${gcash === true ? `bg-gray text-[#ffffff]` : `bg-transparent `}`}>
                                             <h1 className={`text-xl font-bold font-akagi ${gcash === true ? `text-[#fffffff]` : `text-gray`}`}>GCash</h1>
                                         </div>
 
                                         <div 
-                                            onClick={() => {setCash(true), gcash === true ? setGcash(!gcash) : ""}}
+                                            onClick={grandTotal === 0 ? undefined : () => {setCash(true), gcash === true ? setGcash(!gcash) : ""}}
                                             className={`border-2 border-gray rounded-lg text-center py-2 ${cash === true ? `bg-gray text-[#ffffff]` : `bg-transparent`}`}>
                                             <h1 className={`text-xl font-bold font-akagi ${cash === true ? `text-[#fffffff]` : `text-gray`}`}>Cash</h1>
                                         </div>
@@ -321,7 +321,8 @@ function WalkInRent() {
                                     <h1 className='text-xl font-bold font-akagi text-darkblue'>Payment</h1>
                                 </div>
 
-                                {proceed && 
+                                {cashAmount >= grandTotal ? 
+                                 (
                                     <ProceedWalkInRent 
                                         onClose={() => setProceed(false)}
                                         cart={cart}
@@ -329,7 +330,12 @@ function WalkInRent() {
                                         cashTendered={cashAmount}
                                         paymentMethod={gcash === true ? "GCash" : "Cash"}/>
                                         
-                                        }
+                                 ) : (
+                                    <div className=''>
+                                        tite
+                                    </div>
+                                 )
+                                }
                             </div>
                         </div>
                     </div>
