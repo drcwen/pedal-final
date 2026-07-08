@@ -8,7 +8,7 @@ import { motion } from "motion/react"
 import { IoChevronBack } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 
-function WalkInRent({image, name, availableBikes, isOpen, onClick, bikeId, bikeData, setBikeData, setCart}) {
+function WalkInRent({image, price, name, availableBikes, isOpen, onClick, bikeId, bikeData, setBikeData, setCart}) {
     
     const navigate = useNavigate();
 
@@ -24,18 +24,17 @@ function WalkInRent({image, name, availableBikes, isOpen, onClick, bikeId, bikeD
         if (quantity === 0 || hours === 0) return;
 
         const bikesToAdd = Array.from({ length: quantity }, (_, index) => ({
-            cartId: `${bikeId}-${Date.now()}-${index}`, // unique ID for each row
+            cartId: `${bikeId}-${Date.now()}-${index}`,
             bikeId,
             name,
             image,
             hours,
-            price: 200,
-            total: hours * 200
+            price,
+            total: hours * price
         }));
 
         setCart(prev => [...prev, ...bikesToAdd]);
 
-        // Optional: Reset the inputs after adding
         setBikeData(prev => ({
             ...prev,
             [bikeId]: {

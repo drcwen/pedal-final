@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import OrderRow from "./OrderRow"
 
-function ProceedWalkInRent({onClose, cart}) {
+function ProceedWalkInRent({onClose, cart, cartTotal, cashTendered, paymentMethod}) {
 
     const [selectedItems, setSelectedItems] = useState({});
     const [confirmProceed, setConfirmProceed] = useState(false);
@@ -91,25 +91,27 @@ function ProceedWalkInRent({onClose, cart}) {
                 <div className='flex flex-col gap-3 md:px-30 '>
                     <div className='flex flex-row justify-between items-center'>
                         <h1 className='text-lg font-bold font-akagi text-[#6D7172]'>Total</h1>
-                        <h1 className='text-xl font-bold font-akagi text-[#6D7172]'>P</h1>
+                        <h1 className='text-xl font-bold font-akagi text-[#6D7172]'>{"P"+cartTotal}</h1>
                     </div>
 
                     <div className='flex flex-row justify-between items-center'>
                         <h1 className='lg:text-lg font-bold font-akagi text-[#6D7172]'>Amount Tendered</h1>
-                        <h1 className='lg:text-lg font-medium font-akagi text-[#6D7172]'>P</h1>
+                        <h1 className='lg:text-lg font-medium font-akagi text-[#6D7172]'>{"P"+cashTendered}</h1>
                     </div>
 
-                    <div className= {`flex flex-row justify-between items-center`}>
+                    <div className= {`flex flex-row justify-between items-center
+                            ${cartTotal === cashTendered ? "hidden" : "block" }
+                        `}>
                         <h1 className='lg:text-lg font-bold font-akagi text-[#6D7172]'>Change</h1>
-                        <h1 className='lg:text-lg font-medium font-akagi text-[#6D7172]'>P</h1>
+                        <h1 className='lg:text-lg font-medium font-akagi text-[#6D7172]'>{cartTotal === cashTendered ? "No change" :"P" + (cashTendered - cartTotal)}</h1>
                     </div>
 
                     <div className='flex flex-row justify-between items-center'>
                         <h1 className='lg:text-lg font-bold font-akagi text-[#6D7172]'>Payment Method</h1>
-                        <h1 className='lg:text-lg font-medium font-akagi text-[#6D7172]'>Asd</h1>
+                        <h1 className='lg:text-lg font-medium font-akagi text-[#6D7172]'>{paymentMethod}</h1>
                     </div>
 
-                    <div className='flex flex-row justify-between items-center md:pl-10'>
+                    <div className={`flex flex-row justify-between items-center md:pl-10 ${paymentMethod === "GCash" ? "block" : "hidden"}`}>
                         <h1 className='lg:text-lg font-medium font-akagi text-[#6D7172]'>Reference No:</h1>
                         <h1 className='lg:text-lg font-medium font-akagi text-[#6D7172]'>123</h1>
                     </div>

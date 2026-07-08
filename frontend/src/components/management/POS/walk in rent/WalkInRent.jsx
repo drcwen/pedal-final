@@ -21,6 +21,9 @@ function WalkInRent() {
     const [bikeData, setBikeData] = useState({});
     const [cart, setCart] = useState([]);
 
+    const grandTotal = cart.reduce((sum, item) => sum + item.total, 0);
+
+
     const [bikeAvailability, setBikeAvailability] = useState([]);
 
     const [gcash, setGcash] = useState(false);
@@ -124,6 +127,7 @@ function WalkInRent() {
                                                 bikeData={bikeData}
                                                 setBikeData={setBikeData}
                                                 setCart={setCart}
+                                                price={bike.price}
                                             />
                                         </motion.div>
                                     </>
@@ -172,7 +176,12 @@ function WalkInRent() {
                                     </div>
                                 ))}
 
-    
+                                <div className='w-full bg-black/20 rounded-lg h-0.5'/>
+
+                                <div className='flex flex-row justify-between px-5 font-akagi font-bold text-[#6D7172] items-center text-2xl'>
+                                    <h1>Total:</h1>
+                                    <h1 className=''>{"P" + grandTotal}</h1>
+                                </div>
                             </div>
                             <div className='flex flex-col gap-6 justify-between'>
                                 <div className='bg-white p-6 rounded-xl flex flex-col gap-3'>
@@ -201,51 +210,91 @@ function WalkInRent() {
                                     {cash === true && 
                                         <div className='w-full rounded-xl bg-gray p-3 font-akagi font-bold text-gray text-xl'>
                                             <div className='grid grid-cols-3 gap-3'>
-                                                <div 
-                                                    onClick={() => {setCashAmount(150)}}
-                                                    className={`rounded-lg p-1 border border-[#ffffff] text-center items-center justify-center ${cashAmount === 150 ? `bg-[#ffffff] text-[gray]` : `text-[#ffffff]`}`}>
+                                                <div
+                                                    onClick={150 < grandTotal ? undefined : () => setCashAmount(150)}
+                                                    className={`
+                                                        rounded-lg p-1 border border-[#ffffff] text-center items-center justify-center
+                                                        ${cashAmount === 150 ? "bg-[#ffffff] text-[gray]" : "text-[#ffffff]"}
+                                                        ${150 < grandTotal ? "pointer-events-none opacity-20" : "cursor-pointer"}
+                                                    `}
+                                                >
                                                     150
                                                 </div>
 
-                                                <div 
-                                                    onClick={() => {setCashAmount(200)}}
-                                                    className={`rounded-lg p-1 border border-[#ffffff] text-center items-center justify-center ${cashAmount === 200 ? `bg-[#ffffff] text-[gray]` : `text-[#ffffff]`}`}>
+                                                <div
+                                                    onClick={200 < grandTotal ? undefined : () => setCashAmount(200)}
+                                                    className={`
+                                                        rounded-lg p-1 border border-[#ffffff] text-center items-center justify-center
+                                                        ${cashAmount === 200 ? "bg-[#ffffff] text-[gray]" : "text-[#ffffff]"}
+                                                        ${200 < grandTotal ? "pointer-events-none opacity-20" : "cursor-pointer"}
+                                                    `}
+                                                >
                                                     200
                                                 </div>
 
-                                                <div 
-                                                    onClick={() => {setCashAmount(250)}}
-                                                    className={`rounded-lg p-1 border border-[#ffffff] text-center items-center justify-center ${cashAmount === 250 ? `bg-[#ffffff] text-[gray]` : `text-[#ffffff]`}`}>
+                                                <div
+                                                    onClick={250 < grandTotal ? undefined : () => setCashAmount(250)}
+                                                    className={`
+                                                        rounded-lg p-1 border border-[#ffffff] text-center items-center justify-center
+                                                        ${cashAmount === 250 ? "bg-[#ffffff] text-[gray]" : "text-[#ffffff]"}
+                                                        ${250 < grandTotal ? "pointer-events-none opacity-20" : "cursor-pointer"}
+                                                    `}
+                                                >
                                                     250
                                                 </div>
 
-                                                <div 
-                                                    onClick={() => {setCashAmount(300)}}
-                                                    className={`rounded-lg p-1 border border-[#ffffff] text-center items-center justify-center ${cashAmount === 300 ? `bg-[#ffffff] text-[gray]` : `text-[#ffffff]`}`}>
+                                                <div
+                                                    onClick={300 < grandTotal ? undefined : () => setCashAmount(300)}
+                                                    className={`
+                                                        rounded-lg p-1 border border-[#ffffff] text-center items-center justify-center
+                                                        ${cashAmount === 300 ? "bg-[#ffffff] text-[gray]" : "text-[#ffffff]"}
+                                                        ${300 < grandTotal ? "pointer-events-none opacity-20" : "cursor-pointer"}
+                                                    `}
+                                                >
                                                     300
                                                 </div>
 
-                                                <div 
-                                                    onClick={() => {setCashAmount(350)}}
-                                                    className={`rounded-lg p-1 border border-[#ffffff] text-center items-center justify-center ${cashAmount === 350 ? `bg-[#ffffff] text-[gray]` : `text-[#ffffff]`}`}>
+                                                <div
+                                                    onClick={350 < grandTotal ? undefined : () => setCashAmount(350)}
+                                                    className={`
+                                                        rounded-lg p-1 border border-[#ffffff] text-center items-center justify-center
+                                                        ${cashAmount === 350 ? "bg-[#ffffff] text-[gray]" : "text-[#ffffff]"}
+                                                        ${350 < grandTotal ? "pointer-events-none opacity-20" : "cursor-pointer"}
+                                                    `}
+                                                >
                                                     350
                                                 </div>
-
-                                                <div 
-                                                    onClick={() => {setCashAmount(450)}}
-                                                    className={`rounded-lg p-1 border border-[#ffffff] text-center items-center justify-center ${cashAmount === 450 ? `bg-[#ffffff] text-[gray]` : `text-[#ffffff]`}`}>
+                                                
+                                                <div
+                                                    onClick={450 < grandTotal ? undefined : () => setCashAmount(450)}
+                                                    className={`
+                                                        rounded-lg p-1 border border-[#ffffff] text-center items-center justify-center
+                                                        ${cashAmount === 450 ? "bg-[#ffffff] text-[gray]" : "text-[#ffffff]"}
+                                                        ${450 < grandTotal ? "pointer-events-none opacity-20" : "cursor-pointer"}
+                                                    `}
+                                                >
                                                     450
                                                 </div>
 
-                                                <div 
-                                                    onClick={() => {setCashAmount(500)}}
-                                                    className={`rounded-lg p-1 border border-[#ffffff] text-center items-center justify-center ${cashAmount === 500 ? `bg-[#ffffff] text-[gray]` : `text-[#ffffff]`}`}>
+                                                <div
+                                                    onClick={500 < grandTotal ? undefined : () => setCashAmount(500)}
+                                                    className={`
+                                                        rounded-lg p-1 border border-[#ffffff] text-center items-center justify-center
+                                                        ${cashAmount === 500 ? "bg-[#ffffff] text-[gray]" : "text-[#ffffff]"}
+                                                        ${500 < grandTotal ? "pointer-events-none opacity-20" : "cursor-pointer"}
+                                                    `}
+                                                >
                                                     500
                                                 </div>
 
-                                                <div 
-                                                    onClick={() => {setCashAmount(1000)}}
-                                                    className={`rounded-lg p-1 border border-[#ffffff] text-center items-center justify-center ${cashAmount === 1000 ? `bg-[#ffffff] text-[gray]` : `text-[#ffffff]`}`}>
+                                                <div
+                                                    onClick={1000 < grandTotal ? undefined : () => setCashAmount(1000)}
+                                                    className={`
+                                                        rounded-lg p-1 border border-[#ffffff] text-center items-center justify-center
+                                                        ${cashAmount === 1000 ? "bg-[#ffffff] text-[gray]" : "text-[#ffffff]"}
+                                                        ${1000 < grandTotal ? "pointer-events-none opacity-20" : "cursor-pointer"}
+                                                    `}
+                                                >
                                                     1000
                                                 </div>
 
@@ -275,7 +324,12 @@ function WalkInRent() {
                                 {proceed && 
                                     <ProceedWalkInRent 
                                         onClose={() => setProceed(false)}
-                                        cart={cart}/>}
+                                        cart={cart}
+                                        cartTotal={grandTotal}
+                                        cashTendered={cashAmount}
+                                        paymentMethod={gcash === true ? "GCash" : "Cash"}/>
+                                        
+                                        }
                             </div>
                         </div>
                     </div>
