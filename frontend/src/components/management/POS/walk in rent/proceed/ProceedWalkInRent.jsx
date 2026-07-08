@@ -50,37 +50,38 @@ function ProceedWalkInRent({onClose, cart}) {
                     </div>
 
                     <div className='flex flex-col gap-3'>
-                        {
-                            cart.map((bikes) => (
-                                <OrderRow 
-                                    image={bikes.image}
-                                    duration={bikes.hours}
-                                    model={bikes.name}
-                                    price={"P" + bikes.price}
-                                    selectedBikeId={selectedItems[bikes.bikeId]?.bikeId || ""}
-                                    selectedGpsId={selectedItems[bikes.bikeId]?.gpsId || ""}
-                                    onBikeChange={(bikeId) =>
-                                    setSelectedItems((prev) => ({
-                                        ...prev,
-                                        [bikes.bikeId]: {
-                                        ...prev[bikes.bikeId],
-                                        bikeId,
-                                        },
-                                    }))
-                                    }
-                                    onGpsChange={(gpsId) =>
-                                    setSelectedItems((prev) => ({
-                                        ...prev,
-                                        [bikes.bikeId]: {
-                                        ...prev[bikes.bikeId],
-                                        gpsId,
-                                        },
-                                    }))
-                                    }
+                        {cart.map((bikes) => (
+                            <OrderRow
+                                key={bikes.cartId}
+                                image={bikes.image}
+                                duration={bikes.hours}
+                                model={bikes.name}
+                                price={"P" + bikes.price}
 
-                                />
-                            ))
-                        }
+                                selectedBikeId={selectedItems[bikes.cartId]?.bikeId || ""}
+                                selectedGpsId={selectedItems[bikes.cartId]?.gpsId || ""}
+
+                                onBikeChange={(bikeId) =>
+                                    setSelectedItems(prev => ({
+                                        ...prev,
+                                        [bikes.cartId]: {
+                                            ...prev[bikes.cartId],
+                                            bikeId,
+                                        },
+                                    }))
+                                }
+
+                                onGpsChange={(gpsId) =>
+                                    setSelectedItems(prev => ({
+                                        ...prev,
+                                        [bikes.cartId]: {
+                                            ...prev[bikes.cartId],
+                                            gpsId,
+                                        },
+                                    }))
+                                }
+                            />
+                        ))}
 
                     </div>
                 </div>

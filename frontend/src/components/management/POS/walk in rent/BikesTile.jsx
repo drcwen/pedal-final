@@ -22,34 +22,27 @@ function WalkInRent({image, name, availableBikes, isOpen, onClick, bikeId, bikeD
         const hours = bikeData[bikeId]?.hours || 0;
 
         if (quantity === 0 || hours === 0) return;
-    
-         setCart(prev => {
-            const existingIndex = prev.findIndex(item => item.bikeId === bikeId);
 
-            if (existingIndex !== -1) {
-                const updated = [...prev];
-                updated[existingIndex] = {
-                    ...updated[existingIndex],
-                    quantity,
-                    hours,
-                    total: quantity * hours * 200
-                };
-                return updated;
+        const bikesToAdd = Array.from({ length: quantity }, (_, index) => ({
+            cartId: `${bikeId}-${Date.now()}-${index}`, // unique ID for each row
+            bikeId,
+            name,
+            image,
+            hours,
+            price: 200,
+            total: hours * 200
+        }));
+
+        setCart(prev => [...prev, ...bikesToAdd]);
+
+        // Optional: Reset the inputs after adding
+        setBikeData(prev => ({
+            ...prev,
+            [bikeId]: {
+                quantity: 0,
+                hours: 0
             }
-
-            return [
-                ...prev,
-                {
-                    bikeId,
-                    name,
-                    image,
-                    quantity,
-                    hours,
-                    price: 200,
-                    total: quantity * hours * 200
-                }
-            ];
-        });
+        }));
     };
 
   return (

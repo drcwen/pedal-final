@@ -23,11 +23,10 @@ function WalkInRent() {
 
     const [bikeAvailability, setBikeAvailability] = useState([]);
 
-    const handleDelete = (bikeId) => {
-        setCart(prev => prev.filter(item => item.bikeId !== bikeId));
-    };
+    const [gcash, setGcash] = useState(false);
+    const [cash, setCash] = useState(false);
 
-
+    const [cashAmount, setCashAmount] = useState();
     useEffect(() => {
         console.log(cart);
         const fetchBikes = async () => {
@@ -48,6 +47,18 @@ function WalkInRent() {
         fetchBikes()
 
     }, [cart])
+
+    const handleDelete = (cartId) => {
+        setCart(prev => prev.filter(item => item.cartId !== cartId));
+    };
+
+    const handleChange = (e) => {
+        setCashAmount(e.target.value);
+
+        if (!isNaN(value)) {
+            setCashAmount(value);
+        }
+    };
 
   return (
     <>
@@ -128,7 +139,7 @@ function WalkInRent() {
                         <div className='min-h-70 md:grid md:grid-cols-2 flex flex-col gap-10'>
                             <div className='flex flex-col gap-4'>
                                 {cart.map((item) => (
-                                    <div key={item.bikeId} className='flex flex-row justify-between items-center'>
+                                    <div key={item.cartId} className='flex flex-row justify-between items-center'>
                                         
                                         <div className='flex flex-row gap-4 items-center font-akagi font-bold'>
                                             <div className='bg-yellow p-2 rounded-lg'>
@@ -141,7 +152,7 @@ function WalkInRent() {
                                                 </h1>
 
                                                 <p className='text-sm text-gray'>
-                                                    {item.quantity}x • {item.hours} hrs
+                                                    {item.hours} hrs
                                                 </p>
                                             </div>
                                         </div>
@@ -152,7 +163,7 @@ function WalkInRent() {
                                             </h1>
 
                                             <button
-                                                onClick={() => handleDelete(item.bikeId)}
+                                                onClick={() => handleDelete(item.cartId)}
                                                 className='text-red-500 font-bold text-sm hover:opacity-70'
                                             >
                                                 <FaTrash/> 
@@ -167,15 +178,92 @@ function WalkInRent() {
                                 <div className='bg-white p-6 rounded-xl flex flex-col gap-3'>
                                     <h1 className='text-2xl font-bold font-akagi text-[#6D7172]'>Payment</h1>
 
-                                    <div className='grid grid-cols-2 gap-3'>
-                                        <div className='border-2 border-gray rounded-lg text-center py-2'>
-                                            <h1 className='text-xl font-bold font-akagi text-gray'>GCash</h1>
+                                    <div className='grid grid-cols-2 gap-3 pb-5'>
+                                        <div 
+                                            onClick={() => {setGcash(true), setCash(!cash)}}
+                                            className={`border-2 border-gray rounded-lg text-center py-2 ${gcash === true ? `bg-gray text-[#ffffff]` : `bg-transparent `}`}>
+                                            <h1 className={`text-xl font-bold font-akagi ${gcash === true ? `text-[#fffffff]` : `text-gray`}`}>GCash</h1>
                                         </div>
 
-                                        <div className='border-2 border-gray rounded-lg text-center py-2'>
-                                            <h1 className='text-xl font-bold font-akagi text-gray'>Cash</h1>
+                                        <div 
+                                            onClick={() => {setCash(true), gcash === true ? setGcash(!gcash) : ""}}
+                                            className={`border-2 border-gray rounded-lg text-center py-2 ${cash === true ? `bg-gray text-[#ffffff]` : `bg-transparent`}`}>
+                                            <h1 className={`text-xl font-bold font-akagi ${cash === true ? `text-[#fffffff]` : `text-gray`}`}>Cash</h1>
                                         </div>
                                     </div>
+
+                                    {gcash === true && 
+                                        <div className='w-full rounded-xl bg-gray p-2'>
+                                            
+                                        </div>
+                                    }
+
+                                    {cash === true && 
+                                        <div className='w-full rounded-xl bg-gray p-3 font-akagi font-bold text-gray text-xl'>
+                                            <div className='grid grid-cols-3 gap-3'>
+                                                <div 
+                                                    onClick={() => {setCashAmount(150)}}
+                                                    className={`rounded-lg p-1 border border-[#ffffff] text-center items-center justify-center ${cashAmount === 150 ? `bg-[#ffffff] text-[gray]` : `text-[#ffffff]`}`}>
+                                                    150
+                                                </div>
+
+                                                <div 
+                                                    onClick={() => {setCashAmount(200)}}
+                                                    className={`rounded-lg p-1 border border-[#ffffff] text-center items-center justify-center ${cashAmount === 200 ? `bg-[#ffffff] text-[gray]` : `text-[#ffffff]`}`}>
+                                                    200
+                                                </div>
+
+                                                <div 
+                                                    onClick={() => {setCashAmount(250)}}
+                                                    className={`rounded-lg p-1 border border-[#ffffff] text-center items-center justify-center ${cashAmount === 250 ? `bg-[#ffffff] text-[gray]` : `text-[#ffffff]`}`}>
+                                                    250
+                                                </div>
+
+                                                <div 
+                                                    onClick={() => {setCashAmount(300)}}
+                                                    className={`rounded-lg p-1 border border-[#ffffff] text-center items-center justify-center ${cashAmount === 300 ? `bg-[#ffffff] text-[gray]` : `text-[#ffffff]`}`}>
+                                                    300
+                                                </div>
+
+                                                <div 
+                                                    onClick={() => {setCashAmount(350)}}
+                                                    className={`rounded-lg p-1 border border-[#ffffff] text-center items-center justify-center ${cashAmount === 350 ? `bg-[#ffffff] text-[gray]` : `text-[#ffffff]`}`}>
+                                                    350
+                                                </div>
+
+                                                <div 
+                                                    onClick={() => {setCashAmount(450)}}
+                                                    className={`rounded-lg p-1 border border-[#ffffff] text-center items-center justify-center ${cashAmount === 450 ? `bg-[#ffffff] text-[gray]` : `text-[#ffffff]`}`}>
+                                                    450
+                                                </div>
+
+                                                <div 
+                                                    onClick={() => {setCashAmount(500)}}
+                                                    className={`rounded-lg p-1 border border-[#ffffff] text-center items-center justify-center ${cashAmount === 500 ? `bg-[#ffffff] text-[gray]` : `text-[#ffffff]`}`}>
+                                                    500
+                                                </div>
+
+                                                <div 
+                                                    onClick={() => {setCashAmount(1000)}}
+                                                    className={`rounded-lg p-1 border border-[#ffffff] text-center items-center justify-center ${cashAmount === 1000 ? `bg-[#ffffff] text-[gray]` : `text-[#ffffff]`}`}>
+                                                    1000
+                                                </div>
+
+                                                <div 
+                                                    onClick={() => {setCashAmount("")}}
+                                                    className={`rounded-lg p-1 border border-[#ffffff] text-center items-center justify-center ${cashAmount === null ? `bg-[#ffffff] text-gray` : `text-[#ffffff]`}`}>
+                                                    Custom
+                                                </div>
+                                            </div>
+                                            <div className='pt-5'>
+                                                <input 
+                                                    placeholder="Amount"
+                                                    value={cashAmount}
+                                                    onChange={handleChange}
+                                                    className='bg-[#fffffff] border-2 border-white w-full text-[#ffffff] rounded-xl focus:outline-none px-3 py-1 font-bold'/>
+                                            </div>
+                                        </div>
+                                    }
                                 </div>
 
                                 <div 
