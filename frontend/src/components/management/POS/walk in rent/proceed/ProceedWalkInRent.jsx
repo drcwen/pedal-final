@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import OrderRow from "./OrderRow"
+import { supabase } from "../../../../../lib/supabase"
 
 function ProceedWalkInRent({onClose, cart, cartTotal, cashTendered, paymentMethod}) {
 
@@ -7,11 +8,23 @@ function ProceedWalkInRent({onClose, cart, cartTotal, cashTendered, paymentMetho
     const [confirmProceed, setConfirmProceed] = useState(false);
     const [confirmBack, setConfirmBack] = useState(false);
 
-    
+    const [assisted, setAssisted] = useState();
 
     useEffect(() => {
-    console.log("Selected Items:", selectedItems);
+        console.log("Selected Items:", selectedItems);
+        const getCurrentUser = async () => {
+            const { data, error } = await supabase.auth.getUser();
+
+            const user = data.user;
+
+            setAssisted(user.id);
+        }
+        getCurrentUser();
     }, [selectedItems]);
+
+    console.log("Assisted by: " + assisted)
+
+    
 
   return (
     <>
