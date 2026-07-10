@@ -202,7 +202,9 @@ function WalkInRent() {
                                     </div>
 
                                     {gcash === true && 
-                                        <div className='w-full rounded-xl bg-gray p-2'>
+                                        <div
+                                            onClick={grandTotal === 0 ? setGcash(!gcash) : undefined} 
+                                            className='w-full rounded-xl bg-gray p-2'>
                                             
                                         </div>
                                     }

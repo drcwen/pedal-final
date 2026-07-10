@@ -8,10 +8,50 @@ function ProceedWalkInRent({onClose, cart, cartTotal, cashTendered, paymentMetho
     const [confirmProceed, setConfirmProceed] = useState(false);
     const [confirmBack, setConfirmBack] = useState(false);
 
+    const [fullName, setFullName] = useState(null);
+    const [idType, setIdType] = useState(null);
+
     const [assisted, setAssisted] = useState();
 
+    const [transId, setTransId] = useState();
+
+    const change = cashTendered - cartTotal;
+
+    const now = new Date();
+
+    const today = now.toLocaleDateString("en-CA");
+
+    const start = now.toLocaleTimeString("en-GB", {
+        hour12: false,
+    });
+
+    const end = (hoursToAdd) => {
+        const endDate = new Date(now);
+        endDate.setHours(endDate.getHours() + hoursToAdd);
+
+        return endDate.toLocaleTimeString("en-GB", {
+            hour12: false,
+        });
+    };
+
+    const createTstzRange = (date, startTime, endTime, timezone = "+08") => {
+        return `["${date} ${startTime}${timezone}","${date} ${endTime}${timezone}")`;
+    };
+
     useEffect(() => {
+
+        const hours = 3;
+
+        const rentalRange = createTstzRange(
+            today,
+            start,
+            end(hours)
+        );
+
+        console.log(rentalRange);
         console.log("Selected Items:", selectedItems);
+        console.log(cart);
+
         const getCurrentUser = async () => {
             const { data, error } = await supabase.auth.getUser();
 
@@ -21,12 +61,105 @@ function ProceedWalkInRent({onClose, cart, cartTotal, cashTendered, paymentMetho
         }
         getCurrentUser();
 
-
     }, [selectedItems]);
 
     console.log("Assisted by: " + assisted)
 
-    
+
+    //creates transaction and fetch the created transaction ID
+    const getTransactionID = async () => {
+
+        const {data, error} = await supabase
+            .from("transactions_mod")
+            .insert({
+                payment_method: paymentMethod,
+                total_amount: cartTotal,
+                amount_paid: cashTendered,
+                change_amount: change,
+                status: "pending",
+                type: "walk-in",
+                assisted_by: assisted,
+            })
+            .select()
+            .single()
+
+        if (error) {
+            console.error(error);
+            return null;
+        }
+
+        return data.id;
+    }
+
+    // add walk-in name and id type
+    const walkInUserData = async (transactionId) => {
+
+        const {data, error} = await supabase
+            .from("walk_ins_users_mod")
+            .insert({
+                full_name: fullName,
+                id_type: idType,
+                transaction_id: transactionId
+            })
+
+            if (error) {
+                console.error(error);
+            }
+    }
+
+    const walkInOrders = async (transactionId) => {
+        const orders = cart.map(item => ({
+            bike_type_id: item.bikeId,
+            transaction_id: transactionId,
+            reservation_date: today,
+            start_time: start,
+            duration_hours: item.hours,
+            reservation_range: createTstzRange(
+                today,
+                start,
+                end(item.hours)
+            ), 
+            type: "walk-in"
+        }))
+        
+        console.log(orders);
+
+        const {data, error} = await supabase
+            .from("orders_mod")
+            .insert(orders)
+
+            if (error) {
+                console.error(error);
+            }
+    }
+
+    const handleProceed = async () => {
+        const transactionId = await getTransactionID();
+        
+        const hasUnselected = cart.some(item => {
+            const selection = selectedItems[item.cartId];
+
+            return (
+                !selection ||
+                !selection.bikeId ||
+                !selection.gpsId
+            );
+        });
+
+
+        if (hasUnselected) {
+            alert("Please select a Bike ID and GPS ID for every bike.");
+            return;
+        } else if (fullName === null, idType === null) {
+            alert("Name or ID Type is missing.");
+            return;
+        }
+
+        await walkInUserData(transactionId);
+        setConfirmProceed(true);
+        walkInOrders(transactionId);
+    };
+  
 
   return (
     <>
@@ -40,14 +173,20 @@ function ProceedWalkInRent({onClose, cart, cartTotal, cashTendered, paymentMetho
                         <div className='grid lg:grid-cols-[150px_1fr] grid-cols-[90px_1fr] items-center'>
                             <h1 className='md:text-md text-sm font-akagi font-bold text-[#6D7172]'>Full Name:</h1>
                             <div className='bg-[#D9D9D9] rounded-lg px-3 py-1 flex items-center'>
-                                <input className='w-full md:text-md text-sm font-akagi font-bold text-[#6D7172]'/>
+                                <input 
+                                    value={fullName}
+                                    onChange={(e) => setFullName(e.target.value)}
+                                    className='w-full md:text-md text-sm font-akagi font-bold text-[#6D7172] focus:outline-none'/>
                             </div>
                         </div>
 
                         <div className='grid lg:grid-cols-[150px_1fr] grid-cols-[90px_1fr] items-center'>
                             <h1 className='md:text-md text-sm font-akagi font-bold text-[#6D7172]'>ID Type:</h1>
                             <div className='bg-[#D9D9D9] rounded-lg px-3 py-1 flex items-center'>
-                                <input className='w-full md:text-md text-sm font-akagi font-bold text-[#6D7172]'></input>
+                                <input 
+                                    value={idType}
+                                    onChange={(e) => setIdType(e.target.value)}
+                                    className='w-full md:text-md text-sm font-akagi font-bold text-[#6D7172] focus:outline-none'></input>
                             </div>
                         </div>
 
@@ -172,7 +311,7 @@ function ProceedWalkInRent({onClose, cart, cartTotal, cashTendered, paymentMetho
                                 </div>
 
                                 <div
-                                    onClick={() => {setConfirmProceed(false)}}   
+                                    onClick={handleProceed}   
                                     className='bg-green-500 rounded-xl px-7 py-2 cursor-pointer'>
                                     <h1 className='text-lg font-akagi font-bold text-[#ffffff]'>Yes</h1>
                                 </div>
