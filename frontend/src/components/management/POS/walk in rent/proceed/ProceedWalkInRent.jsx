@@ -1,17 +1,32 @@
 import { useEffect, useState } from "react";
 import OrderRow from "./OrderRow"
+import { supabase } from "../../../../../lib/supabase"
 
-function ProceedWalkInRent({onClose, cart}) {
+function ProceedWalkInRent({onClose, cart, cartTotal, cashTendered, paymentMethod}) {
 
     const [selectedItems, setSelectedItems] = useState({});
     const [confirmProceed, setConfirmProceed] = useState(false);
     const [confirmBack, setConfirmBack] = useState(false);
 
-    
+    const [assisted, setAssisted] = useState();
 
     useEffect(() => {
-    console.log("Selected Items:", selectedItems);
+        console.log("Selected Items:", selectedItems);
+        const getCurrentUser = async () => {
+            const { data, error } = await supabase.auth.getUser();
+
+            const user = data.user;
+
+            setAssisted(user.id);
+        }
+        getCurrentUser();
+
+
     }, [selectedItems]);
+
+    console.log("Assisted by: " + assisted)
+
+    
 
   return (
     <>
@@ -50,65 +65,68 @@ function ProceedWalkInRent({onClose, cart}) {
                     </div>
 
                     <div className='flex flex-col gap-3'>
-                        {
-                            cart.map((bikes) => (
-                                <OrderRow 
-                                    image={bikes.image}
-                                    duration={bikes.hours}
-                                    model={bikes.name}
-                                    price={"P" + bikes.price}
-                                    selectedBikeId={selectedItems[bikes.bikeId]?.bikeId || ""}
-                                    selectedGpsId={selectedItems[bikes.bikeId]?.gpsId || ""}
-                                    onBikeChange={(bikeId) =>
-                                    setSelectedItems((prev) => ({
-                                        ...prev,
-                                        [bikes.bikeId]: {
-                                        ...prev[bikes.bikeId],
-                                        bikeId,
-                                        },
-                                    }))
-                                    }
-                                    onGpsChange={(gpsId) =>
-                                    setSelectedItems((prev) => ({
-                                        ...prev,
-                                        [bikes.bikeId]: {
-                                        ...prev[bikes.bikeId],
-                                        gpsId,
-                                        },
-                                    }))
-                                    }
+                        {cart.map((bikes) => (
+                            <OrderRow
+                                key={bikes.cartId}
+                                image={bikes.image}
+                                duration={bikes.hours}
+                                model={bikes.name}
+                                price={"P" + bikes.price}
 
-                                />
-                            ))
-                        }
+                                selectedBikeId={selectedItems[bikes.cartId]?.bikeId || ""}
+                                selectedGpsId={selectedItems[bikes.cartId]?.gpsId || ""}
+
+                                onBikeChange={(bikeId) =>
+                                    setSelectedItems(prev => ({
+                                        ...prev,
+                                        [bikes.cartId]: {
+                                            ...prev[bikes.cartId],
+                                            bikeId,
+                                        },
+                                    }))
+                                }
+
+                                onGpsChange={(gpsId) =>
+                                    setSelectedItems(prev => ({
+                                        ...prev,
+                                        [bikes.cartId]: {
+                                            ...prev[bikes.cartId],
+                                            gpsId,
+                                        },
+                                    }))
+                                }
+                            />
+                        ))}
 
                     </div>
                 </div>
 
                 <div className='h-0.5 w-full rounded-lg bg-black/30'/>
 
-                <div className='flex flex-col gap-3 md:px-30 '>
+                <div className='flex flex-col gap-3 md:px-30 px-7'>
                     <div className='flex flex-row justify-between items-center'>
                         <h1 className='text-lg font-bold font-akagi text-[#6D7172]'>Total</h1>
-                        <h1 className='text-xl font-bold font-akagi text-[#6D7172]'>P</h1>
+                        <h1 className='text-xl font-bold font-akagi text-[#6D7172]'>{"P"+cartTotal}</h1>
                     </div>
 
                     <div className='flex flex-row justify-between items-center'>
                         <h1 className='lg:text-lg font-bold font-akagi text-[#6D7172]'>Amount Tendered</h1>
-                        <h1 className='lg:text-lg font-medium font-akagi text-[#6D7172]'>P</h1>
+                        <h1 className='lg:text-lg font-medium font-akagi text-[#6D7172]'>{"P"+cashTendered}</h1>
                     </div>
 
-                    <div className= {`flex flex-row justify-between items-center`}>
+                    <div className= {`flex flex-row justify-between items-center
+                            ${cartTotal === cashTendered ? "hidden" : "block" }
+                        `}>
                         <h1 className='lg:text-lg font-bold font-akagi text-[#6D7172]'>Change</h1>
-                        <h1 className='lg:text-lg font-medium font-akagi text-[#6D7172]'>P</h1>
+                        <h1 className='lg:text-lg font-medium font-akagi text-[#6D7172]'>{cartTotal === cashTendered ? "No change" :"P" + (cashTendered - cartTotal)}</h1>
                     </div>
 
                     <div className='flex flex-row justify-between items-center'>
                         <h1 className='lg:text-lg font-bold font-akagi text-[#6D7172]'>Payment Method</h1>
-                        <h1 className='lg:text-lg font-medium font-akagi text-[#6D7172]'>Asd</h1>
+                        <h1 className='lg:text-lg font-medium font-akagi text-[#6D7172]'>{paymentMethod}</h1>
                     </div>
 
-                    <div className='flex flex-row justify-between items-center md:pl-10'>
+                    <div className={`flex flex-row justify-between items-center md:pl-10 ${paymentMethod === "GCash" ? "block" : "hidden"}`}>
                         <h1 className='lg:text-lg font-medium font-akagi text-[#6D7172]'>Reference No:</h1>
                         <h1 className='lg:text-lg font-medium font-akagi text-[#6D7172]'>123</h1>
                     </div>

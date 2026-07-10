@@ -62,7 +62,7 @@ function OrderRow({ duration, image, model, price, selectedBikeId,  selectedGpsI
                 <h1 className='text-md font-akagi font-bold text-blue'>{price}</h1>
             </div>
 
-            <div className='grid grid-cols-[70px_1fr] gap-3 items-center'>
+            <div className='grid grid-cols-[70px_1fr] gap-3 items-center font-akagi'>
                 <h1 className='text-md font-akagi font-light text-[#6D7172]'>Duration:</h1>
                 <h1 className='text-md font-akagi font-medium text-[#6D7172]'>{duration === 1 ? duration + " hour" : duration +  " hours"}</h1>
 
