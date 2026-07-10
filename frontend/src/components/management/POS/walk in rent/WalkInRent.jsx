@@ -183,7 +183,7 @@ function WalkInRent() {
                                     <h1 className=''>{"P" + grandTotal}</h1>
                                 </div>
                             </div>
-                            <div className='flex flex-col gap-6 justify-between'>
+                            <div className='flex flex-col gap-6 justify-end'>
                                 <div className='bg-white p-6 rounded-xl flex flex-col gap-3'>
                                     <h1 className='text-2xl font-bold font-akagi text-[#6D7172]'>Payment</h1>
 
@@ -317,9 +317,10 @@ function WalkInRent() {
                                     }
                                 </div>
 
+                                {/*Payment Button*/}
                                 <div 
                                     onClick={() => {setProceed(true)}}
-                                    className={`${cashAmount < grandTotal ? "hidden":"block"} w-fit self-end bg-yellow rounded-xl px-8 py-3 text-center`}>
+                                    className={`${cashAmount < grandTotal ? "hidden":"block"} ${grandTotal === 0 ? "hidden" : "block"} w-fit self-end bg-yellow rounded-xl px-8 py-3 text-center`}>
                                     <h1 className='text-xl font-bold font-akagi text-darkblue'>Payment</h1>
                                 </div>
 

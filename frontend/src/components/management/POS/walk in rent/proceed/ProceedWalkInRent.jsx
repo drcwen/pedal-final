@@ -20,6 +20,8 @@ function ProceedWalkInRent({onClose, cart, cartTotal, cashTendered, paymentMetho
             setAssisted(user.id);
         }
         getCurrentUser();
+
+
     }, [selectedItems]);
 
     console.log("Assisted by: " + assisted)
