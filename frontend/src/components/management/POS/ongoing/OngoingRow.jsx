@@ -88,7 +88,7 @@ function OngoingRow({ name, ordercount, start, bikeDetails }) {
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.3, ease: "easeInOut" }}
-                        className='w-full flex flex-col overflow-hidden py-5'>
+                        className='w-full flex flex-col py-5'>
                         <div className='w-full md:grid md:grid-cols-2 xl:grid-cols-3 flex flex-col gap-3'>
 
                             {bikeDetails.map((bikes) => (
