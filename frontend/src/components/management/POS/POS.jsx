@@ -14,6 +14,7 @@ function POS() {
     const navigate = useNavigate();
 
     const [transactions, setTransactions] = useState([]);
+    const [ongoing, setOngoing] = useState([]);
 
     useEffect(() => {
         const fetchTransactions = async () => {
@@ -31,14 +32,45 @@ function POS() {
                     )
                     )
                 `)
-                .eq("status", "pending");
+                .eq("type", "reservation");
 
             setTransactions(data || []);
             
         }
 
+        const fetchOngoing = async () => {
+            const { data, error } = await supabase
+                .from("transactions_mod")
+                .select(`
+                    *,
+                    customer:walk_ins_users_mod (
+                    *
+                    ),
+                    orders_mod (
+                    *,
+                    bike_types_mod (
+                        *
+                    ),
+                    bikes_mod (
+                        *
+                    ),
+                    gps_mod (
+                    *
+                    )
+                    )
+                `)
+                .eq("status", "started");
+
+            setOngoing(data || []);
+            
+        }
+
         fetchTransactions();
+        fetchOngoing();
     }, [])
+
+    {console.log("Orders mod:", transactions)}
+    {console.log("Ongoing mod:", ongoing)}
 
   return (
     <>
@@ -130,7 +162,15 @@ function POS() {
                                 {transactions.map((trans) => (
                                     <ReservationRow 
                                         key={trans.id}
-                                        name={trans.customer.first_name === null ? trans.customer.full_name : trans.customer.first_name + " " + trans.customer.last_name}
+                                        name={
+                                            trans.customer
+                                                ? (
+                                                    trans.customer.first_name
+                                                        ? `${trans.customer.first_name} ${trans.customer.last_name}`
+                                                        : trans.customer.full_name
+                                                )
+                                                : "Unknown Customer"
+                                        }
                                         ordercount={`${trans.orders_mod.length === 1 ? trans.orders_mod.length + " Bike" : trans.orders_mod.length + " Bikes"}`}
                                         type={trans.type}
                                         start={trans.orders_mod[0].start_time}
@@ -138,7 +178,10 @@ function POS() {
                                         customer={trans.customer}
                                         transaction={trans}
                                     />
+                                    
                                 ))}
+
+                                
                             </motion.div >
 
                         )}
@@ -151,8 +194,18 @@ function POS() {
                                 transition={{ duration: 0.25, ease: "easeInOut" }} 
                                 className='flex flex-col gap-3'
                             >
-                                <OngoingRow name={"Wendel Derraco"} ordercount={"4 Bikes"} type={"Walk-in"} start={"11:59 AM"}/>
-                                <OngoingRow name={"Wendel Derraco"} ordercount={"4 Bikes"} type={"Reservation"} start={"11:59 AM"}/>
+                                {ongoing.map((ongoingTrans) => (
+                                    <OngoingRow
+                                        key={ongoingTrans.id}
+                                        name={ongoingTrans.customer?.[0]?.full_name || "Unknown Customer"}
+                                        ordercount={`${ongoingTrans.orders_mod.length} ${
+                                            ongoingTrans.orders_mod.length === 1 ? "Bike" : "Bikes"
+                                        }`}
+                                        start={ongoingTrans.orders_mod?.[0]?.start_time || ""}
+                                        bikeDetails={ongoingTrans.orders_mod}
+                                    />
+                                ))}
+                                
                             </motion.div>
                         )}
                         

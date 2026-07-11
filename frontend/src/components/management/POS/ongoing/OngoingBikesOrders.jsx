@@ -4,7 +4,7 @@ import { FaArrowCircleLeft } from "react-icons/fa";
 import { RiArrowDropDownLine } from "react-icons/ri";
 import { GoDotFill } from "react-icons/go";
 
-function OngoingBikesOrders({ bikeId, gpsId, type, price, duration, start, end, remaining }) {
+function OngoingBikesOrders({ bikeId, gpsId, type, price, duration, start, end, remaining, image }) {
 
     const [dot, setDot] = useState(false);
     const [returned, setReturned] = useState(false);
@@ -21,7 +21,7 @@ function OngoingBikesOrders({ bikeId, gpsId, type, price, duration, start, end, 
                   {/*Image*/}
                   <div className='items-center bg-yellow p-1 rounded-lg'>
                       <img 
-                          src='https://res.cloudinary.com/dp3vkgxtb/image/upload/v1775884918/solo_bike_mhxxvb.png'
+                          src={image}
                           className='w-6'
                       />
                   </div>

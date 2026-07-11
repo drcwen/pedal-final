@@ -5,9 +5,11 @@ function DropDown({ value, options = [], onChange, placeholder = "Select" }) {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleSelect = (option) => {
-    onChange(option);
+    onChange(option.id);
     setIsOpen(false);
   };
+
+  const selectedOption = options.find(option => option.id === value);
 
   return (
     <div className="relative">
@@ -17,7 +19,7 @@ function DropDown({ value, options = [], onChange, placeholder = "Select" }) {
       >
         <div className="py-1 px-2">
           <h1 className="text-md font-akagi font-medium text-[#6D7172]">
-            {value || placeholder}
+            {selectedOption?.code || placeholder}
           </h1>
         </div>
 
@@ -30,14 +32,14 @@ function DropDown({ value, options = [], onChange, placeholder = "Select" }) {
 
       {isOpen && (
         <div className="absolute top-full left-0 w-full bg-white rounded-lg border border-[#9E9E9E] z-50 mt-1">
-          {options.map((option, index) => (
-            <div
-              key={index}
-              onClick={() => handleSelect(option)}
-              className="text-md font-akagi font-medium text-[#6D7172] hover:bg-gray hover:text-white px-2 py-2 cursor-pointer"
-            >
-              {option}
-            </div>
+          {options.map((option) => (
+              <div
+                  key={option.id}
+                  onClick={() => handleSelect(option)}
+                  className="text-md font-akagi font-medium text-[#6D7172] hover:bg-gray hover:text-white px-2 py-2 cursor-pointer"
+              >
+                  {option.code}
+              </div>
           ))}
         </div>
       )}

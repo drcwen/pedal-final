@@ -49,7 +49,7 @@ function ProceedWalkInRent({onClose, cart, cartTotal, cashTendered, paymentMetho
         );
 
         console.log(rentalRange);
-        console.log("Selected Items:", selectedItems);
+        console.log("SelectedItems",selectedItems);
         console.log(cart);
 
         const getCurrentUser = async () => {
@@ -76,7 +76,7 @@ function ProceedWalkInRent({onClose, cart, cartTotal, cashTendered, paymentMetho
                 total_amount: cartTotal,
                 amount_paid: cashTendered,
                 change_amount: change,
-                status: "pending",
+                status: "started",
                 type: "walk-in",
                 assisted_by: assisted,
             })
@@ -110,6 +110,8 @@ function ProceedWalkInRent({onClose, cart, cartTotal, cashTendered, paymentMetho
     const walkInOrders = async (transactionId) => {
         const orders = cart.map(item => ({
             bike_type_id: item.bikeId,
+            bike_id: selectedItems[item.cartId]?.bike,
+            gps_id: selectedItems[item.cartId]?.gps,
             transaction_id: transactionId,
             reservation_date: today,
             start_time: start,
@@ -141,8 +143,8 @@ function ProceedWalkInRent({onClose, cart, cartTotal, cashTendered, paymentMetho
 
             return (
                 !selection ||
-                !selection.bikeId ||
-                !selection.gpsId
+                !selection.bike ||
+                !selection.gps
             );
         });
 
@@ -212,25 +214,25 @@ function ProceedWalkInRent({onClose, cart, cartTotal, cashTendered, paymentMetho
                                 model={bikes.name}
                                 price={"P" + bikes.price}
 
-                                selectedBikeId={selectedItems[bikes.cartId]?.bikeId || ""}
-                                selectedGpsId={selectedItems[bikes.cartId]?.gpsId || ""}
+                                selectedBikeId={selectedItems[bikes.cartId]?.bike}
+                                selectedGpsId={selectedItems[bikes.cartId]?.gps}
 
-                                onBikeChange={(bikeId) =>
+                                onBikeChange={(bike) =>
                                     setSelectedItems(prev => ({
                                         ...prev,
                                         [bikes.cartId]: {
                                             ...prev[bikes.cartId],
-                                            bikeId,
+                                            bike,
                                         },
                                     }))
                                 }
 
-                                onGpsChange={(gpsId) =>
+                                onGpsChange={(gps) =>
                                     setSelectedItems(prev => ({
                                         ...prev,
                                         [bikes.cartId]: {
                                             ...prev[bikes.cartId],
-                                            gpsId,
+                                            gps,
                                         },
                                     }))
                                 }
