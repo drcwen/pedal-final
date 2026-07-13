@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import OrderRow from "./OrderRow"
 import { supabase } from "../../../../lib/supabase"
+import { useNavigate } from "react-router-dom";
 
 function AssignBikes({onClose, fullName, bikeDetails, transaction}) {
 
     const [selectedItems, setSelectedItems] = useState({});
     const [confirmProceed, setConfirmProceed] = useState(false);
     const [confirmBack, setConfirmBack] = useState(false);
+    const [transactionId, setTransactionId] = useState(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         console.log("Selected Items:", selectedItems);
@@ -19,15 +22,30 @@ function AssignBikes({onClose, fullName, bikeDetails, transaction}) {
                 .update({
                     bike_id: selection.bikeId,
                     gps_id: selection.gpsId,
+                    status: "started"
                 })
                 .eq("id", orderId);
 
             if(error) {
                 console.log(error);
             }
+            console.log(selection.bikeId)
+            console.log(selection.gpsId)
+            
         }
     }
 
+   
+
+    const handleSubmit = async () => {
+
+
+        assignBikes();
+        
+        navigate("/pos");
+    };
+
+    
   return (
     <>
         <div className='xl:px-70 lg:px-30 md:px-10 py-10 px-5 fixed inset-0 bg-black/60 flex items-center justify-center'>
@@ -167,7 +185,7 @@ function AssignBikes({onClose, fullName, bikeDetails, transaction}) {
                                 </div>
 
                                 <div
-                                    onClick={() => {setConfirmProceed(false)}}   
+                                    onClick={() => {handleSubmit()}}   
                                     className='bg-green-500 rounded-xl px-7 py-2 cursor-pointer'>
                                     <h1 className='text-lg font-akagi font-bold text-[#ffffff]'>Yes</h1>
                                 </div>
