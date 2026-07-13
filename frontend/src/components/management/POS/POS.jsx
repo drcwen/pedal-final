@@ -17,58 +17,66 @@ function POS() {
     const [ongoing, setOngoing] = useState([]);
 
     useEffect(() => {
-        const fetchTransactions = async () => {
-            const { data, error } = await supabase
-                .from("transactions_mod")
-                .select(`
-                    *,
-                    customer:profiles_mod!transactions_mod_user_id_fkey1 (
-                    *
-                    ),
-                    orders_mod (
-                    *,
-                    bike_types_mod (
-                        *
-                    )
-                    )
-                `)
-                .eq("type", "reservation")
-                .eq("status", "pending");
-
-            setTransactions(data || []);
-            
-        }
-
-        const fetchOngoing = async () => {
-            const { data, error } = await supabase
-                .from("transactions_mod")
-                .select(`
-                    *,
-                    profile:profiles_mod!transactions_mod_user_id_fkey1 (
-                        *
-                    ),
-                    walk_in:walk_ins_users_mod (
-                        *
-                    ),
-                    orders_mod (
-                        *,
-                        bike_types_mod (*),
-                        bikes_mod (*),
-                        gps_mod (*)
-                    )
-                `)
-                .eq("status", "started");
-
-            setOngoing(data);
-            
-        }
-
         fetchTransactions();
         fetchOngoing();
     }, [])
 
-    {console.log("Orders mod:", transactions)}
-    {console.log("Ongoing mod:", ongoing)}
+    const fetchTransactions = async () => {
+        const { data, error } = await supabase
+            .from("transactions_mod")
+            .select(`
+                *,
+                customer:profiles_mod!transactions_mod_user_id_fkey1 (
+                *
+                ),
+                orders_mod (
+                *,
+                bike_types_mod (
+                    *
+                )
+                )
+            `)
+            .eq("type", "reservation")
+            .eq("status", "pending");
+
+        setTransactions(data || []);
+        
+    }
+
+    const fetchOngoing = async () => {
+        const { data, error } = await supabase
+            .from("transactions_mod")
+            .select(`
+                *,
+                profile:profiles_mod!transactions_mod_user_id_fkey1 (
+                    *
+                ),
+                walk_in:walk_ins_users_mod (
+                    *
+                ),
+                orders_mod (
+                    *,
+                    bike_types_mod (*),
+                    bikes_mod (*),
+                    gps_mod (*)
+                )
+            `)
+            .eq("status", "started");
+
+        setOngoing(data);
+        
+    }
+
+    const handleTabChange = async (tab) => {
+        setActiveTab(tab);
+
+        if (tab === "reservation") {
+            await fetchTransactions();
+        } else {
+            await fetchOngoing();
+        }
+    };
+
 
   return (
     <>
@@ -106,7 +114,7 @@ function POS() {
                                 {/*Transaction Types*/}
                                 <div className='rounded-2xl border-3 border-blue grid grid-cols-2'>
                                     <div 
-                                        onClick={() => setActiveTab("ongoing")}
+                                        onClick={() => handleTabChange("ongoing")}
                                         className={`md:p-2 py-2 flex justify-center px-5 cursor-pointer rounded-tl-xl rounded-bl-xl transition-all
                                             ${activeTab === "ongoing" ? "bg-blue" : "bg-transparent"}
                                         `}
@@ -121,7 +129,7 @@ function POS() {
                                     </div>
 
                                     <div 
-                                        onClick={() => setActiveTab("reservation")}
+                                        onClick={() => handleTabChange("reservation")}
                                         className={`md:p-2 py-2 rounded-tr-xl rounded-br-xl flex justify-center px-5 cursor-pointer
                                             ${activeTab === "reservation" ? "bg-blue" : "bg-transparent"}
                                         `}
