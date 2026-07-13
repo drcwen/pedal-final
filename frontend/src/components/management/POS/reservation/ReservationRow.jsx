@@ -48,6 +48,7 @@ function ReservationRow({ name, ordercount, type, start, bikeDetails, customer, 
                     <h1 className='hidden md:block font-akagi font-semibold text-gray text-lg first-letter:uppercase'>{type}</h1>
                     <h1 className='hidden md:block font-akagi font-semibold text-gray text-lg'>{start}</h1>
 
+                    {/*START BUTTON*/}
                     <AnimatePresence initial={false}>
                         <motion.div
                                 initial={{ height: 0, opacity: 0 }}

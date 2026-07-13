@@ -9,26 +9,23 @@ function OrderRow({ duration, image, model, price, selectedBikeId,  selectedGpsI
 
     useEffect(() => {
         const fetchBikeID = async () => {
-            const { data } = await supabase
+            const {data} = await supabase
                 .from("bikes_mod")
-                .select(`
-                    id,
-                    code,
-                    bike_types_mod!inner(name)
-                `)
+                .select(`code,
+                bike_types_mod!inner(name)`)
                 .eq("bike_types_mod.name", model)
                 .eq("status", "Available");
-
-            setBikeId(data || []);
+            
+            setBikeId(data.map((bike) => bike.code));
         }
 
         const fetchGPSID = async () => {
             const {data} = await supabase
                 .from("gps_mod")
-                .select("*")
+                .select("code")
                 .eq("status", "Available")
             
-            setGpsId(data || []);
+            setGpsId(data.map((gps) => gps.code));
         }
 
         fetchBikeID();

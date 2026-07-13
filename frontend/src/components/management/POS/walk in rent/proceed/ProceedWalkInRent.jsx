@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import OrderRow from "./OrderRow"
 import { supabase } from "../../../../../lib/supabase"
+import { useNavigate } from "react-router-dom";
+import { FaCheckCircle } from "react-icons/fa";
+import { motion } from "motion/react"
 
 function ProceedWalkInRent({onClose, cart, cartTotal, cashTendered, paymentMethod}) {
 
@@ -14,6 +17,9 @@ function ProceedWalkInRent({onClose, cart, cartTotal, cashTendered, paymentMetho
     const [assisted, setAssisted] = useState();
 
     const [transId, setTransId] = useState();
+
+    const [rentAdded, setRentAdded] = useState(false);
+    const navigate = useNavigate();
 
     const change = cashTendered - cartTotal;
 
@@ -108,6 +114,7 @@ function ProceedWalkInRent({onClose, cart, cartTotal, cashTendered, paymentMetho
     }
 
     const walkInOrders = async (transactionId) => {
+
         const orders = cart.map(item => ({
             bike_type_id: item.bikeId,
             bike_id: selectedItems[item.cartId]?.bike,
@@ -116,6 +123,7 @@ function ProceedWalkInRent({onClose, cart, cartTotal, cashTendered, paymentMetho
             reservation_date: today,
             start_time: start,
             duration_hours: item.hours,
+            status: "started",
             reservation_range: createTstzRange(
                 today,
                 start,
@@ -124,7 +132,7 @@ function ProceedWalkInRent({onClose, cart, cartTotal, cashTendered, paymentMetho
             type: "walk-in"
         }))
         
-        console.log(orders);
+        console.log("Orders",orders);
 
         const {data, error} = await supabase
             .from("orders_mod")
@@ -135,9 +143,44 @@ function ProceedWalkInRent({onClose, cart, cartTotal, cashTendered, paymentMetho
             }
     }
 
+    //setting bike selected to rented
+    const setBikeRented = async () => {
+
+        const bikeIds = Object.values(selectedItems)
+            .map(item => item.bike)
+            .filter(Boolean)
+
+        const {data, error} = await supabase
+            .from("bikes_mod")
+            .update({status: "Rented"})
+            .in("id", bikeIds);
+
+        if(error){
+            console.log(error);
+        }
+    }
+
+    //setting gps selected to rented
+    const setGPSRented = async () => {
+
+        const gpsIds = Object.values(selectedItems)
+            .map(item => item.gps)
+            .filter(Boolean)
+
+        const {data, error} = await supabase
+            .from("gps_mod")
+            .update({status: "Rented"})
+            .in("id", gpsIds)
+
+        if(error){
+            console.log(error);
+        }
+
+    }
+
+
     const handleProceed = async () => {
-        const transactionId = await getTransactionID();
-        
+ 
         const hasUnselected = cart.some(item => {
             const selection = selectedItems[item.cartId];
 
@@ -152,14 +195,21 @@ function ProceedWalkInRent({onClose, cart, cartTotal, cashTendered, paymentMetho
         if (hasUnselected) {
             alert("Please select a Bike ID and GPS ID for every bike.");
             return;
-        } else if (fullName === null, idType === null) {
+        } else if (!fullName || !idType) {
             alert("Name or ID Type is missing.");
             return;
         }
 
+        const transactionId = await getTransactionID();
+        if (!transactionId) return;
+
         await walkInUserData(transactionId);
         setConfirmProceed(true);
         walkInOrders(transactionId);
+        setBikeRented();
+        setGPSRented();
+
+        setRentAdded(true);
     };
   
 
@@ -348,7 +398,31 @@ function ProceedWalkInRent({onClose, cart, cartTotal, cashTendered, paymentMetho
                             </div>
                         </div>
                     </div>
-                    }
+                }
+
+                {rentAdded === true &&
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.25, ease: "easeInOut" }} 
+                    >
+                        <div className='fixed inset-0 bg-black/60 flex items-center justify-center'>
+                            <div className='bg-[#ffffff] rounded-lg p-5 font-akagi font-bold text-navyblue flex flex-col gap-10 items-center'>
+                                <div className='flex flex-row gap-3 items-center pt-3 px-10'>
+                                    <FaCheckCircle className='text-2xl text-green-500'/>
+                                    <h1 className='text-2xl'>Rent added.</h1>
+                                </div>
+
+                                <div 
+                                    onClick={() => {navigate("/pos")}}
+                                    className='rounded-lg bg-yellow w-fit px-2 py-1 cursor-pointer hover:bg-yellow-70'>
+                                    Return to POS
+                                </div>
+                            </div>
+                        </div>   
+                    </motion.div> 
+                }
             </div>
         </div>
         
