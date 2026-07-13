@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import OrderRow from "./OrderRow"
+import { supabase } from "../../../../lib/supabase"
 
 function AssignBikes({onClose, fullName, bikeDetails, transaction}) {
 
@@ -8,8 +9,24 @@ function AssignBikes({onClose, fullName, bikeDetails, transaction}) {
     const [confirmBack, setConfirmBack] = useState(false);
 
     useEffect(() => {
-    console.log("Selected Items:", selectedItems);
+        console.log("Selected Items:", selectedItems);
     }, [selectedItems]);
+
+    const assignBikes = async () => {
+        for (const [orderId, selection] of Object.entries(selectedItems)) {
+            const {error} = await supabase
+                .from("orders_mod")
+                .update({
+                    bike_id: selection.bikeId,
+                    gps_id: selection.gpsId,
+                })
+                .eq("id", orderId);
+
+            if(error) {
+                console.log(error);
+            }
+        }
+    }
 
   return (
     <>
@@ -55,8 +72,8 @@ function AssignBikes({onClose, fullName, bikeDetails, transaction}) {
                                 model={order.bike_types_mod.name}
                                 price={"P" + order.bike_types_mod.price * order.duration_hours}
                                 image={order.bike_types_mod.image_url}
-                                selectedBikeId={selectedItems[order.id]?.bikeId || ""}
-                                selectedGpsId={selectedItems[order.id]?.gpsId || ""}
+                                selectedBikeId={selectedItems[order.id]?.bikeId}
+                                selectedGpsId={selectedItems[order.id]?.gpsId}
                                 onBikeChange={(bikeId) =>
                                 setSelectedItems((prev) => ({
                                     ...prev,
