@@ -32,7 +32,8 @@ function POS() {
                     )
                     )
                 `)
-                .eq("type", "reservation");
+                .eq("type", "reservation")
+                .eq("status", "pending");
 
             setTransactions(data || []);
             
@@ -43,25 +44,22 @@ function POS() {
                 .from("transactions_mod")
                 .select(`
                     *,
-                    customer:walk_ins_users_mod (
-                    *
+                    profile:profiles_mod!transactions_mod_user_id_fkey1 (
+                        *
+                    ),
+                    walk_in:walk_ins_users_mod (
+                        *
                     ),
                     orders_mod (
-                    *,
-                    bike_types_mod (
-                        *
-                    ),
-                    bikes_mod (
-                        *
-                    ),
-                    gps_mod (
-                    *
-                    )
+                        *,
+                        bike_types_mod (*),
+                        bikes_mod (*),
+                        gps_mod (*)
                     )
                 `)
                 .eq("status", "started");
 
-            setOngoing(data || []);
+            setOngoing(data);
             
         }
 
@@ -194,17 +192,28 @@ function POS() {
                                 transition={{ duration: 0.25, ease: "easeInOut" }} 
                                 className='flex flex-col gap-3'
                             >
-                                {ongoing.map((ongoingTrans) => (
-                                    <OngoingRow
-                                        key={ongoingTrans.id}
-                                        name={ongoingTrans.customer?.[0]?.full_name || "Unknown Customer"}
-                                        ordercount={`${ongoingTrans.orders_mod.length} ${
-                                            ongoingTrans.orders_mod.length === 1 ? "Bike" : "Bikes"
-                                        }`}
-                                        start={ongoingTrans.orders_mod?.[0]?.start_time || ""}
-                                        bikeDetails={ongoingTrans.orders_mod}
-                                    />
-                                ))}
+                                {ongoing.map((trans) => {
+                                    const customerName =
+                                        trans.profile
+                                            ? (
+                                                trans.profile.full_name ??
+                                                `${trans.profile.first_name} ${trans.profile.last_name}`
+                                            )
+                                            : trans.walk_in?.[0]?.full_name;
+
+                                    return (
+                                        <OngoingRow
+                                            key={trans.id}
+                                            name={customerName}
+                                            ordercount={`${trans.orders_mod.length} ${
+                                                trans.orders_mod.length === 1 ? "Bike" : "Bikes"
+                                            }`}
+                                            type={trans.type}
+                                            start={trans.orders_mod[0].start_time}
+                                            bikeDetails={trans.orders_mod}
+                                        />
+                                    );
+                                })}
                                 
                             </motion.div>
                         )}

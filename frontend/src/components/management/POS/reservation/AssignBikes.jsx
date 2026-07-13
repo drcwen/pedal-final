@@ -13,6 +13,7 @@ function AssignBikes({onClose, fullName, bikeDetails, transaction}) {
 
     useEffect(() => {
         console.log("Selected Items:", selectedItems);
+        console.log(transaction.id)
     }, [selectedItems]);
 
     const assignBikes = async () => {
@@ -27,22 +28,47 @@ function AssignBikes({onClose, fullName, bikeDetails, transaction}) {
                 .eq("id", orderId);
 
             if(error) {
-                console.log(error);
+                console.log("Error", error);
             }
-            console.log(selection.bikeId)
-            console.log(selection.gpsId)
+            console.log("Order Id",orderId);
+            console.log("Selection",selection)
             
         }
     }
 
-   
+    const updateBike = async () => {
+        for(const [orderId, selection] of Object.entries(selectedItems)) {
+            const {error} = await supabase
+                .from("bikes_mod")
+                .update({
+                    status: "Rented"
+                })
+                .eq("id", selection.bikeId)
+
+            if(error) {
+                alert(error);
+            }
+        }
+    }
+
+    const updateTransaction = async () => {
+        const {error } = await supabase
+            .from("transactions_mod")
+            .update({
+                status: "started"
+            })
+            .eq("id", transaction.id)
+
+        if(error)
+            alert(error)
+    }
 
     const handleSubmit = async () => {
-
-
-        assignBikes();
+        await assignBikes();
+        await updateTransaction();
+        await updateBike();
         
-        navigate("/pos");
+        window.location.reload();
     };
 
     
