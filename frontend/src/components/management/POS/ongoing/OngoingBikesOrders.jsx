@@ -199,7 +199,7 @@ function OngoingBikesOrders({ bikeId, gpsId, type, price, duration, start, end, 
                         onClick={() => {setDot(!dot), setDropDown(false)}}
                         className='text-xl text-gray justify-end cursor-pointer hover:text-blue duration-300 transition-all'/>
                     {dot === true &&
-                        <div className='absolute right-0 w-fit bg-gray p-3 flex flex-col gap-2 font-akagi font-bold text-[#ffffff] rounded-lg cursor-pointer'>
+                        <div className='absolute right-0 w-fit z-100 bg-gray p-3 flex flex-col gap-2 font-akagi font-bold text-[#ffffff] rounded-lg cursor-pointer'>
                             <div
                                 className=''>
                                 <h1>Monitor</h1>
@@ -222,7 +222,7 @@ function OngoingBikesOrders({ bikeId, gpsId, type, price, duration, start, end, 
 
             <div className="absolute left-0 bottom-0 h-1 w-full bg-gray-200 rounded-bl-xl rounded-br-xl">
                 <div
-                    className="h-full bg-yellow rounded-bl-xl rounded-br-xl transition-all duration-1000"
+                    className={`h-full ${progress < 75 ? "bg-blue" : "bg-red-400"} rounded-bl-xl rounded-br-xl transition-all duration-1000`}
                     style={{ width: `${progress}%` }}
                 />
             </div>
