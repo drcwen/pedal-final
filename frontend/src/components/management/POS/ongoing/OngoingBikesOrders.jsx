@@ -1,5 +1,5 @@
 import { BsThreeDots } from "react-icons/bs";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FaArrowCircleLeft } from "react-icons/fa";
 import { RiArrowDropDownLine } from "react-icons/ri";
 import { GoDotFill } from "react-icons/go";
@@ -13,9 +13,96 @@ function OngoingBikesOrders({ bikeId, gpsId, type, price, duration, start, end, 
     const [dropDown, setDropDown] = useState(false);
     const [dropDownValue, setDropDownValue] = useState("Set Return Status");
 
+    function getEndTimeOnly(tstzrange) {
+        const match = tstzrange.match(/\["[^"]+","([^"]+)"\)/);
+
+        if (!match) return null;
+
+        const utcDate = new Date(
+            match[1]
+                .replace(" ", "T")
+                .replace("+00", "Z")
+        );
+
+        return utcDate.toLocaleTimeString("en-PH", {
+            timeZone: "Asia/Manila",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+        });
+    }
+
+    function formatTimeTo12Hour(time) {
+        const [hours, minutes, seconds] = time.split(":").map(Number);
+
+        const date = new Date();
+        date.setHours(hours, minutes, seconds);
+
+        return date.toLocaleTimeString("en-PH", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+        });
+    }
+
+    //Progress Bar Converter
+    function getStartDate(startTime) {
+        const now = new Date();
+
+        const [hours, minutes, seconds] = startTime.split(":").map(Number);
+
+        const date = new Date(now);
+        date.setHours(hours, minutes, seconds, 0);
+
+        return date;
+    }
+
+    function getEndDate(tstzrange) {
+        const match = tstzrange.match(/\["[^"]+","([^"]+)"\)/);
+
+        if (!match) return null;
+
+        return new Date(
+            match[1]
+                .replace(" ", "T")
+                .replace("+00", "Z")
+        );
+    }
+
+    const [progress, setProgress] = useState(0);
+
+    const getProgress = (startTime, endRange) => {
+        const startDate = getStartDate(startTime);
+        const endDate = getEndDate(endRange);
+
+        if (!startDate || !endDate) return 0;
+
+        const now = new Date();
+
+        const total = endDate - startDate;
+        const elapsed = now - startDate;
+
+        if (elapsed <= 0) return 0;
+        if (elapsed >= total) return 100;
+
+        return (elapsed / total) * 100;
+    };
+
+    useEffect(() => {
+        const update = () => {
+            setProgress(getProgress(start, end));
+        };
+
+        update();
+
+        const interval = setInterval(update, 1000);
+
+        return () => clearInterval(interval);
+    }, [start, end]);
+
   return (
     <>
-        <div className='border border-[#DBDBDB] p-3 rounded-lg flex flex-col gap-4 shadow-md'>
+        <div className='relative border border-[#DBDBDB] p-3 rounded-lg flex flex-col gap-4 shadow-md'>
           <div className='flex flex-row justify-between items-center'>
               <div className='flex flex-row gap-4 items-center'>
                   {/*Image*/}
@@ -40,7 +127,7 @@ function OngoingBikesOrders({ bikeId, gpsId, type, price, duration, start, end, 
 
                 <div className='flex flex-col'>
                     <h1 className='text-sm font-akagi font-bold text-gray'>START</h1>
-                    <h1 className='text-sm font-akagi font-medium text-gray'>{start}</h1>
+                    <h1 className='text-sm font-akagi font-medium text-gray'>{formatTimeTo12Hour(start)}</h1>
                 </div>
 
                 <div className='flex flex-col'>
@@ -55,7 +142,7 @@ function OngoingBikesOrders({ bikeId, gpsId, type, price, duration, start, end, 
 
               <div className='flex flex-col'>
                   <h1 className='text-sm font-akagi font-bold text-gray'>END</h1>
-                  <h1 className='text-sm font-akagi font-medium text-gray'>{end}</h1>
+                  <h1 className='text-sm font-akagi font-medium text-gray'>{getEndTimeOnly(end)}</h1>
               </div>
 
               <div className='flex flex-col'>
@@ -131,8 +218,16 @@ function OngoingBikesOrders({ bikeId, gpsId, type, price, duration, start, end, 
                         </div>
                     }
                 </div>
-          </div>
-      </div>
+            </div>
+
+            <div className="absolute left-0 bottom-0 h-1 w-full bg-gray-200 rounded-bl-xl rounded-br-xl">
+                <div
+                    className="h-full bg-red-400 rounded-bl-xl rounded-br-xl transition-all duration-1000"
+                    style={{ width: `${progress}%` }}
+                />
+            </div>
+
+        </div>
                                 
     </>
   )

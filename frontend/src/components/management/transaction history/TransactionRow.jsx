@@ -1,4 +1,3 @@
-import { supabase } from "../../../lib/supabase"
 
 import { useState, useEffect } from "react";
 import { RiArrowDropDownLine, RiArrowDropUpLine } from "react-icons/ri";
@@ -6,7 +5,7 @@ import { motion, AnimatePresence } from "motion/react"
 import TransactionBikes from "./TransactionBikes"
 import { MdOutlineKeyboardArrowRight } from "react-icons/md";
 
-function TransactionRow() {
+function TransactionRow({totalBikes, transactionId, fullName, transactionType, timeAdded, status, transactionData}) {
 
     const [dropDown, setDropDown] = useState(false);
 
@@ -15,23 +14,23 @@ function TransactionRow() {
         <div className='flex flex-col gap-6 bg-[#F0F0F0] p-2 rounded-lg border border-[#C9C9C9]'>
             
             <div className={`md:grid md:grid-cols-[40px_1fr_1fr_1fr_1fr_1fr_20px] flex flex-row justify-between items-center`}>
-                <div className='bg-blue rounded-lg p-1 w-fit px-3 text-[#ffffff] font-bold font-akagi'>2</div>
+                <div className='bg-blue rounded-lg p-1 w-fit px-3 text-[#ffffff] font-bold font-akagi'>{totalBikes}</div>
 
                 <div className='hidden md:flex justify-center font-akagi font-bold text-gray text-md lg:text-lg'>
-                    20260326-001
+                    {transactionId}
                 </div>
 
                 <div className='flex justify-center font-akagi font-medium text-gray text-md lg:text-lg'>
-                    Wendel Derraco
+                    {fullName}
                 </div>
                 <div className='flex justify-center font-akagi font-medium text-gray text-md lg:text-lg'>
-                    Walk-in
+                    {transactionType}
                 </div>
                 <div className='hidden md:flex justify-center font-akagi font-medium text-gray text-md lg:text-lg'>
-                    10:48AM
+                    {timeAdded}
                 </div>
                 <div className='hidden md:flex justify-center font-akagi font-medium text-gray text-md lg:text-lg'>
-                    Completed
+                    {status}
                 </div>
 
 
@@ -64,12 +63,20 @@ function TransactionRow() {
                         </div>
 
                         <div className='md:grid md:grid-cols-2 xl:grid-cols-3 flex flex-col gap-3 pb-5'>
-                            <TransactionBikes/>
-                            <TransactionBikes/>
-                            <TransactionBikes/>
-                            <TransactionBikes/>
-                            <TransactionBikes/>
-                            <TransactionBikes/>
+                            
+                            {transactionData.map((orders) => (
+                                <TransactionBikes 
+                                    image={orders.bike_types_mod.image_url}
+                                    bikeType={orders.bike_types_mod.name}
+                                    price={"P"+orders.bike_types_mod.price}
+                                    unitId={orders.bike_id === null ? "NOT STARTED" : orders.bikes_mod.code}
+                                    gpsId={orders.gps_id === null ? "NOT STARTED" : orders.gps_mod.code}
+                                    duration={orders.duration_hours + " hour"}
+                                    start={orders.start_time}
+                                    end={orders.start_time}
+                                />
+                            ))}
+
                         </div>
                     </motion.div>   
                 }

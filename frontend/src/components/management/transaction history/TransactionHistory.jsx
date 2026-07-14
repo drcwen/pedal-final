@@ -1,14 +1,56 @@
 import Sidebar from "../sidebar/Sidebar"
 import SidebarMobile from "../sidebar/SidebarMobile"
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import TransactionRow from "./TransactionRow"
 import { Calendar } from 'primereact/calendar';
 import "primereact/resources/themes/lara-light-cyan/theme.css";
 import { motion } from "motion/react"
+import { supabase } from "../../../lib/supabase"
 
 function TransactionHistory() {
 
     const [dates, setDates] = useState();
+
+    const [transactionData, setTransactionData] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+        useEffect(() => {
+            const getTransactions = async () => {
+                setLoading(true);
+                const { data, error } = await supabase
+                    .from("transactions_mod")
+                    .select(`
+                        *,
+                        profile:profiles_mod!transactions_mod_user_id_fkey1 (
+                            *
+                        ),
+                        walk_in:walk_ins_users_mod (
+                            *
+                        ),
+                        orders_mod (
+                            *,
+                            bike_types_mod (*),
+                            bikes_mod (*),
+                            gps_mod (*)
+                        )
+                    `);
+
+                if (error) {
+                    console.error(error);
+                    return;
+                } else {
+                    setTransactionData(data);
+                }
+
+                setLoading(false);
+            };
+
+            getTransactions();
+        }, []);
+
+        useEffect(() => {
+            console.log("transactionData:", transactionData);
+        }, [transactionData]);
 
   return (
     <>
@@ -105,26 +147,36 @@ function TransactionHistory() {
                                 </div>
                             </div>
                             
-                            <TransactionRow />
-                            <TransactionRow />
-                            <TransactionRow />
-                            <TransactionRow />
-                            <TransactionRow />
-                            <TransactionRow />
-                            <TransactionRow />
-                            <TransactionRow />
-                            <TransactionRow />
-                            <TransactionRow />
-                            <TransactionRow />
-                            <TransactionRow />
-                            <TransactionRow />
-                            <TransactionRow />
-                            <TransactionRow />
-                            <TransactionRow />
-                            <TransactionRow />
-                            <TransactionRow />
-                            <TransactionRow />
-                            <TransactionRow />
+                            {loading ? (
+                                <div className="flex justify-center py-10">
+                                    <h1 className="font-akagi text-lg text-[#6D7172]">
+                                        Loading transactions...
+                                    </h1>
+                                </div>
+                            ) : (
+                                transactionData.map((transaction) => {
+                                    const customerName = transaction.profile
+                                        ? (
+                                            transaction.profile.full_name ??
+                                            `${transaction.profile.first_name} ${transaction.profile.last_name}`
+                                        )
+                                        : transaction.walk_in?.[0]?.full_name;
+
+                                    return (
+                                        <TransactionRow
+                                            key={transaction.id}
+                                            totalBikes={transaction.orders_mod.length}
+                                            transactionId={transaction.id}
+                                            fullName={customerName}
+                                            transactionType={transaction.type}
+                                            timeAdded={2}
+                                            status={transaction.status}
+                                            transactionData={transaction.orders_mod}
+                                        />
+                                    );
+                                })
+                            )}
+
                         </div>
                         
                         

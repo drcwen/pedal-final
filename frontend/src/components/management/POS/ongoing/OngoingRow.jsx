@@ -9,38 +9,6 @@ function OngoingRow({ name, ordercount, start, bikeDetails }) {
 
     const [dropdown, setDropdown] = useState(false);
 
-    function getEndTimeOnly(tstzrange) {
-        const match = tstzrange.match(/\["[^"]+","([^"]+)"\)/);
-
-        if (!match) return null;
-
-        const utcDate = new Date(
-            match[1]
-                .replace(" ", "T")
-                .replace("+00", "Z")
-        );
-
-        return utcDate.toLocaleTimeString("en-PH", {
-            timeZone: "Asia/Manila",
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: true,
-        });
-    }
-
-    function formatTimeTo12Hour(time) {
-        const [hours, minutes, seconds] = time.split(":").map(Number);
-
-        const date = new Date();
-        date.setHours(hours, minutes, seconds);
-
-        return date.toLocaleTimeString("en-PH", {
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: true,
-        });
-    }
-
   return (
     <>
         <div 
@@ -99,8 +67,8 @@ function OngoingRow({ name, ordercount, start, bikeDetails }) {
                                     image={bikes.bike_types_mod.image_url}
                                     price={bikes.bike_type_id.price}
                                     duration={bikes.duration_hours === 1 ? bikes.duration_hours + " hour" : bikes.duration_hours + " hours"}
-                                    start={formatTimeTo12Hour(bikes.start_time)}
-                                    end={getEndTimeOnly(bikes.reservation_range)}
+                                    start={bikes.start_time}
+                                    end={bikes.reservation_range}
                                     remaining={10}
                                 />
                             ))}
