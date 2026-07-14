@@ -222,7 +222,7 @@ function OngoingBikesOrders({ bikeId, gpsId, type, price, duration, start, end, 
 
             <div className="absolute left-0 bottom-0 h-1 w-full bg-gray-200 rounded-bl-xl rounded-br-xl">
                 <div
-                    className="h-full bg-red-400 rounded-bl-xl rounded-br-xl transition-all duration-1000"
+                    className="h-full bg-yellow rounded-bl-xl rounded-br-xl transition-all duration-1000"
                     style={{ width: `${progress}%` }}
                 />
             </div>

@@ -59,7 +59,9 @@ function OngoingRow({ name, ordercount, start, bikeDetails }) {
                         className='w-full flex flex-col py-5'>
                         <div className='w-full md:grid md:grid-cols-2 xl:grid-cols-3 flex flex-col gap-3'>
 
-                            {bikeDetails.map((bikes) => (
+                            {bikeDetails
+                                .filter((bikes)=> bikes.status === "started")
+                                .map((bikes) => (
                                 <OngoingBikesOrders
                                     bikeId={bikes.bikes_mod?.code}
                                     gpsId={bikes.gps_mod?.code}
