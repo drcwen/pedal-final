@@ -3,8 +3,9 @@ import { useState, useEffect } from 'react';
 import { FaArrowCircleLeft } from "react-icons/fa";
 import { RiArrowDropDownLine } from "react-icons/ri";
 import { GoDotFill } from "react-icons/go";
+import { supabase } from "../../../../lib/supabase"
 
-function OngoingBikesOrders({ bikeId, gpsId, type, price, duration, start, end, remaining, image }) {
+function OngoingBikesOrders({ orderId, bikeId, gpsId, type, price, duration, start, end, remaining, image }) {
 
     const [dot, setDot] = useState(false);
     const [returned, setReturned] = useState(false);
@@ -100,6 +101,49 @@ function OngoingBikesOrders({ bikeId, gpsId, type, price, duration, start, end, 
         return () => clearInterval(interval);
     }, [start, end]);
 
+
+    //Return Bike
+    const returnBike = async () => {
+        const {data, error} = await supabase
+            .from("bikes_mod")
+            .update({status: dropDownValue})
+            .eq("code", bikeId);
+        
+        if(error) {
+            alert(error);
+        }
+    }
+
+    const returnGps = async () => {
+        const {data, error} = await supabase
+            .from("gps_mod")
+            .update({status: "Available"})
+            .eq("code", gpsId)
+
+        if(error) {
+            alert(error);
+        }
+    }
+
+    const setReturn = async () => {
+        const {data, error} = await supabase
+            .from("orders_mod")
+            .update({status: "returned"})
+            .eq("id", orderId)
+
+        if(error) {
+            alert(error);
+        }
+    }
+
+    const handleReturn = async () => {
+        await returnBike();
+        await returnGps();
+        await setReturn();
+        
+        window.location.reload();
+    };
+
   return (
     <>
         <div className='relative border border-[#DBDBDB] p-3 rounded-lg flex flex-col gap-4 shadow-md'>
@@ -188,7 +232,9 @@ function OngoingBikesOrders({ bikeId, gpsId, type, price, duration, start, end, 
                     }   
                 </div>
 
-                <div className='h-fit bg-blue items-center px-3 flex py-1 rounded-lg text-md font-akagi font-bold text-[#ffffff] cursor-pointer hover:bg-blue/80 duration-300 transition-all'>
+                <div 
+                    onClick={() => {dropDownValue === "Set Return Status" ? alert("Set Return Status first"): handleReturn()}}
+                    className='h-fit bg-blue items-center px-3 flex py-1 rounded-lg text-md font-akagi font-bold text-[#ffffff] cursor-pointer hover:bg-blue/80 duration-300 transition-all'>
                     Submit
                 </div>
             </div>

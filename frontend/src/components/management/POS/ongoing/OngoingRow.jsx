@@ -72,6 +72,7 @@ function OngoingRow({ name, ordercount, start, bikeDetails }) {
                                     start={bikes.start_time}
                                     end={bikes.reservation_range}
                                     remaining={10}
+                                    orderId={bikes.id}
                                 />
                             ))}
 

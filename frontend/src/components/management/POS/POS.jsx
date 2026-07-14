@@ -166,27 +166,39 @@ function POS() {
                                 transition={{ duration: 0.25, ease: "easeInOut" }} 
                                 className='flex flex-col gap-3'
                             >
-                                {transactions.map((trans) => (
-                                    <ReservationRow 
-                                        key={trans.id}
-                                        name={
-                                            trans.customer
-                                                ? (
-                                                    trans.customer.first_name
-                                                        ? `${trans.customer.first_name} ${trans.customer.last_name}`
-                                                        : trans.customer.full_name
-                                                )
-                                                : "Unknown Customer"
-                                        }
-                                        ordercount={`${trans.orders_mod.length === 1 ? trans.orders_mod.length + " Bike" : trans.orders_mod.length + " Bikes"}`}
-                                        type={trans.type}
-                                        start={trans.orders_mod[0].start_time}
-                                        bikeDetails={trans.orders_mod}
-                                        customer={trans.customer}
-                                        transaction={trans}
-                                    />
-                                    
-                                ))}
+                                
+                                {transactions.length === 0 ? (
+                                    <div className="py-10 text-center">
+                                        <h1 className="font-akagi text-lg text-gray-500">
+                                            No reservations yet.
+                                        </h1>
+                                    </div>
+                                ) : (
+                                    transactions.map((trans) => (
+                                        <ReservationRow
+                                            key={trans.id}
+                                            name={
+                                                trans.customer
+                                                    ? (
+                                                        trans.customer.first_name
+                                                            ? `${trans.customer.first_name} ${trans.customer.last_name}`
+                                                            : trans.customer.full_name
+                                                    )
+                                                    : "Unknown Customer"
+                                            }
+                                            ordercount={
+                                                trans.orders_mod.length === 1
+                                                    ? `${trans.orders_mod.length} Bike`
+                                                    : `${trans.orders_mod.length} Bikes`
+                                            }
+                                            type={trans.type}
+                                            start={trans.orders_mod[0].start_time}
+                                            bikeDetails={trans.orders_mod}
+                                            customer={trans.customer}
+                                            transaction={trans}
+                                        />
+                                    ))
+                                )}
 
                                 
                             </motion.div >
@@ -201,28 +213,37 @@ function POS() {
                                 transition={{ duration: 0.25, ease: "easeInOut" }} 
                                 className='flex flex-col gap-3'
                             >
-                                {ongoing.map((trans) => {
-                                    const customerName =
-                                        trans.profile
-                                            ? (
-                                                trans.profile.full_name ??
-                                                `${trans.profile.first_name} ${trans.profile.last_name}`
-                                            )
-                                            : trans.walk_in?.[0]?.full_name;
 
-                                    return (
-                                        <OngoingRow
-                                            key={trans.id}
-                                            name={customerName}
-                                            ordercount={`${trans.orders_mod.length} ${
-                                                trans.orders_mod.length === 1 ? "Bike" : "Bikes"
-                                            }`}
-                                            type={trans.type}
-                                            start={trans.orders_mod[0].start_time}
-                                            bikeDetails={trans.orders_mod}
-                                        />
-                                    );
-                                })}
+                                {ongoing.length === 0 ? (
+                                    <div className="py-10 text-center">
+                                        <h1 className="font-akagi text-lg text-gray-500">
+                                            No reservations yet.
+                                        </h1>
+                                    </div>
+                                ) : (
+                                    ongoing.map((trans) => {
+                                        const customerName =
+                                            trans.profile
+                                                ? (
+                                                    trans.profile.full_name ??
+                                                    `${trans.profile.first_name} ${trans.profile.last_name}`
+                                                )
+                                                : trans.walk_in?.[0]?.full_name;
+
+                                        return (
+                                            <OngoingRow
+                                                key={trans.id}
+                                                name={customerName}
+                                                ordercount={`${trans.orders_mod.length} ${
+                                                    trans.orders_mod.length === 1 ? "Bike" : "Bikes"
+                                                }`}
+                                                type={trans.type}
+                                                start={trans.orders_mod[0].start_time}
+                                                bikeDetails={trans.orders_mod}
+                                            />
+                                        );
+                                    })
+                                )}
                                 
                             </motion.div>
                         )}
