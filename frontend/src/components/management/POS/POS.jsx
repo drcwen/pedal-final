@@ -217,7 +217,7 @@ function POS() {
                                 {ongoing.length === 0 ? (
                                     <div className="py-10 text-center">
                                         <h1 className="font-akagi text-lg text-gray-500">
-                                            No reservations yet.
+                                            No ongoing transactions yet.
                                         </h1>
                                     </div>
                                 ) : (
@@ -240,6 +240,7 @@ function POS() {
                                                 type={trans.type}
                                                 start={trans.orders_mod[0].start_time}
                                                 bikeDetails={trans.orders_mod}
+                                                refreshOngoing={fetchOngoing}
                                             />
                                         );
                                     })

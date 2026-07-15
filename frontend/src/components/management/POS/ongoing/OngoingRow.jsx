@@ -2,12 +2,40 @@
 import { RiArrowDropDownLine } from "react-icons/ri";
 import { RiArrowDropUpLine } from "react-icons/ri";
 import { motion, AnimatePresence } from "motion/react"
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import OngoingBikesOrders from "./OngoingBikesOrders"
+import { supabase } from "../../../../lib/supabase"
 
-function OngoingRow({ name, ordercount, start, bikeDetails }) {
+function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing }) {
 
     const [dropdown, setDropdown] = useState(false);
+    const startedBikes = bikeDetails.filter(
+        (bike) => bike.status === "started"
+    );
+
+    async function updateStatus() {
+        const transactionId = bikeDetails[0].transaction_id;
+
+        const { error } = await supabase
+            .from("transactions_mod")
+            .update({
+                status: "completed",
+            })
+            .eq("id", transactionId); 
+
+        if (error) {
+            console.error(error);
+        }
+
+        await refreshOngoing();
+    }
+
+    useEffect(() => {
+        if (bikeDetails.length === 0) return;
+        if (startedBikes.length !== 0) return;
+
+        updateStatus();
+    }, [startedBikes.length]);
 
   return (
     <>
@@ -59,22 +87,22 @@ function OngoingRow({ name, ordercount, start, bikeDetails }) {
                         className='w-full flex flex-col py-5'>
                         <div className='w-full md:grid md:grid-cols-2 xl:grid-cols-3 flex flex-col gap-3'>
 
-                            {bikeDetails
-                                .filter((bikes)=> bikes.status === "started")
+                            {startedBikes
                                 .map((bikes) => (
-                                <OngoingBikesOrders
-                                    bikeId={bikes.bikes_mod?.code}
-                                    gpsId={bikes.gps_mod?.code}
-                                    type={bikes.bike_types_mod.name}
-                                    image={bikes.bike_types_mod.image_url}
-                                    price={bikes.bike_type_id.price}
-                                    duration={bikes.duration_hours === 1 ? bikes.duration_hours + " hour" : bikes.duration_hours + " hours"}
-                                    start={bikes.start_time}
-                                    end={bikes.reservation_range}
-                                    remaining={10}
-                                    orderId={bikes.id}
-                                />
-                            ))}
+                                    <OngoingBikesOrders
+                                        bikeId={bikes.bikes_mod?.code}
+                                        gpsId={bikes.gps_mod?.code}
+                                        type={bikes.bike_types_mod.name}
+                                        image={bikes.bike_types_mod.image_url}
+                                        price={bikes.bike_type_id.price}
+                                        duration={bikes.duration_hours === 1 ? bikes.duration_hours + " hour" : bikes.duration_hours + " hours"}
+                                        start={bikes.start_time}
+                                        end={bikes.reservation_range}
+                                        remaining={10}
+                                        orderId={bikes.id}
+                                    />
+                                ))
+                            }
 
                         </div>
                     </motion.div>
