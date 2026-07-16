@@ -9,7 +9,7 @@ import { MdModeEditOutline } from "react-icons/md";
 import { RiArrowDropDownLine, RiArrowDropUpLine } from "react-icons/ri";
 import { RiImageAddFill } from "react-icons/ri";
 import GPSRow from "./GPS/GPSRow"
-import Maintenance from "./Bikes/Maintenance"
+import Maintenance from "./Bikes/Maintenance/Maintenance"
 import { supabase } from "../../../lib/supabase"
 
 function Inventory() {

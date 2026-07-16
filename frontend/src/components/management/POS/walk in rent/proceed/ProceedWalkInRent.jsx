@@ -138,8 +138,12 @@ function ProceedWalkInRent({onClose, cart, cartTotal, cashTendered, paymentMetho
             .from("orders_mod")
             .insert(orders)
 
+            console.log("Orders to insert:", orders);
+            console.log("Inserted:", data);
+            console.log("Error:", error);
+
             if (error) {
-                console.error(error);
+                console.error(JSON.stringify(error, null, 2));
             }
     }
 
