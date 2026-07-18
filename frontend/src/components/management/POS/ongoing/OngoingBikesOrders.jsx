@@ -258,7 +258,15 @@ function OngoingBikesOrders({ orderId, bikeId, gpsId, type, price, duration, sta
                             </div>
 
                             <div 
-                                onClick={() => {setExtendOrder({}), setDot(!dot), returned === true ? setReturned(!returned) : null, change === true ? setChange(!change) : null}}>
+                                onClick={() => {setExtendOrder({
+                                    orderId,
+                                    bikeId,
+                                    type,
+                                    duration,
+                                    end,
+                                    image,
+                                    start
+                                }), setDot(!dot), returned === true ? setReturned(!returned) : null, change === true ? setChange(!change) : null}}>
                                 <h1>Extend</h1>
                             </div>
 

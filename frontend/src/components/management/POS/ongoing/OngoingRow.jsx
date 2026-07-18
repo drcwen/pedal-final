@@ -5,11 +5,16 @@ import { motion, AnimatePresence } from "motion/react"
 import { useState, useEffect } from 'react';
 import OngoingBikesOrders from "./OngoingBikesOrders"
 import { supabase } from "../../../../lib/supabase"
+import Payment from "./three dots/Payment"
 
 function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing }) {
 
     const [extendOrder, setExtendOrder] = useState(null);
     const [dropdown, setDropdown] = useState(false);
+
+    const [updatedTime, setUpdatedTime] = useState(null);
+    const [extensionClicked, setExtensionClicked] = useState(null);
+    const [payment, setPayment] = useState(false);
     const startedBikes = bikeDetails.filter(
         (bike) => bike.status === "started"
     );
@@ -29,6 +34,60 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing }) {
         }
 
         await refreshOngoing();
+    }
+
+    // convert 13:00:00 to 1:00PM
+    function formatTime12Hour(time) {
+        const [hours, minutes] = time.split(":").map(Number);
+
+        const date = new Date();
+        date.setHours(hours, minutes, 0);
+
+        return date.toLocaleTimeString("en-PH", {
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+        });
+    }
+
+    function getEndTimeOnly(tstzrange) {
+        const match = tstzrange.match(/\["[^"]+","([^"]+)"\)/);
+
+        if (!match) return null;
+
+        const utcDate = new Date(
+            match[1]
+                .replace(" ", "T")
+                .replace("+00", "Z")
+        );
+
+        return utcDate.toLocaleTimeString("en-PH", {
+            timeZone: "Asia/Manila",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+        });
+    }
+
+    //add hour on tstzrange
+    function addHoursToTstzrange(range, hoursToAdd) {
+        const match = range.match(/\["([^"]+)","([^"]+)"\)/);
+
+        if (!match) {
+            throw new Error("Invalid tstzrange format.");
+        }
+
+        const [, start, end] = match;
+
+        const endDate = new Date(end);
+        endDate.setHours(endDate.getHours() + hoursToAdd);
+
+        const formattedEnd = endDate
+            .toISOString()
+            .replace("T", " ")
+            .replace(".000Z", "+00");
+
+        return `["${start}","${formattedEnd}")`;
     }
 
     useEffect(() => {
@@ -113,13 +172,80 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing }) {
         </div>
 
         {extendOrder && (
-            <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
-                <div className="bg-white p-6 rounded-lg">
-                    <h1>Extend {extendOrder.type}</h1>
+            <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 sm:px-10 px-5 md:px-20 lg:px-60 xl:px-100">
+                <div className="w-full bg-[#F0F0F0] p-6 rounded-xl font-akagi font-bold text-lg text-gray flex flex-col gap-5">
+                    <h1 className='text-3xl text-navyblue'>Extend Bike</h1>
 
-                    <button onClick={() => setExtendOrder(null)}>
-                        Close
-                    </button>
+                    <div className='border border-[#DBDBDB] p-2 rounded-lg shadow-lg flex items-center flex-row gap-3'>
+                        <div className='bg-yellow p-1 rounded-lg w-fit'>
+                            <img src={extendOrder.image} className='w-15'/>
+                        </div>
+
+                        <div className='flex flex-row gap-2 items-center'>
+                            <h1>{extendOrder.type}</h1>
+                            <div className='bg-navyblue px-3 py-0.5 rounded-lg'>
+                                <h1 className='text-[#ffffff]'>{extendOrder.bikeId}</h1>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div className='flex flex-col gap-5 px-10'>
+                        <h1>Current End: {getEndTimeOnly(extendOrder.end)}</h1>
+
+                        <div className='grid grid-cols-4 md:gap-5 gap-2'>
+                            <div 
+                                onClick={() => {setUpdatedTime(addHoursToTstzrange(extendOrder.end, 1)), setExtensionClicked(1)}}
+                                value={1}
+                                className={`border-2 ${extensionClicked === 1 ? "bg-blue text-[#ffffff] border-blue" : undefined} border-[#DBDBDB] rounded-lg flex py-3 justify-center items-center`}>
+                                +1
+                            </div>
+
+                            <div 
+                                onClick={() => {setUpdatedTime(addHoursToTstzrange(extendOrder.end, 2)), setExtensionClicked(2)}}
+                                value={2}
+                                className={`border-2 ${extensionClicked === 2 ? "bg-blue text-[#ffffff] border-blue" : undefined} border-[#DBDBDB] rounded-lg flex py-3 justify-center items-center`}>
+                                +2
+                            </div>
+
+                            <div 
+                                onClick={() => {setUpdatedTime(addHoursToTstzrange(extendOrder.end, 3)), setExtensionClicked(3)}}
+                                value={3}
+                                className={`border-2 ${extensionClicked === 3 ? "bg-blue text-[#ffffff] border-blue" : undefined} cursor-pointer border-[#DBDBDB] rounded-lg flex py-3 justify-center items-center`}>
+                                +3
+                            </div>
+
+                            <div 
+                                onClick={() => {setUpdatedTime(addHoursToTstzrange(extendOrder.end, 4)), setExtensionClicked(4)}}
+                                value={4}
+                                className={`border-2 ${extensionClicked === 4 ? "bg-blue text-[#ffffff] border-blue" : undefined} border-[#DBDBDB] cursor-pointer rounded-lg flex py-3 justify-center items-center`}>
+                                +4
+                            </div>
+                        
+                        </div>
+
+                        <h1>Updated End: {updatedTime ? getEndTimeOnly(updatedTime) : "--:--"}</h1>
+                    </div>
+
+    
+                    <div className='flex justify-between'>
+                        <button 
+                            className='bg-red-500 rounded-lg text-[#ffffff] px-3 py-1 cursor-pointer'
+                            onClick={() => setExtendOrder(null)}
+                        >
+                            Close
+                        </button>
+
+                        <button 
+                            className='bg-green-500 rounded-lg text-[#ffffff] px-3 py-1 cursor-pointer'
+                            onClick={() => setPayment(true)}
+                        >
+                            Payment
+                        </button>
+
+                        {payment === true &&
+                            <Payment />
+                        }
+                    </div>
                 </div>
             </div>
         )}
