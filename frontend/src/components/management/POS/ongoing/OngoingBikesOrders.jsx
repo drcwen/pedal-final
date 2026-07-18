@@ -5,11 +5,12 @@ import { RiArrowDropDownLine } from "react-icons/ri";
 import { GoDotFill } from "react-icons/go";
 import { supabase } from "../../../../lib/supabase"
 
-function OngoingBikesOrders({ orderId, bikeId, gpsId, type, price, duration, start, end, remaining, image }) {
+function OngoingBikesOrders({ orderId, bikeId, gpsId, type, price, duration, start, end, remaining, image, setExtendOrder }) {
 
     const [dot, setDot] = useState(false);
     const [returned, setReturned] = useState(false);
     const [change, setChange] = useState(false);
+    const [extend, setExtend] = useState(false);
 
     const [dropDown, setDropDown] = useState(false);
     const [dropDownValue, setDropDownValue] = useState("Set Return Status");
@@ -252,8 +253,13 @@ function OngoingBikesOrders({ orderId, bikeId, gpsId, type, price, duration, sta
                             </div>
 
                             <div 
-                                onClick={() => {setChange(true), setDot(!dot), setReturned(!returned)}}>
+                                onClick={() => {setChange(true), setDot(!dot), returned === true ? setReturned(!returned) : null}}>
                                 <h1>Change</h1>
+                            </div>
+
+                            <div 
+                                onClick={() => {setExtendOrder({}), setDot(!dot), returned === true ? setReturned(!returned) : null, change === true ? setChange(!change) : null}}>
+                                <h1>Extend</h1>
                             </div>
 
                             <div 

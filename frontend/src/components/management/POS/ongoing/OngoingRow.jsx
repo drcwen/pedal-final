@@ -8,6 +8,7 @@ import { supabase } from "../../../../lib/supabase"
 
 function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing }) {
 
+    const [extendOrder, setExtendOrder] = useState(null);
     const [dropdown, setDropdown] = useState(false);
     const startedBikes = bikeDetails.filter(
         (bike) => bike.status === "started"
@@ -100,6 +101,7 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing }) {
                                         end={bikes.reservation_range}
                                         remaining={10}
                                         orderId={bikes.id}
+                                        setExtendOrder={setExtendOrder}
                                     />
                                 ))
                             }
@@ -109,6 +111,18 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing }) {
                 )}
             </AnimatePresence>
         </div>
+
+        {extendOrder && (
+            <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+                <div className="bg-white p-6 rounded-lg">
+                    <h1>Extend {extendOrder.type}</h1>
+
+                    <button onClick={() => setExtendOrder(null)}>
+                        Close
+                    </button>
+                </div>
+            </div>
+        )}
                                 
     </>
   )
