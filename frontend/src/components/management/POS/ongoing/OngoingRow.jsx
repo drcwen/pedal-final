@@ -251,8 +251,15 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing }) {
                         </button>
 
                         {payment === true &&
-                            <Payment total={extendedTotal}
-                            setPayment={setPayment}/>
+                            <Payment 
+                                total={extendedTotal}
+                                setPayment={setPayment}
+                                bikeId={extendOrder.bikeId}
+                                bikeType={extendOrder.type}
+                                orderId={extendOrder.orderId}
+                                extensionClicked={extensionClicked}
+                                updatedTime={updatedTime}
+                            />
                         }
                     </div>
                 </div>

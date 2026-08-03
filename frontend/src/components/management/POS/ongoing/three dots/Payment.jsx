@@ -1,10 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import {supabase } from "../../../../../lib/supabase"
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import { useNavigate } from "react-router-dom";
 
-
-function Payment({total, setPayment}) {
+function Payment({total, setPayment, bikeId, bikeType, orderId, extensionClicked, updatedTime}) {
 
     const [active, setActive] = useState("Cash");
     const [cashAmount, setCashAmount] = useState(null);
+
+    const [assisted, setAssisted] = useState();
+
+    const [confirm, setConfirm] = useState(false);
+
+    const [loading, setLoading] = useState(false);
+
+    const navigate = useNavigate();
 
     const handleChange = (e) => {
         setCashAmount(e.target.value);
@@ -13,6 +23,78 @@ function Payment({total, setPayment}) {
             setCashAmount(value);
         }
     };
+
+    async function handleSubmit() {
+
+        setLoading(true);
+
+        try {
+
+            const { data: transaction, error: transactionError } = await supabase
+                .from("transactions_mod")
+                .insert({
+                    payment_method: active,
+                    total_amount: total,
+                    amount_paid: cashAmount,
+                    change_amount: cashAmount - total,
+                    type: "extend",
+                    assisted_by: assisted,
+                })
+                .select("id")
+                .single();
+
+            if (transactionError) {
+                console.error(transactionError);
+                return;
+            }
+
+            const transactionId = transaction.id
+
+            const { error: orderError } = await supabase
+                .from("extensions_mod")
+                .insert({
+                    order_id: orderId,
+                    extension_duration: extensionClicked,
+                    transaction_id: transactionId,
+                    new_reservation_range: updatedTime
+                });
+
+            if (orderError) {
+                console.error(orderError);
+                return;
+            }
+
+            const { error } = await supabase
+                .from("orders_mod")
+                .update({
+                    reservation_range: updatedTime
+                })
+                .eq("id", orderId)
+            if(error){
+                console.log(error);
+            }
+
+        } catch(error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+            window.location.reload();
+        }
+
+    }
+
+    useEffect(() => {
+
+        const getCurrentUser = async () => {
+            const { data, error } = await supabase.auth.getUser();
+
+            const user = data.user;
+
+            setAssisted(user.id);
+        }
+        getCurrentUser();
+
+    },[]);
 
   return (
     <>
@@ -42,7 +124,7 @@ function Payment({total, setPayment}) {
                         <h1 className='text-blue'>P{total}</h1>
                     </div>
 
-                    <div className={`flex flex-row gap-2 items-center ${cashAmount === null || 0 ? "hidden" : undefined}`}>
+                    <div className={`flex flex-row gap-2 items-center ${cashAmount === null || 0 ? "hidden" : undefined} ${active === "GCash" ? "hidden" : undefined}`}>
                         <h1>Change:</h1>
                         <h1 className={`text-blue`}>P{cashAmount === null || 0 ? undefined : cashAmount - total}</h1>
                     </div>
@@ -174,10 +256,81 @@ function Payment({total, setPayment}) {
                         Close
                     </div>
 
-                    <div className={`${cashAmount < total ? "pointer-events-none opacity-20" : undefined} rounded-lg px-2 py-1 cursor-pointer bg-blue text-[#ffffff]`}>
+                    <div 
+                        onClick={() => {setConfirm(true)}}
+                        className={`${cashAmount < total ? "pointer-events-none opacity-20" : undefined} rounded-lg px-2 py-1 cursor-pointer bg-blue text-[#ffffff]`}>
                         Continue
                     </div>
                 </div>
+
+                {confirm === true &&
+                    <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 sm:px-10 px-5 md:px-20 lg:px-60 xl:px-100">
+                        <div className='w-120 bg-[#ffffff] p-5 rounded-lg flex flex-col'>
+                            <h1 className='text-2xl text-blue'>Confirm Payment</h1>
+
+                            <div className='py-5 px-5 flex flex-col'>
+
+                                <div className='grid md:grid-cols-[160px_1fr] grid-cols-[120px_1fr] gap-2 items-center'>
+                                    <h1>Transaction:</h1>
+                                    <h1>Extend</h1>
+                                </div>
+                                
+                                <div className='grid md:grid-cols-[160px_1fr] grid-cols-[120px_1fr] gap-2 items-center'>
+                                    <h1>Bike:</h1>
+                                    <div className="flex items-center gap-2">
+                                        <h1>{bikeType}</h1>
+
+                                        <span className="bg-blue px-3 py-1 rounded-lg text-white">
+                                            {bikeId}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div className='grid md:grid-cols-[160px_1fr] grid-cols-[120px_1fr] gap-2 items-center'>
+                                    <h1>Total:</h1>
+                                    <h1>P{total}</h1>
+                                </div>
+
+                                <div className='grid md:grid-cols-[160px_1fr] grid-cols-[120px_1fr] gap-2 items-center'>
+                                    <h1>Payment:</h1>
+                                    <h1>P{cashAmount}</h1>
+                                </div>
+
+                                <div className='grid md:grid-cols-[160px_1fr] grid-cols-[120px_1fr] gap-2 items-center'>
+                                    <h1>Change:</h1>
+                                    <h1>P{cashAmount - total}</h1>
+                                </div>
+
+                                <div className='grid md:grid-cols-[160px_1fr] grid-cols-[120px_1fr] gap-2 items-center'>
+                                    <h1>Method:</h1>
+                                    <h1>{active}</h1>
+                                </div>
+
+                            </div>
+
+                            <div className='flex flex-row justify-between'>
+
+                                <div 
+                                    onClick={() => {setConfirm(false)}}
+                                    className='border cursor-pointer border-gray text-sm rounded-lg text-gray px-2 py-1'>
+                                    Back
+                                </div>
+
+                                <div
+                                    onClick={!loading ? handleSubmit : undefined}
+                                    className={`
+                                        bg-blue text-white text-sm rounded-lg px-2 py-1
+                                        ${loading ? "opacity-50 pointer-events-none" : "cursor-pointer"}
+                                    `}
+                                >
+                                    {loading ? "Processing..." : "Confirm"}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                }
+
             </div>
         </div>
                                 
