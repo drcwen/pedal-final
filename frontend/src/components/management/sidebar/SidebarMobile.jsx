@@ -98,7 +98,7 @@ function SidebarMobile({active}) {
   return (
     <>
 
-      <div className='lg:hidden fixed bottom-6 left-6 right-6 rounded-full bg-blue px-6 shadow-xl'>
+      <div className='lg:hidden fixed bottom-6 left-6 right-6 rounded-full bg-blue px-6 shadow-xl z-100'>
           <div className='flex flex-row justify-between p-2 gap-4'>
               {menu.map((item) => (
                   <SidebarTabs
