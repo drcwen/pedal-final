@@ -119,7 +119,16 @@
 
     // ONLY block initial load
     if (loading) {
-      return <h1>Loading...</h1>;
+      return (
+        <div className='w-full h-screen bg-navyblue flex justify-center items-center'>
+          <div className='flex flex-col font-bold text-3xl font-akagi text-[#ffffff] justify-center text-center'>
+            <h1 className='text-yellow'>3Jremy's</h1>
+            <h1>Rent A Bike!</h1>
+            <h1>...</h1>
+          </div>
+          
+        </div>
+      );
     }
 
     return (
