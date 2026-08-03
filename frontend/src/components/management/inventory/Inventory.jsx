@@ -222,7 +222,7 @@ function Inventory() {
 
                         {/*Add GPS*/}
                         {addGPS === true &&
-                            <div className='fixed inset-0 bg-black/60 flex items-center justify-center'>
+                            <div className='fixed inset-0 bg-black/60 z-50 flex items-center justify-center'>
                                 <div className='bg-[#ffffff] p-5 rounded-xl flex flex-col gap-5'>
 
                                     <div className='flex flex-col gap-4 font-akagi font-bold text-gray'>
@@ -268,7 +268,7 @@ function Inventory() {
 
                         {/*Add Bike Type*/}
                         {addType === true && 
-                            <div className='fixed inset-0 bg-black/60 flex items-center justify-center'>
+                            <div className='fixed inset-0 bg-black/60 z-50 flex items-center justify-center'>
                                 <div className='bg-[#ffffff] p-5 rounded-xl flex md:flex-row flex-col gap-5'>
                                     <div className='flex flex-col cursor-pointer gap-2 items-center justify-center'>
                                         <div className='bg-[#EBEBEB] p-10 rounded-xl'>

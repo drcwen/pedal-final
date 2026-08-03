@@ -219,7 +219,7 @@ function ProceedWalkInRent({onClose, cart, cartTotal, cashTendered, paymentMetho
 
   return (
     <>
-        <div className='xl:px-70 lg:px-30 md:px-10 py-10 px-5 fixed inset-0 bg-black/60 flex items-center justify-center'>
+        <div className='xl:px-70 lg:px-30 md:px-10 py-10 px-5 fixed inset-0 bg-black/60 flex items-center justify-center z-50'>
             <div className='bg-[#ffffff] w-full h-full overflow-y-scroll scrollbar-thin scrollbar-thumb-[#B9B9B9] scrollbar-track-[#E2E2E2] rounded-xl md:p-10 p-5 py-10 flex flex-col gap-8 '>
 
                 <div className='flex flex-col gap-6'>
