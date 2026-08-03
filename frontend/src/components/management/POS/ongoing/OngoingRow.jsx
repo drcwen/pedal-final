@@ -14,7 +14,10 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing }) {
 
     const [updatedTime, setUpdatedTime] = useState(null);
     const [extensionClicked, setExtensionClicked] = useState(null);
-    const [payment, setPayment] = useState(false);
+    const [payment, setPayment] = useState(null);
+
+    const [extendedTotal, setExtendedTotal] = useState(0);
+
     const startedBikes = bikeDetails.filter(
         (bike) => bike.status === "started"
     );
@@ -161,6 +164,7 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing }) {
                                         remaining={10}
                                         orderId={bikes.id}
                                         setExtendOrder={setExtendOrder}
+                                        pricePerHour={bikes.bike_types_mod.price}
                                     />
                                 ))
                             }
@@ -194,36 +198,40 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing }) {
 
                         <div className='grid grid-cols-4 md:gap-5 gap-2'>
                             <div 
-                                onClick={() => {setUpdatedTime(addHoursToTstzrange(extendOrder.end, 1)), setExtensionClicked(1)}}
+                                onClick={() => {setUpdatedTime(addHoursToTstzrange(extendOrder.end, 1)), setExtensionClicked(1), setExtendedTotal(extendOrder.pricePerHour * 1)}}
                                 value={1}
                                 className={`border-2 ${extensionClicked === 1 ? "bg-blue text-[#ffffff] border-blue" : undefined} border-[#DBDBDB] rounded-lg flex py-3 justify-center items-center`}>
                                 +1
                             </div>
 
                             <div 
-                                onClick={() => {setUpdatedTime(addHoursToTstzrange(extendOrder.end, 2)), setExtensionClicked(2)}}
+                                onClick={() => {setUpdatedTime(addHoursToTstzrange(extendOrder.end, 2)), setExtensionClicked(2), setExtendedTotal(extendOrder.pricePerHour * 2)}}
                                 value={2}
                                 className={`border-2 ${extensionClicked === 2 ? "bg-blue text-[#ffffff] border-blue" : undefined} border-[#DBDBDB] rounded-lg flex py-3 justify-center items-center`}>
                                 +2
                             </div>
 
                             <div 
-                                onClick={() => {setUpdatedTime(addHoursToTstzrange(extendOrder.end, 3)), setExtensionClicked(3)}}
+                                onClick={() => {setUpdatedTime(addHoursToTstzrange(extendOrder.end, 3)), setExtensionClicked(3), setExtendedTotal(extendOrder.pricePerHour * 3)}}
                                 value={3}
                                 className={`border-2 ${extensionClicked === 3 ? "bg-blue text-[#ffffff] border-blue" : undefined} cursor-pointer border-[#DBDBDB] rounded-lg flex py-3 justify-center items-center`}>
                                 +3
                             </div>
 
                             <div 
-                                onClick={() => {setUpdatedTime(addHoursToTstzrange(extendOrder.end, 4)), setExtensionClicked(4)}}
+                                onClick={() => {setUpdatedTime(addHoursToTstzrange(extendOrder.end, 4)), setExtensionClicked(4), setExtendedTotal(extendOrder.pricePerHour * 4)}}
                                 value={4}
                                 className={`border-2 ${extensionClicked === 4 ? "bg-blue text-[#ffffff] border-blue" : undefined} border-[#DBDBDB] cursor-pointer rounded-lg flex py-3 justify-center items-center`}>
                                 +4
                             </div>
                         
                         </div>
-
                         <h1>Updated End: {updatedTime ? getEndTimeOnly(updatedTime) : "--:--"}</h1>
+
+                        <div className='flex flex-row gap-2 items-center'>
+                            <h1>Total: </h1>
+                            <h1 className='text-2xl text-blue'>P{extendedTotal}</h1>
+                        </div>
                     </div>
 
     
@@ -236,14 +244,15 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing }) {
                         </button>
 
                         <button 
-                            className='bg-green-500 rounded-lg text-[#ffffff] px-3 py-1 cursor-pointer'
+                            className={`${extendedTotal === 0 ? "pointer-events-none opacity-20" : undefined} bg-green-500 rounded-lg text-[#ffffff] px-3 py-1 cursor-pointer`}
                             onClick={() => setPayment(true)}
                         >
                             Payment
                         </button>
 
                         {payment === true &&
-                            <Payment />
+                            <Payment total={extendedTotal}
+                            setPayment={setPayment}/>
                         }
                     </div>
                 </div>
