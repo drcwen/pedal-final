@@ -150,7 +150,7 @@
             <Route path="/login" element={<Login />} />
             <Route path="/createaccount" element={<CreateAccount />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="*" element={<Navigate to="/" />} />
+            <Route path="*" element={<Navigate to="/login" />} />
           </>
         )}
 
