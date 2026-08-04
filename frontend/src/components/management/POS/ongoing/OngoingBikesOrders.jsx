@@ -4,16 +4,18 @@ import { FaArrowCircleLeft } from "react-icons/fa";
 import { RiArrowDropDownLine } from "react-icons/ri";
 import { GoDotFill } from "react-icons/go";
 import { supabase } from "../../../../lib/supabase"
+import WalkInRent from "../ongoing/WalkInRent"
 
-function OngoingBikesOrders({ orderId, bikeId, gpsId, type, price, duration, start, end, remaining, image, setExtendOrder, pricePerHour }) {
+function OngoingBikesOrders({ orderId, bikeId, gpsId, type, price, duration, start, end, remaining, image, setExtendOrder, setChangeOrder, pricePerHour }) {
 
     const [dot, setDot] = useState(false);
     const [returned, setReturned] = useState(false);
     const [change, setChange] = useState(false);
-    const [extend, setExtend] = useState(false);
 
     const [dropDown, setDropDown] = useState(false);
     const [dropDownValue, setDropDownValue] = useState("Set Return Status");
+
+    const [extension, setExtension] = useState([]);
 
     function getEndTimeOnly(tstzrange) {
         const match = tstzrange.match(/\["[^"]+","([^"]+)"\)/);
@@ -91,6 +93,7 @@ function OngoingBikesOrders({ orderId, bikeId, gpsId, type, price, duration, sta
     };
 
     useEffect(() => {
+
         const update = () => {
             setProgress(getProgress(start, end));
         };
@@ -100,6 +103,7 @@ function OngoingBikesOrders({ orderId, bikeId, gpsId, type, price, duration, sta
         const interval = setInterval(update, 1000);
 
         return () => clearInterval(interval);
+
     }, [start, end]);
 
 
@@ -158,6 +162,7 @@ function OngoingBikesOrders({ orderId, bikeId, gpsId, type, price, duration, sta
                       />
                   </div>
                   <h1 className='text-md font-akagi font-bold text-gray'>{type}</h1>
+                  <div className='bg-blue rounded-lg px-2 text-[#ffffff] py-0.5 font-akagi text-sm font-bold'>{bikeId}</div>
               </div>
 
               <h1 className='text-md font-akagi font-bold text-gray'>{price}</h1>
@@ -196,6 +201,18 @@ function OngoingBikesOrders({ orderId, bikeId, gpsId, type, price, duration, sta
               </div>
           </div>
 
+          <div className='flex flex-col'>
+            <h1 className='text-sm font-akagi font-bold text-gray'>EXTENSION</h1>
+            <h1 className='text-sm font-akagi font-medium text-gray'>{extension}</h1>
+          </div>
+
+
+            {/*Change*/}
+            { change && 
+                <></>
+            }
+
+            {/*Return*/}
             { returned && 
             <div className='flex flex-row gap-2 items-center'>
                 <div className='w-full border border-[#DBDBDB] py-1 px-4 rounded-lg flex flex-row justify-between shadow-md relative font-akagi font-bold text-md text-gray items-center'>
@@ -253,7 +270,12 @@ function OngoingBikesOrders({ orderId, bikeId, gpsId, type, price, duration, sta
                             </div>
 
                             <div 
-                                onClick={() => {setChange(true), setDot(!dot), returned === true ? setReturned(!returned) : null}}>
+                                onClick={() => {setChangeOrder({
+                                    orderId,
+                                    bikeId,
+                                    type,
+                                    pricePerHour
+                                }), setChange(true), setDot(!dot), returned === true ? setReturned(!returned) : null}}>
                                 <h1>Change</h1>
                             </div>
 

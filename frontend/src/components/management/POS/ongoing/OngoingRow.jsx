@@ -6,10 +6,13 @@ import { useState, useEffect } from 'react';
 import OngoingBikesOrders from "./OngoingBikesOrders"
 import { supabase } from "../../../../lib/supabase"
 import Payment from "./three dots/Payment"
+import ChangeBike from "./ChangeBike"
 
 function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing }) {
 
     const [extendOrder, setExtendOrder] = useState(null);
+    const [changeOrder, setChangeOrder] = useState(null);
+
     const [dropdown, setDropdown] = useState(false);
 
     const [updatedTime, setUpdatedTime] = useState(null);
@@ -36,6 +39,7 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing }) {
             console.error(error);
         }
 
+        
         await refreshOngoing();
     }
 
@@ -164,6 +168,7 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing }) {
                                         remaining={10}
                                         orderId={bikes.id}
                                         setExtendOrder={setExtendOrder}
+                                        setChangeOrder={setChangeOrder}
                                         pricePerHour={bikes.bike_types_mod.price}
                                     />
                                 ))
@@ -175,6 +180,12 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing }) {
             </AnimatePresence>
         </div>
 
+        { changeOrder && 
+            <ChangeBike 
+                setChangeOrder={setChangeOrder}
+            />
+        }
+        {/*Extend Rent*/}
         {extendOrder && (
             <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 sm:px-10 px-5 md:px-20 lg:px-60 xl:px-100">
                 <div className="w-full bg-[#F0F0F0] p-6 rounded-xl font-akagi font-bold text-lg text-gray flex flex-col gap-5">

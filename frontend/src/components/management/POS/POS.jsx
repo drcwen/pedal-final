@@ -64,8 +64,7 @@ function POS() {
             .eq("status", "started");
             
 
-        setOngoing(data);
-        
+        setOngoing(data);        
     }
 
     const handleTabChange = async (tab) => {

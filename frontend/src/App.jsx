@@ -173,11 +173,17 @@
         {/* CASHIER */}
         {session && role === "cashier" && (
           <>
-            <Route path="/" element={<PastTransactions />} />
+            <Route path="/" element={<Dashboard />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/pos" element={<POS />} />
             <Route path="/transactions" element={<Transactions />} />
-            <Route path="*" element={<Navigate to="/dashboard" />} />
+            <Route path="/past-transactions" element={<PastTransactions />} />
+            <Route path="*" element={<Navigate to="/" />} />
             <Route path="/pos/create" element={<WalkInRent />}/>
+            <Route path="/history" element={<TransactionHistory />}/>
+            <Route path="/inventory" element={<Inventory/>}/>
+            <Route path="/monitoring" element={<Monitoring/>}/>
+            <Route path="/accounts" element={<ManageAccount/>}/>
           </>
         )}
 
@@ -189,7 +195,7 @@
             <Route path="/pos" element={<POS />} />
             <Route path="/transactions" element={<Transactions />} />
             <Route path="/past-transactions" element={<PastTransactions />} />
-            <Route path="*" element={<Navigate to="/dashboard" />} />
+            <Route path="*" element={<Navigate to="/" />} />
             <Route path="/pos/create" element={<WalkInRent />}/>
             <Route path="/history" element={<TransactionHistory />}/>
             <Route path="/inventory" element={<Inventory/>}/>
