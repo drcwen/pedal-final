@@ -2,7 +2,7 @@ import { IoIosArrowBack } from "react-icons/io";
 import BikesTile from "../walk in rent/BikesTile"
 import { useState, useEffect } from 'react';
 import { supabase } from "../../../../lib/supabase"
-import { motion } from "motion/react"
+import { motion, AnimatePresence } from "motion/react"
 import { RiArrowLeftRightLine } from "react-icons/ri";
 
 function ChangeBike({setChangeOrder, changeOrder}) {
@@ -62,7 +62,7 @@ function ChangeBike({setChangeOrder, changeOrder}) {
     <>
 
         <div className="w-full h-full fixed inset-0 bg-black/50 flex justify-center items-center z-50 md:p-5">
-            <div className='bg-[#ffffff] md:p-10 p-5 pt-15 md:pt-10 md:rounded-xl w-full h-full flex flex-col overflow-y-scroll scrollbar-thin scrollbar-thumb-[#B9B9B9] scrollbar-track-[#E2E2E2]'>
+            <div className='bg-[#ffffff] md:p-10 p-5 py-15 md:pt-10 md:rounded-xl w-full h-full flex flex-col overflow-y-scroll scrollbar-thin scrollbar-thumb-[#B9B9B9] scrollbar-track-[#E2E2E2]'>
                 <div className='flex flex-row gap-1 items-center'>
                     <div onClick={() => {setChangeOrder(null)}}>
                         <IoIosArrowBack className='text-gray text-3xl cursor-pointer'/>
@@ -70,7 +70,7 @@ function ChangeBike({setChangeOrder, changeOrder}) {
                     <h1 className='text-3xl font-akagi font-bold text-blue'>Change Bike</h1>
                 </div>
 
-                <div className='w-full h-full pt-10 xl:grid xl:grid-cols-3 flex flex-col gap-10'>
+                <div className='w-full h-full pt-10 lg:grid lg:grid-cols-3 flex flex-col gap-10'>
                         <div className="col-span-2 rounded-xl flex flex-col gap-5">
 
                             <div className='hidden md:grid-cols-3 grid-cols-1 gap-3'>
@@ -87,7 +87,7 @@ function ChangeBike({setChangeOrder, changeOrder}) {
                                 </div>
                             </div>
 
-                            <div className='grid md:grid-cols-3 grid-cols-2 gap-4'>
+                            <div className='border border-[#c6c6c6] shadow shadow-[-5px_15px_20px_rgba(0,0,0,0.15)] rounded-xl p-5 w-full grid md:grid-cols-3 grid-cols-2 gap-4'>
                                 
                                 {loading ? (
                                     <div className="flex justify-center items-center py-10">
@@ -106,7 +106,7 @@ function ChangeBike({setChangeOrder, changeOrder}) {
                                             <div 
 
                                                 onClick={() => {setOpenBikeId(bike.id), setChangedBike(bike)}}
-                                                className={`rounded-xl bg-[#EBEBEB] p-4 flex flex-col items-center text-center justify-center gap-4 border border-[#C8C8C8] cursor-pointer
+                                                className={`rounded-xl bg-[#EBEBEB] w-full h-full p-4 flex flex-col items-center text-center justify-center gap-4 border border-[#C8C8C8] cursor-pointer
                                                     ${openBikeId == bike.id ? `bg-blue` : `bg-[#EBEBEB]`}
                                                     ${changeOrder.bikeTypeId == bike.id ? `pointer-events-none bg-yellow-300` : ``}
                                                     ${bike.bikes_mod.length === 0 ? `opacity-50 bg-black pointer-events-none` : ``}`}
@@ -158,28 +158,38 @@ function ChangeBike({setChangeOrder, changeOrder}) {
                                     }
                                 </div>
 
-                                {changedBike && 
-                                    <div className="flex flex-row justify-between gap-5 items-center pl-5">
-                                        <RiArrowLeftRightLine className='text-2xl text-darkblue'/>
-                                        <div className='w-full flex flex-row justify-between items-center'>
+                                <AnimatePresence initial={false}>
+                                    {changedBike && 
+                                        
+                                        <motion.div
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: "auto", opacity: 1 }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            transition={{ duration: 0.25, ease: "easeInOut" }}  
+                                            className="flex flex-row justify-between gap-5 items-center pl-5"
+                                        >
+                                            <RiArrowLeftRightLine className='text-2xl text-darkblue'/>
+                                            <div className='w-full flex flex-row justify-between items-center'>
 
-                                            <div className='flex flex-row gap-3 items-center '>
-                                                <div className='bg-blue p-2 rounded-lg'>
-                                                    <img src={changedBike.image_url} className='w-10'/>
+                                                <div className='flex flex-row gap-3 items-center '>
+                                                    <div className='bg-blue p-2 rounded-lg'>
+                                                        <img src={changedBike.image_url} className='w-10'/>
+                                                    </div>
+
+                                                    <div className='text-xl font-akagi font-bold text-gray'>
+                                                        {changedBike.name}
+                                                    </div>
+                                                    
                                                 </div>
 
-                                                <div className='text-xl font-akagi font-bold text-gray'>
-                                                    {changedBike.name}
+                                                <div className={`${changedBike.price <= changeOrder.pricePerHour ? `text-gray line-through` : `text-blue`} text-xl font-akagi font-bold`}>
+                                                    P{changedBike.price}
                                                 </div>
-                                                
                                             </div>
-
-                                            <div className={`${changedBike.price <= changeOrder.pricePerHour ? `text-gray line-through` : `text-blue`} text-xl font-akagi font-bold`}>
-                                                P{changedBike.price}
-                                            </div>
-                                        </div>
-                                    </div>
-                                }  
+                                        </motion.div>
+                                        
+                                    }  
+                                </AnimatePresence>
                             </div>
 
                             <div className='w-full h-0.5 bg-black/30 rounded-lg'/>
@@ -196,20 +206,28 @@ function ChangeBike({setChangeOrder, changeOrder}) {
                                 }
                             </div>
 
-                            <div className='bg-white p-6 rounded-xl flex flex-col gap-3 mt-auto rounded-lg w-full'>
-                                        <h1 className='text-2xl font-bold font-akagi text-[#6D7172]'>Payment</h1>
+                            <AnimatePresence initial={false}>
+                                {totalPayment > 0 && 
+                                    <motion.div
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: "auto", opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        transition={{ duration: 0.25, ease: "easeInOut" }}  
+                                        className={`bg-white p-6 rounded-xl flex flex-col gap-3 mt-auto rounded-lg w-full ${totalPayment === 0 ? "hidden" : ""}`}
+                                    >
+                                        <h1 className={`text-2xl font-bold font-akagi text-[#6D7172]`}>Payment</h1>
 
                                         <div className='grid grid-cols-2 gap-3 pb-5'>
                                             <div 
                                                 onClick={totalPayment === 0 ? undefined : () => {setGcash(true), cash === true ? setCash(!cash) : ""}}
                                                 className={`border-2 border-gray rounded-lg text-center py-2 ${gcash === true ? `bg-gray text-[#ffffff]` : `bg-transparent `}`}>
-                                                <h1 className={`text-xl font-bold font-akagi ${gcash === true ? `text-[#fffffff]` : `text-gray`}`}>GCash</h1>
+                                                <h1 className={`xl:text-xl lg:text-lg font-bold font-akagi ${gcash === true ? `text-[#fffffff]` : `text-gray`}`}>GCash</h1>
                                             </div>
 
                                             <div 
                                                 onClick={() => {totalPayment === 0 ? undefined : setCash(true), gcash === true ? setGcash(!gcash) : ""}}
                                                 className={`border-2 border-gray rounded-lg text-center py-2 ${cash === true ? `bg-gray text-[#ffffff]` : `bg-transparent`}`}>
-                                                <h1 className={`text-xl font-bold font-akagi ${cash === true ? `text-[#fffffff]` : `text-gray`}`}>Cash</h1>
+                                                <h1 className={`xl:text-xl lg:text-lg font-bold font-akagi ${cash === true ? `text-[#fffffff]` : `text-gray`}`}>Cash</h1>
                                             </div>
                                         </div>
 
@@ -222,7 +240,8 @@ function ChangeBike({setChangeOrder, changeOrder}) {
                                         }
 
                                         {cash === true && 
-                                            <div className='w-full rounded-xl bg-gray p-3 font-akagi font-bold text-gray text-xl'>
+                                            <div
+                                                className='w-full rounded-xl bg-gray p-3 font-akagi font-bold text-gray lg:text-md xl:text-xl'>
                                                 <div className='grid grid-cols-3 gap-3'>
                                                     <div
                                                         onClick={50 < totalPayment ? undefined : () => setCashAmount(50)}
@@ -315,7 +334,7 @@ function ChangeBike({setChangeOrder, changeOrder}) {
                                                     <div 
                                                         onClick={() => {setCashAmount("")}}
                                                         className={`rounded-lg p-1 border border-[#ffffff] text-center items-center justify-center ${cashAmount === null ? `bg-[#ffffff] text-gray` : `text-[#ffffff]`}`}>
-                                                        Custom
+                                                        Set
                                                     </div>
 
                                                 </div>
@@ -328,18 +347,32 @@ function ChangeBike({setChangeOrder, changeOrder}) {
                                                 </div>
 
                                             </div>
+                                            
                                         }
-                                    </div>
+                                    </motion.div>
+                                }
+                            </AnimatePresence>
 
-                                    {/*Payment Button*/}
-                                    <div 
+                            {/*Payment Button*/}
+                            <AnimatePresence initial={false}>
+                                {changedBike && 
+                                    
+                                    <motion.div
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: "auto", opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        transition={{ duration: 0.25, ease: "easeInOut" }}   
                                         onClick={() => {setProceed(true)}}
-                                        className={`${cashAmount < totalPayment ? "hidden":"block"} ${totalPayment === 0 ? "hidden" : "block"} w-fit self-end bg-yellow rounded-xl px-8 py-3 text-center`}>
-                                        <h1 className='text-xl font-bold font-akagi text-darkblue'>Payment</h1>
-                                    </div>
+                                        className={`w-fit mt-auto self-end bg-yellow rounded-lg px-3 py-1 cursor-pointer text-center`}>
+                                        <h1 className='text-lg font-bold font-akagi text-darkblue'>Proceed</h1>
+                                    </motion.div>
+                                    
+                                }
+
+                            </AnimatePresence>
 
 
-                                </div>
+                        </div>
                         
                             
                     </div>
