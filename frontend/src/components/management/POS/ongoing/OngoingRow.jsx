@@ -157,6 +157,7 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing }) {
                             {startedBikes
                                 .map((bikes) => (
                                     <OngoingBikesOrders
+                                        bikeTypeId={bikes.bike_types_mod.id}
                                         bikeId={bikes.bikes_mod?.code}
                                         gpsId={bikes.gps_mod?.code}
                                         type={bikes.bike_types_mod.name}

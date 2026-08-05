@@ -6,7 +6,7 @@ import { GoDotFill } from "react-icons/go";
 import { supabase } from "../../../../lib/supabase"
 import WalkInRent from "../ongoing/WalkInRent"
 
-function OngoingBikesOrders({ orderId, bikeId, gpsId, type, price, duration, start, end, remaining, image, setExtendOrder, setChangeOrder, pricePerHour }) {
+function OngoingBikesOrders({ bikeTypeId, orderId, bikeId, gpsId, type, price, duration, start, end, remaining, image, setExtendOrder, setChangeOrder, pricePerHour }) {
 
     const [dot, setDot] = useState(false);
     const [returned, setReturned] = useState(false);
@@ -271,11 +271,13 @@ function OngoingBikesOrders({ orderId, bikeId, gpsId, type, price, duration, sta
 
                             <div 
                                 onClick={() => {setChangeOrder({
+                                    bikeTypeId,
                                     orderId,
                                     image,
                                     bikeId,
                                     type,
-                                    pricePerHour
+                                    pricePerHour,
+                                    name
                                 }), setChange(true), setDot(!dot), returned === true ? setReturned(!returned) : null}}>
                                 <h1>Change</h1>
                             </div>
