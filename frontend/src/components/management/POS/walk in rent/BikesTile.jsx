@@ -48,7 +48,7 @@ function WalkInRent({image, price, name, availableBikes, isOpen, onClick, bikeId
     <>
         <div 
             onClick={onClick}
-            className={`rounded-xl bg-[#EBEBEB] p-4 flex flex-col items-center text-center justify-center gap-4 border border-[#C8C8C8] cursor-pointer
+            className={`rounded-xl bg-[#EBEBEB] p-4 flex flex-col items-center text-center w-full h-full justify-center gap-4 border border-[#C8C8C8] cursor-pointer
                 ${isOpen == true ? `bg-blue` : `bg-[#EBEBEB]`}
                 ${availableBikes === 0 ? `opacity-50 bg-black pointer-events-none` : ``}
             `}

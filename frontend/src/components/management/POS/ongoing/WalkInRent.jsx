@@ -101,7 +101,7 @@ function WalkInRent() {
                                 </div>
                             </div>
 
-                            <div className='grid md:grid-cols-3 grid-cols-2 gap-3'>
+                            <div className='w-full grid md:grid-cols-3 grid-cols-2 gap-3'>
                                 
                                 {info.map((bike) => (
                                     <>
