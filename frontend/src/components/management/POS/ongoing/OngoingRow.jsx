@@ -183,6 +183,8 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing }) {
         { changeOrder && 
             <ChangeBike 
                 setChangeOrder={setChangeOrder}
+                changeOrder={changeOrder}
+
             />
         }
         {/*Extend Rent*/}

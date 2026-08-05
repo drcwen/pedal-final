@@ -272,6 +272,7 @@ function OngoingBikesOrders({ orderId, bikeId, gpsId, type, price, duration, sta
                             <div 
                                 onClick={() => {setChangeOrder({
                                     orderId,
+                                    image,
                                     bikeId,
                                     type,
                                     pricePerHour

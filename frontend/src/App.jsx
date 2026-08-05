@@ -184,6 +184,23 @@
             <Route path="/inventory" element={<Inventory/>}/>
             <Route path="/monitoring" element={<Monitoring/>}/>
             <Route path="/accounts" element={<ManageAccount/>}/>
+
+            {allAccountID.map((accountId) => (
+              <Route 
+                path={`/accounts/${accountId.id}`} 
+                element={
+                  <AccountDetails
+                    key={accountId.id}
+                    fullName={accountId.first_name + " " + accountId.last_name}
+                    role={accountId.role}
+                    email={accountId.email}
+                    contact={accountId.contact}
+                    id={accountId.id}
+                    branch={accountId.branch}
+                  />
+                }
+              />
+            ))}
           </>
         )}
 
