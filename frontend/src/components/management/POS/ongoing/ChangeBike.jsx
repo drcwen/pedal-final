@@ -106,9 +106,9 @@ function ChangeBike({setChangeOrder, changeOrder}) {
                                             <div 
 
                                                 onClick={() => {setOpenBikeId(bike.id), setChangedBike(bike)}}
-                                                className={`rounded-xl bg-[#EBEBEB] w-full h-full p-4 flex flex-col items-center text-center justify-center gap-4 border border-[#C8C8C8] cursor-pointer
-                                                    ${openBikeId == bike.id ? `bg-blue` : `bg-[#EBEBEB]`}
-                                                    ${changeOrder.bikeTypeId == bike.id ? `pointer-events-none bg-yellow-300` : ``}
+                                                className={`rounded-xl bg-[#EBEBEB] w-full h-full p-4 flex flex-col items-center text-center justify-center gap-4 border cursor-pointer
+                                                    ${openBikeId == bike.id ? `bg-blue border-blue-600` : `bg-[#EBEBEB]`}
+                                                    ${changeOrder.bikeTypeId == bike.id ? `pointer-events-none bg-yellow border-[#d6d224]` : `border-[#C8C8C8]`}
                                                     ${bike.bikes_mod.length === 0 ? `opacity-50 bg-black pointer-events-none` : ``}`}
                                                 >
                                                 <img 
@@ -131,7 +131,7 @@ function ChangeBike({setChangeOrder, changeOrder}) {
                         </div>
 
                         <div className="col-span-1 border border-[#C8C8C8] rounded-xl p-5 flex flex-col gap-7 shadow shadow-[-5px_15px_20px_rgba(0,0,0,0.15)]">
-                            <h1 className='text-2xl font-akagi font-bold text-blue'>Change Bike</h1>
+                            <h1 className='text-2xl font-akagi font-bold text-blue'>Payment</h1>
 
                             <div className='flex flex-col gap-3'>
                                 <div className='flex flex-row justify-between items-center'>
@@ -206,7 +206,11 @@ function ChangeBike({setChangeOrder, changeOrder}) {
                                 }
                             </div>
 
-                            <AnimatePresence initial={false}>
+                            {/*Payment*/}
+                            
+
+                            <div className='mt-auto flex flex-col gap-5'>
+                                <AnimatePresence initial={false}>
                                 {totalPayment > 0 && 
                                     <motion.div
                                         initial={{ height: 0, opacity: 0 }}
@@ -363,13 +367,16 @@ function ChangeBike({setChangeOrder, changeOrder}) {
                                         exit={{ height: 0, opacity: 0 }}
                                         transition={{ duration: 0.25, ease: "easeInOut" }}   
                                         onClick={() => {setProceed(true)}}
-                                        className={`w-fit mt-auto self-end bg-yellow rounded-lg px-3 py-1 cursor-pointer text-center`}>
+                                        className={`w-fit self-end bg-yellow rounded-lg px-3 py-1 cursor-pointer text-center`}>
                                         <h1 className='text-lg font-bold font-akagi text-darkblue'>Proceed</h1>
                                     </motion.div>
                                     
                                 }
 
                             </AnimatePresence>
+                        </div>
+
+                            
 
 
                         </div>

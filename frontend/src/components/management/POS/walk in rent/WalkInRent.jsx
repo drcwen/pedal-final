@@ -29,7 +29,7 @@ function WalkInRent() {
     const [gcash, setGcash] = useState(false);
     const [cash, setCash] = useState(false);
 
-    const [cashAmount, setCashAmount] = useState();
+    const [cashAmount, setCashAmount] = useState(null);
     useEffect(() => {
         console.log(cart);
         const fetchBikes = async () => {
@@ -189,7 +189,7 @@ function WalkInRent() {
 
                                     <div className='grid grid-cols-2 gap-3 pb-5'>
                                         <div 
-                                            onClick={grandTotal === 0 ? undefined : () => {setGcash(true), cash === true ? setCash(!cash) : ""}}
+                                            onClick={grandTotal === 0 ? undefined : () => {setGcash(true), cash === true ? setCash(!cash) : "", setCashAmount(null)}}
                                             className={`border-2 border-gray rounded-lg text-center py-2 ${gcash === true ? `bg-gray text-[#ffffff]` : `bg-transparent `}`}>
                                             <h1 className={`text-xl font-bold font-akagi ${gcash === true ? `text-[#fffffff]` : `text-gray`}`}>GCash</h1>
                                         </div>
@@ -322,7 +322,12 @@ function WalkInRent() {
                                 {/*Payment Button*/}
                                 <div 
                                     onClick={() => {setProceed(true)}}
-                                    className={`${cashAmount < grandTotal ? "hidden":"block"} ${grandTotal === 0 ? "hidden" : "block"} w-fit self-end bg-yellow rounded-xl px-8 py-3 text-center`}>
+                                    className={`${
+                                        grandTotal === 0 || cashAmount === null || Number(cashAmount) < grandTotal
+                                            ? "hidden"
+                                            : "block"
+                                        } w-fit self-end bg-yellow rounded-xl px-8 py-3 text-center`}
+                                    >
                                     <h1 className='text-xl font-bold font-akagi text-darkblue'>Payment</h1>
                                 </div>
 

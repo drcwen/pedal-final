@@ -319,7 +319,7 @@ function WalkInRent() {
                                 {/*Payment Button*/}
                                 <div 
                                     onClick={() => {setProceed(true)}}
-                                    className={`${cashAmount < grandTotal ? "hidden":"block"} ${grandTotal === 0 ? "hidden" : "block"} w-fit self-end bg-yellow rounded-xl px-8 py-3 text-center`}>
+                                    className={`${cashAmount < grandTotal ? "hidden":"block"} ${grandTotal === 0 ? "hidden" : "block"} ${cashAmount === 0 || undefined ? "hidden" : "block"} w-fit self-end bg-yellow rounded-xl px-8 py-3 text-center`}>
                                     <h1 className='text-xl font-bold font-akagi text-darkblue'>Payment</h1>
                                 </div>
 
