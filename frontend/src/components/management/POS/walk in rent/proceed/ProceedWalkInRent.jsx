@@ -327,7 +327,7 @@ function ProceedWalkInRent({onClose, cart, cartTotal, cashTendered, paymentMetho
                     </div>
                 </div>
 
-                <div className='flex flex-row justify-between px-10'>
+                <div className='mt-auto flex flex-row justify-between px-10'>
                     <div 
                         onClick={() => {setConfirmBack(true)}}
                         className='bg-red-500 rounded-xl px-7 py-2 cursor-pointer'>

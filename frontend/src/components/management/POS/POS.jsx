@@ -16,10 +16,21 @@ function POS() {
     const [transactions, setTransactions] = useState([]);
     const [ongoing, setOngoing] = useState([]);
 
+    const [currentTime, setCurrentTime] = useState(new Date());
+
     useEffect(() => {
         fetchTransactions();
         fetchOngoing();
     }, [])
+
+    //for time and date
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentTime(new Date());
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, []);
 
     const fetchTransactions = async () => {
         const { data, error } = await supabase
@@ -107,7 +118,22 @@ function POS() {
                         <div className='flex flex-col gap-5'>
                             {/*Date*/}
                             <div className=''>
-                                <h1 className='text-lg lg:text-2xl font-akagi font-bold text-[#9E9E9E]'>March 13, 2026</h1>
+                                <h1 className='text-lg lg:text-2xl font-akagi font-bold text-[#9E9E9E]'>
+                                    {currentTime.toLocaleDateString("en-US", {
+                                        weekday: "long",
+                                        year: "numeric",
+                                        month: "long",
+                                        day: "numeric",
+                                    })}
+                                </h1>
+
+                                <p className="text-md font-akagi text-[#9E9E9E]">
+                                    {currentTime.toLocaleTimeString("en-US", {
+                                        hour: "numeric",
+                                        minute: "2-digit",
+                                        hour12: true,
+                                    })}
+                                </p>
                             </div>
 
                             <div className='w-fit lg:w-full flex lg:flex-row flex-col gap-5 lg:justify-between'>

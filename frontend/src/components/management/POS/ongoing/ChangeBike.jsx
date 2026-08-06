@@ -20,10 +20,12 @@ function ChangeBike({setChangeOrder, changeOrder}) {
     ? Math.max(0, changedBike.price - changeOrder.pricePerHour)
     : 0;
 
-    const [cashAmount, setCashAmount] = useState();
+    const [cashAmount, setCashAmount] = useState(null);
 
     const [gcash, setGcash] = useState(false);
     const [cash, setCash] = useState(false);
+
+    const [confirmChange, setConfirmChange] = useState(false);
 
     const handleChange = (e) => {
         setCashAmount(e.target.value);
@@ -58,6 +60,14 @@ function ChangeBike({setChangeOrder, changeOrder}) {
 
     }, [])
 
+    useEffect(() => {
+        if (totalPayment === 0) {
+            setCashAmount(0);
+        } else if (cashAmount === 0) {
+            setCashAmount(null); 
+        }
+    }, [totalPayment]);
+
   return (
     <>
 
@@ -87,7 +97,7 @@ function ChangeBike({setChangeOrder, changeOrder}) {
                                 </div>
                             </div>
 
-                            <div className='border border-[#c6c6c6] shadow shadow-[-5px_15px_20px_rgba(0,0,0,0.15)] rounded-xl p-5 w-full grid md:grid-cols-3 grid-cols-2 gap-4'>
+                            <div className='border border-[#c6c6c6] shadow-[-5px_15px_20px_rgba(0,0,0,0.15)] rounded-xl p-5 w-full grid md:grid-cols-3 grid-cols-2 gap-4'>
                                 
                                 {loading ? (
                                     <div className="flex justify-center items-center py-10">
@@ -110,6 +120,7 @@ function ChangeBike({setChangeOrder, changeOrder}) {
                                                     ${openBikeId == bike.id ? `bg-blue border-blue-600` : `bg-[#EBEBEB]`}
                                                     ${changeOrder.bikeTypeId == bike.id ? `pointer-events-none bg-yellow border-[#d6d224]` : `border-[#C8C8C8]`}
                                                     ${bike.bikes_mod.length === 0 ? `opacity-50 bg-black pointer-events-none` : ``}`}
+                                            
                                                 >
                                                 <img 
                                                     className='w-30'
@@ -130,7 +141,7 @@ function ChangeBike({setChangeOrder, changeOrder}) {
                             </div>
                         </div>
 
-                        <div className="col-span-1 border border-[#C8C8C8] rounded-xl p-5 flex flex-col gap-7 shadow shadow-[-5px_15px_20px_rgba(0,0,0,0.15)]">
+                        <div className="col-span-1 border border-[#C8C8C8] rounded-xl p-5 flex flex-col gap-7 shadow-[-5px_15px_20px_rgba(0,0,0,0.15)]">
                             <h1 className='text-2xl font-akagi font-bold text-blue'>Payment</h1>
 
                             <div className='flex flex-col gap-3'>
@@ -360,14 +371,16 @@ function ChangeBike({setChangeOrder, changeOrder}) {
                             {/*Payment Button*/}
                             <AnimatePresence initial={false}>
                                 {changedBike && 
-                                    
+                                
                                     <motion.div
                                         initial={{ height: 0, opacity: 0 }}
                                         animate={{ height: "auto", opacity: 1 }}
                                         exit={{ height: 0, opacity: 0 }}
                                         transition={{ duration: 0.25, ease: "easeInOut" }}   
-                                        onClick={() => {setProceed(true)}}
-                                        className={`w-fit self-end bg-yellow rounded-lg px-3 py-1 cursor-pointer text-center`}>
+                                        onClick={() => {setConfirmChange(true)}}
+                                        className={`
+                                            ${cashAmount === null || cashAmount < totalPayment ? `hidden` : `block`}
+                                            w-fit self-end bg-yellow rounded-lg px-3 py-1 cursor-pointer text-center`}>
                                         <h1 className='text-lg font-bold font-akagi text-darkblue'>Proceed</h1>
                                     </motion.div>
                                     
@@ -375,17 +388,45 @@ function ChangeBike({setChangeOrder, changeOrder}) {
 
                             </AnimatePresence>
                         </div>
-
-                            
-
-
-                        </div>
-                        
-                            
                     </div>
+                </div>
             </div>
         </div>
-                      
+
+        {confirmChange &&
+            <div className="w-full h-full fixed inset-0 bg-black/50 flex justify-center items-center z-51 md:p-5">
+                <div className='w-full h-full bg-white rounded-xl flex flex-col p-5'>
+                    <h1 className='text-2xl font-akagi font-bold text-blue'>Confirm Change</h1>
+
+                    <div className='w-full flex flex-col gap-2'>
+                        <div className='grid grid-cols-2'>
+                            <h1>From: </h1>
+                            <div className='flex flex-row gap-3'>
+                            <h1>{changeOrder.type}</h1>
+                            </div>
+                        </div>
+
+                        <div className='grid grid-cols-2'>
+                            <h1>To: </h1>
+                            <h1>{changeOrder.type}</h1>
+                        </div>
+                    </div>
+
+                    <div className='flex flex-row justify-between mt-auto'>
+                        <div
+                            onClick={() => {setConfirmChange(false)}}
+                            className='border cursor-pointer border-gray px-2 py-0.5 rounded-lg font-bold font-akagi text-md text-gray'>
+                            Back
+                        </div>
+
+                        <div className='bg-blue px-2 py-0.5 rounded-lg font-bold font-akagi text-md text-[#ffffff]'>
+                            Proceed
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+              
     </>
   )
 }
