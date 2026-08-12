@@ -271,6 +271,29 @@ function ProceedWalkInRent({onClose, cart, cartTotal, cashTendered, paymentMetho
                                 selectedBikeId={selectedItems[bikes.cartId]?.bike}
                                 selectedGpsId={selectedItems[bikes.cartId]?.gps}
 
+                                selectedBikeIds={
+                                    Object.entries(selectedItems)
+                                        .filter(
+                                            ([cartId]) =>
+                                                String(cartId) !== String(bikes.cartId)
+                                        )
+                                        .map(
+                                            ([_, item]) => item.bike
+                                        )
+                                        .filter(Boolean)
+                                }
+                                selectedGpsIds={
+                                    Object.entries(selectedItems)
+                                        .filter(
+                                            ([cartId]) =>
+                                                String(cartId) !== String(bikes.cartId)
+                                        )
+                                        .map(
+                                            ([_, item]) => item.gps
+                                        )
+                                        .filter(Boolean)
+                                }
+
                                 onBikeChange={(bike) =>
                                     setSelectedItems(prev => ({
                                         ...prev,
