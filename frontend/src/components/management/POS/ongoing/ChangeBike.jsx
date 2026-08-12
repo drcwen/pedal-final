@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from "../../../../lib/supabase"
 import { motion, AnimatePresence } from "motion/react"
 import { RiArrowLeftRightLine } from "react-icons/ri";
+import AssignChangeBikes from "./AssignChangeBikes"
 
 function ChangeBike({setChangeOrder, changeOrder}) {
 
@@ -248,7 +249,7 @@ function ChangeBike({setChangeOrder, changeOrder}) {
 
                                         {gcash === true && 
                                             <div
-                                                onClick={totalPayment === 0 ? setGcash(!gcash) : undefined} 
+                                                onClick={totalPayment === 0 ? () => setGcash(!gcash) : undefined} 
                                                 className='w-full rounded-xl bg-gray p-2'>
                                                 
                                             </div>
@@ -393,39 +394,15 @@ function ChangeBike({setChangeOrder, changeOrder}) {
             </div>
         </div>
 
-        {confirmChange &&
-            <div className="w-full h-full fixed inset-0 bg-black/50 flex justify-center items-center z-51 md:p-5">
-                <div className='w-full h-full bg-white rounded-xl flex flex-col p-5'>
-                    <h1 className='text-2xl font-akagi font-bold text-blue'>Confirm Change</h1>
-
-                    <div className='w-full flex flex-col gap-2'>
-                        <div className='grid grid-cols-2'>
-                            <h1>From: </h1>
-                            <div className='flex flex-row gap-3'>
-                            <h1>{changeOrder.type}</h1>
-                            </div>
-                        </div>
-
-                        <div className='grid grid-cols-2'>
-                            <h1>To: </h1>
-                            <h1>{changeOrder.type}</h1>
-                        </div>
-                    </div>
-
-                    <div className='flex flex-row justify-between mt-auto'>
-                        <div
-                            onClick={() => {setConfirmChange(false)}}
-                            className='border cursor-pointer border-gray px-2 py-0.5 rounded-lg font-bold font-akagi text-md text-gray'>
-                            Back
-                        </div>
-
-                        <div className='bg-blue px-2 py-0.5 rounded-lg font-bold font-akagi text-md text-[#ffffff]'>
-                            Proceed
-                        </div>
-                    </div>
-                </div>
-            </div>
-        }
+        {confirmChange && changedBike && (
+            <AssignChangeBikes
+                beforeType={changeOrder.type}
+                changedType={changedBike.name}
+                setConfirmChange={setConfirmChange}
+                changedImage={changedBike.image_url}
+                gpsAssigned={changeOrder.gpsId}
+            />
+        )}
               
     </>
   )

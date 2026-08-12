@@ -277,7 +277,8 @@ function OngoingBikesOrders({ bikeTypeId, orderId, bikeId, gpsId, type, price, d
                                     bikeId,
                                     type,
                                     pricePerHour,
-                                    name
+                                    name,
+                                    gpsId
                                 }), setChange(true), setDot(!dot), returned === true ? setReturned(!returned) : null}}>
                                 <h1>Change</h1>
                             </div>
