@@ -8,7 +8,7 @@ import { supabase } from "../../../../lib/supabase"
 import Payment from "./three dots/Payment"
 import ChangeBike from "./ChangeBike"
 
-function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing }) {
+function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, transaction }) {
 
     const [extendOrder, setExtendOrder] = useState(null);
     const [changeOrder, setChangeOrder] = useState(null);
@@ -98,6 +98,7 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing }) {
     }
 
     useEffect(() => {
+        
         if (bikeDetails.length === 0) return;
         if (startedBikes.length !== 0) return;
 
@@ -158,7 +159,7 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing }) {
                                 .map((bikes) => (
                                     <OngoingBikesOrders
                                         bikeTypeId={bikes.bike_types_mod.id}
-                                        bikeId={bikes.bikes_mod?.code}
+                                        bikeCode={bikes.bikes_mod?.code}
                                         gpsId={bikes.gps_mod?.code}
                                         type={bikes.bike_types_mod.name}
                                         image={bikes.bike_types_mod.image_url}
@@ -171,6 +172,9 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing }) {
                                         setExtendOrder={setExtendOrder}
                                         setChangeOrder={setChangeOrder}
                                         pricePerHour={bikes.bike_types_mod.price}
+                                        transactionId={transaction}
+                                        bikeTypeId={bikes.bike_types_mod.id}
+                                        bikeId={bikes.bikes_mod?.id}                                        
                                     />
                                 ))
                             }

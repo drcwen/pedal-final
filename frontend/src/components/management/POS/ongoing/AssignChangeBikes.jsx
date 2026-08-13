@@ -1,10 +1,9 @@
 import { IoIosArrowBack } from "react-icons/io";
 import { useState, useEffect } from 'react';
 import { supabase } from "../../../../lib/supabase"
-import { motion, AnimatePresence } from "motion/react"
 import DropDown from "./DropDown"
 
-function AssignBikes({beforeType, changedType, setConfirmChange, changedImage, gpsAssigned}) {
+function AssignChangeBikes({beforeType, changedType, setConfirmChange, changedImage, gpsAssigned, transaction, orderId, toPay, payment, method, bikeTypeId, bikeId, changedBikeTypeId}) {
 
     const [bikes, setBikes] = useState([]);
     const [gps, setGps] = useState([]);
@@ -12,8 +11,13 @@ function AssignBikes({beforeType, changedType, setConfirmChange, changedImage, g
     const [selectedBike, setSelectedBike] = useState(null);
     const [selectedGps, setSelectedGps] = useState(gpsAssigned);
 
+    const [loading, setLoading] = useState(false);
+
+
     useEffect(() => {
+        console.log(method, orderId, toPay, payment)
         console.log(selectedGps)
+        console.log("transactionId", transaction)
         const fetchBikeID = async () => {
             const { data } = await supabase
                 .from("bikes_mod")
@@ -40,6 +44,168 @@ function AssignBikes({beforeType, changedType, setConfirmChange, changedImage, g
         fetchBikeID();
         fetchGPSID();
     }, [])
+
+    async function insertTransaction() {
+        try {
+            const {
+                data: { user },
+                error: userError
+            } = await supabase.auth.getUser();
+
+            if (userError || !user) {
+                console.error("User error:", userError);
+                return null;
+            }
+
+            const { data, error } = await supabase
+                .from("transactions_mod")
+                .insert({
+                    payment_method: method,
+                    total_amount: toPay,
+                    amount_paid: payment,
+                    status: "completed",
+                    type: "change",
+                    assisted_by: user.id
+                })
+                .select("id")
+                .single();
+
+            if (error) {
+                console.error("Transaction error:", error);
+                return null;
+            }
+
+            console.log("Transaction ID:", data.id);
+
+            return data.id;
+
+        } catch (err) {
+            console.error(err);
+            return null;
+        }
+    }
+
+    async function insertChangeBike(transactionId) {
+        try {
+            const {
+                data: { user },
+                error: userError
+            } = await supabase.auth.getUser();
+
+            if (userError || !user) {
+                console.error("User error:", userError);
+                return;
+            }
+
+            const { data, error } = await supabase
+                .from("change_bikes_mod")
+                .insert({
+                    order_id: orderId,
+                    bike_type_id: bikeTypeId,
+                    bike_id: bikeId,
+                    trans_id: transactionId,
+                    assisted_by: user.id
+                })
+
+            if (error) {
+                console.error("Change bike error:", error);
+                return;
+            }
+
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    async function updateOrder() {
+        try {
+
+            const { data, error } = await supabase
+                .from("orders_mod")
+                .update({
+                    bike_id: selectedBike,
+                    bike_type_id: changedBikeTypeId,
+                })
+                .eq("id", orderId)
+
+
+            if (error) {
+                console.error("Update order error:", error);
+                return;
+            }
+
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    async function setBikeToAvailable() {
+        try {
+
+            const { data, error } = await supabase
+                .from("bikes_mod")
+                .update({
+                    status: "Available",
+                })
+                .eq("id", bikeId)
+
+            if (error) {
+                console.error("Change bike error:", error);
+                return;
+            }
+
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    async function setBikeToRented() {
+        try {
+
+            const { data, error } = await supabase
+                .from("bikes_mod")
+                .update({
+                    status: "Rented",
+                })
+                .eq("id", selectedBike)
+
+            if (error) {
+                console.error("Change bike error:", error);
+                return;
+            }
+
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    async function handleConfirm() {
+        setLoading(true);
+
+        try {
+            const transactionId = await insertTransaction();
+
+            if (!transactionId) {
+                console.error("Transaction was not created");
+                return;
+            }
+
+            console.log("Created transaction:", transactionId);
+
+            await insertChangeBike(transactionId);
+            updateOrder();
+            setBikeToAvailable();
+            setBikeToRented();
+
+            console.log("Everything completed!");
+
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoading(false);
+            
+        }
+    }
 
 
   return (
@@ -137,8 +303,12 @@ function AssignBikes({beforeType, changedType, setConfirmChange, changedImage, g
                         Back
                     </div>
 
-                    <div className='bg-blue px-2 py-0.5 rounded-lg font-bold font-akagi text-md text-[#ffffff]'>
-                        Proceed
+                    <div 
+                        onClick={handleConfirm}
+                        className={`bg-blue px-2 py-0.5 rounded-lg font-bold font-akagi text-md text-[#ffffff]
+                            ${loading ? "opacity-50 pointer-events-none" : "cursor-pointer"}
+                        `}>
+                        {loading ? "Processing..." : "Confirm"}
                     </div>
                 </div>
             </div>
@@ -148,4 +318,4 @@ function AssignBikes({beforeType, changedType, setConfirmChange, changedImage, g
   )
 }
 
-export default AssignBikes
+export default AssignChangeBikes

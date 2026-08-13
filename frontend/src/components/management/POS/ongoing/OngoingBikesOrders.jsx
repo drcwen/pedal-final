@@ -6,7 +6,7 @@ import { GoDotFill } from "react-icons/go";
 import { supabase } from "../../../../lib/supabase"
 import WalkInRent from "../ongoing/WalkInRent"
 
-function OngoingBikesOrders({ bikeTypeId, orderId, bikeId, gpsId, type, price, duration, start, end, remaining, image, setExtendOrder, setChangeOrder, pricePerHour }) {
+function OngoingBikesOrders({ bikeTypeId, orderId, bikeCode, bikeId, gpsId, type, price, duration, start, end, remaining, image, setExtendOrder, setChangeOrder, pricePerHour, transactionId }) {
 
     const [dot, setDot] = useState(false);
     const [returned, setReturned] = useState(false);
@@ -162,7 +162,7 @@ function OngoingBikesOrders({ bikeTypeId, orderId, bikeId, gpsId, type, price, d
                       />
                   </div>
                   <h1 className='text-md font-akagi font-bold text-gray'>{type}</h1>
-                  <div className='bg-blue rounded-lg px-2 text-[#ffffff] py-0.5 font-akagi text-sm font-bold'>{bikeId}</div>
+                  <div className='bg-blue rounded-lg px-2 text-[#ffffff] py-0.5 font-akagi text-sm font-bold'>{bikeCode}</div>
               </div>
 
               <h1 className='text-md font-akagi font-bold text-gray'>{price}</h1>
@@ -172,7 +172,7 @@ function OngoingBikesOrders({ bikeTypeId, orderId, bikeId, gpsId, type, price, d
 
                 <div className='flex flex-col'>
                     <h1 className='text-sm font-akagi font-bold text-gray'>BIKE ID</h1>
-                    <h1 className='text-sm font-akagi font-medium text-gray'>{bikeId}</h1>
+                    <h1 className='text-sm font-akagi font-medium text-gray'>{bikeCode}</h1>
                 </div>
 
                 <div className='flex flex-col'>
@@ -274,11 +274,12 @@ function OngoingBikesOrders({ bikeTypeId, orderId, bikeId, gpsId, type, price, d
                                     bikeTypeId,
                                     orderId,
                                     image,
-                                    bikeId,
                                     type,
                                     pricePerHour,
                                     name,
-                                    gpsId
+                                    gpsId,
+                                    transactionId,
+                                    bikeId
                                 }), setChange(true), setDot(!dot), returned === true ? setReturned(!returned) : null}}>
                                 <h1>Change</h1>
                             </div>
@@ -286,13 +287,14 @@ function OngoingBikesOrders({ bikeTypeId, orderId, bikeId, gpsId, type, price, d
                             <div 
                                 onClick={() => {setExtendOrder({
                                     orderId,
-                                    bikeId,
+                                    bikeCode,
                                     type,
                                     duration,
                                     end,
                                     image,
                                     start,
-                                    pricePerHour
+                                    pricePerHour,
+                                    bikeTypeId
                                 }), setDot(!dot), returned === true ? setReturned(!returned) : null, change === true ? setChange(!change) : null}}>
                                 <h1>Extend</h1>
                             </div>

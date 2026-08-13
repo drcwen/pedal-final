@@ -26,6 +26,13 @@ function ChangeBike({setChangeOrder, changeOrder}) {
     const [gcash, setGcash] = useState(false);
     const [cash, setCash] = useState(false);
 
+    const myMethod =
+        gcash === true && cash === false
+            ? "GCash"
+            : cash === true && gcash === false
+                ? "Cash"
+                : "Cash";
+
     const [confirmChange, setConfirmChange] = useState(false);
 
     const handleChange = (e) => {
@@ -37,6 +44,7 @@ function ChangeBike({setChangeOrder, changeOrder}) {
     };
 
     useEffect(() => {
+        
         const fetchBikes = async () => {
 
             setLoading(true);
@@ -394,6 +402,7 @@ function ChangeBike({setChangeOrder, changeOrder}) {
             </div>
         </div>
 
+
         {confirmChange && changedBike && (
             <AssignChangeBikes
                 beforeType={changeOrder.type}
@@ -401,6 +410,14 @@ function ChangeBike({setChangeOrder, changeOrder}) {
                 setConfirmChange={setConfirmChange}
                 changedImage={changedBike.image_url}
                 gpsAssigned={changeOrder.gpsId}
+                transaction={changeOrder.transactionId}
+                toPay={totalPayment}
+                payment={cashAmount}
+                method={myMethod}
+                orderId={changeOrder.orderId}
+                bikeTypeId={changeOrder.bikeTypeId}
+                bikeId={changeOrder.bikeId}
+                changedBikeTypeId={changedBike.id}
             />
         )}
               

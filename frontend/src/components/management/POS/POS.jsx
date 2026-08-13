@@ -266,6 +266,7 @@ function POS() {
                                                 start={trans.orders_mod[0].start_time}
                                                 bikeDetails={trans.orders_mod}
                                                 refreshOngoing={fetchOngoing}
+                                                transaction={trans.id}
                                             />
                                         );
                                     })
