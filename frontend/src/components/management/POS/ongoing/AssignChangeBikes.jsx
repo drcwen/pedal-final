@@ -119,6 +119,11 @@ function AssignChangeBikes({beforeType, changedType, setConfirmChange, changedIm
 
     async function updateOrder() {
         try {
+            console.log("Updating order:", {
+                orderId,
+                selectedBike,
+                changedBikeTypeId
+            });
 
             const { data, error } = await supabase
                 .from("orders_mod")
@@ -127,15 +132,20 @@ function AssignChangeBikes({beforeType, changedType, setConfirmChange, changedIm
                     bike_type_id: changedBikeTypeId,
                 })
                 .eq("id", orderId)
-
+                .select();
 
             if (error) {
                 console.error("Update order error:", error);
-                return;
+                return false;
             }
 
+            console.log("Updated order:", data);
+
+            return true;
+
         } catch (err) {
-            console.error(err);
+            console.error("Update order exception:", err);
+            return false;
         }
     }
 
@@ -193,9 +203,9 @@ function AssignChangeBikes({beforeType, changedType, setConfirmChange, changedIm
             console.log("Created transaction:", transactionId);
 
             await insertChangeBike(transactionId);
-            updateOrder();
-            setBikeToAvailable();
-            setBikeToRented();
+            await updateOrder();
+            await setBikeToAvailable();
+            await setBikeToRented();
 
             console.log("Everything completed!");
 
@@ -203,7 +213,7 @@ function AssignChangeBikes({beforeType, changedType, setConfirmChange, changedIm
             console.error(err);
         } finally {
             setLoading(false);
-            
+            window.location.reload();
         }
     }
 

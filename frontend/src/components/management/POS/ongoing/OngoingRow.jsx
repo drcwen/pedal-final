@@ -167,7 +167,6 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
                                         duration={bikes.duration_hours === 1 ? bikes.duration_hours + " hour" : bikes.duration_hours + " hours"}
                                         start={bikes.start_time}
                                         end={bikes.reservation_range}
-                                        remaining={10}
                                         orderId={bikes.id}
                                         setExtendOrder={setExtendOrder}
                                         setChangeOrder={setChangeOrder}
@@ -206,7 +205,7 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
                         <div className='flex flex-row gap-2 items-center'>
                             <h1>{extendOrder.type}</h1>
                             <div className='bg-navyblue px-3 py-0.5 rounded-lg'>
-                                <h1 className='text-[#ffffff]'>{extendOrder.bikeId}</h1>
+                                <h1 className='text-[#ffffff]'>{extendOrder.bikeCode}</h1>
                             </div>
                         </div>
                     </div>
@@ -277,6 +276,7 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
                                 orderId={extendOrder.orderId}
                                 extensionClicked={extensionClicked}
                                 updatedTime={updatedTime}
+                                bikeCode={extendOrder.bikeCode}
                             />
                         }
                     </div>

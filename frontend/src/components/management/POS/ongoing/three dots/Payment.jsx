@@ -3,7 +3,7 @@ import {supabase } from "../../../../../lib/supabase"
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { useNavigate } from "react-router-dom";
 
-function Payment({total, setPayment, bikeId, bikeType, orderId, extensionClicked, updatedTime}) {
+function Payment({total, setPayment, bikeId, bikeType, orderId, extensionClicked, updatedTime, bikeCode}) {
 
     const [active, setActive] = useState("Cash");
     const [cashAmount, setCashAmount] = useState(null);
@@ -280,8 +280,8 @@ function Payment({total, setPayment, bikeId, bikeType, orderId, extensionClicked
                                     <div className="flex items-center gap-2">
                                         <h1>{bikeType}</h1>
 
-                                        <span className="bg-blue px-3 py-1 rounded-lg text-white">
-                                            {bikeId}
+                                        <span className="bg-blue px-3 py-1 rounded-lg text-[#ffffff]">
+                                            {bikeCode}
                                         </span>
                                     </div>
                                 </div>

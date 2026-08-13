@@ -6,7 +6,7 @@ import { GoDotFill } from "react-icons/go";
 import { supabase } from "../../../../lib/supabase"
 import WalkInRent from "../ongoing/WalkInRent"
 
-function OngoingBikesOrders({ bikeTypeId, orderId, bikeCode, bikeId, gpsId, type, price, duration, start, end, remaining, image, setExtendOrder, setChangeOrder, pricePerHour, transactionId }) {
+function OngoingBikesOrders({ bikeTypeId, orderId, bikeCode, bikeId, gpsId, type, price, duration, start, end, image, setExtendOrder, setChangeOrder, pricePerHour, transactionId }) {
 
     const [dot, setDot] = useState(false);
     const [returned, setReturned] = useState(false);
@@ -112,7 +112,7 @@ function OngoingBikesOrders({ bikeTypeId, orderId, bikeCode, bikeId, gpsId, type
         const {data, error} = await supabase
             .from("bikes_mod")
             .update({status: dropDownValue})
-            .eq("code", bikeId);
+            .eq("code", bikeCode);
         
         if(error) {
             alert(error);
@@ -148,6 +148,78 @@ function OngoingBikesOrders({ bikeTypeId, orderId, bikeCode, bikeId, gpsId, type
         
         window.location.reload();
     };
+
+    //remaining
+
+    const [remaining, setRemaining] = useState("00:00:00");
+
+    function formatRemaining(ms) {
+        if (ms <= 0) {
+            return "00:00:00";
+        }
+
+        const totalSeconds = Math.floor(ms / 1000);
+
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+
+        return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    }
+
+    function getEndDate(tstzrange) {
+        if (!tstzrange) return null;
+
+        const match = tstzrange.match(/\["[^"]+","([^"]+)"\)/);
+
+        if (!match) return null;
+
+        const date = new Date(
+            match[1]
+                .replace(" ", "T")
+                .replace("+00", "Z")
+        );
+
+        if (isNaN(date.getTime())) return null;
+
+        return date;
+    }
+
+    useEffect(() => {
+        const updateRemaining = () => {
+            const endDate = getEndDate(end);
+
+            if (!endDate) {
+                setRemaining("00:00:00");
+                return;
+            }
+
+            const now = new Date();
+            const remainingMs = endDate.getTime() - now.getTime();
+
+            setRemaining(formatRemaining(remainingMs));
+        };
+
+        updateRemaining();
+
+        const interval = setInterval(updateRemaining, 1000);
+
+        return () => clearInterval(interval);
+    }, [end]);
+
+    function formatRemaining(ms) {
+        if (ms <= 0) {
+            return "0s";
+        }
+
+        const totalSeconds = Math.floor(ms / 1000);
+
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+
+        return `${hours}h ${minutes}m ${seconds}s`;
+    }
 
   return (
     <>
@@ -205,12 +277,6 @@ function OngoingBikesOrders({ bikeTypeId, orderId, bikeCode, bikeId, gpsId, type
             <h1 className='text-sm font-akagi font-bold text-gray'>EXTENSION</h1>
             <h1 className='text-sm font-akagi font-medium text-gray'>{extension}</h1>
           </div>
-
-
-            {/*Change*/}
-            { change && 
-                <></>
-            }
 
             {/*Return*/}
             { returned && 
