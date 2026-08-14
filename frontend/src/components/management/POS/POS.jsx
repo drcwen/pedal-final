@@ -69,7 +69,8 @@ function POS() {
                     *,
                     bike_types_mod (*),
                     bikes_mod (*),
-                    gps_mod (*)
+                    gps_mod (*),
+                    extensions_mod (*)
                 )
             `)
             .eq("status", "started");

@@ -7,11 +7,13 @@ import OngoingBikesOrders from "./OngoingBikesOrders"
 import { supabase } from "../../../../lib/supabase"
 import Payment from "./three dots/Payment"
 import ChangeBike from "./ChangeBike"
+import MaintenancePayment from "./MaintenancePayment"
 
 function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, transaction }) {
 
     const [extendOrder, setExtendOrder] = useState(null);
     const [changeOrder, setChangeOrder] = useState(null);
+    const [maintenancePayment, setMaintenancePayment] = useState(null);
 
     const [dropdown, setDropdown] = useState(false);
 
@@ -103,6 +105,7 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
         if (startedBikes.length !== 0) return;
 
         updateStatus();
+        
     }, [startedBikes.length]);
 
   return (
@@ -170,10 +173,14 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
                                         orderId={bikes.id}
                                         setExtendOrder={setExtendOrder}
                                         setChangeOrder={setChangeOrder}
+                                        setMaintenancePayment={setMaintenancePayment}
                                         pricePerHour={bikes.bike_types_mod.price}
                                         transactionId={transaction}
                                         bikeTypeId={bikes.bike_types_mod.id}
-                                        bikeId={bikes.bikes_mod?.id}                                        
+                                        bikeId={bikes.bikes_mod?.id}
+                                        extensionsDuration={bikes.extensions_mod?.map(
+                                            extension => extension.extension_duration
+                                        )}                       
                                     />
                                 ))
                             }
@@ -188,6 +195,14 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
             <ChangeBike 
                 setChangeOrder={setChangeOrder}
                 changeOrder={changeOrder}
+
+            />
+        }
+
+        { maintenancePayment && 
+            <MaintenancePayment 
+                setMaintenancePayment={setMaintenancePayment}
+                maintenancePayment={maintenancePayment}
 
             />
         }

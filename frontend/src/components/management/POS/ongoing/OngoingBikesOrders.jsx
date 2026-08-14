@@ -6,7 +6,7 @@ import { GoDotFill } from "react-icons/go";
 import { supabase } from "../../../../lib/supabase"
 import WalkInRent from "../ongoing/WalkInRent"
 
-function OngoingBikesOrders({ bikeTypeId, orderId, bikeCode, bikeId, gpsId, type, price, duration, start, end, image, setExtendOrder, setChangeOrder, pricePerHour, transactionId }) {
+function OngoingBikesOrders({ bikeTypeId, orderId, bikeCode, bikeId, gpsId, type, price, duration, start, end, image, setExtendOrder, setMaintenancePayment, extensionsDuration, setChangeOrder, pricePerHour, transactionId }) {
 
     const [dot, setDot] = useState(false);
     const [returned, setReturned] = useState(false);
@@ -14,8 +14,6 @@ function OngoingBikesOrders({ bikeTypeId, orderId, bikeCode, bikeId, gpsId, type
 
     const [dropDown, setDropDown] = useState(false);
     const [dropDownValue, setDropDownValue] = useState("Set Return Status");
-
-    const [extension, setExtension] = useState([]);
 
     function getEndTimeOnly(tstzrange) {
         const match = tstzrange.match(/\["[^"]+","([^"]+)"\)/);
@@ -142,11 +140,27 @@ function OngoingBikesOrders({ bikeTypeId, orderId, bikeCode, bikeId, gpsId, type
     }
 
     const handleReturn = async () => {
-        await returnBike();
-        await returnGps();
-        await setReturn();
+
+        if(dropDownValue === "Under Maintenance") {
+            setMaintenancePayment({
+                orderId,
+                bikeCode,
+                type,
+                duration,
+                end,
+                image,
+                start,
+                pricePerHour,
+                bikeTypeId
+            })
+        } else if(dropDownValue === "Available") {
+            await returnBike();
+            await returnGps();
+            await setReturn();
+
+            window.location.reload();
+        }
         
-        window.location.reload();
     };
 
     //remaining
@@ -167,23 +181,6 @@ function OngoingBikesOrders({ bikeTypeId, orderId, bikeCode, bikeId, gpsId, type
         return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
     }
 
-    function getEndDate(tstzrange) {
-        if (!tstzrange) return null;
-
-        const match = tstzrange.match(/\["[^"]+","([^"]+)"\)/);
-
-        if (!match) return null;
-
-        const date = new Date(
-            match[1]
-                .replace(" ", "T")
-                .replace("+00", "Z")
-        );
-
-        if (isNaN(date.getTime())) return null;
-
-        return date;
-    }
 
     useEffect(() => {
         const updateRemaining = () => {
@@ -206,20 +203,6 @@ function OngoingBikesOrders({ bikeTypeId, orderId, bikeCode, bikeId, gpsId, type
 
         return () => clearInterval(interval);
     }, [end]);
-
-    function formatRemaining(ms) {
-        if (ms <= 0) {
-            return "0s";
-        }
-
-        const totalSeconds = Math.floor(ms / 1000);
-
-        const hours = Math.floor(totalSeconds / 3600);
-        const minutes = Math.floor((totalSeconds % 3600) / 60);
-        const seconds = totalSeconds % 60;
-
-        return `${hours}h ${minutes}m ${seconds}s`;
-    }
 
   return (
     <>
@@ -273,10 +256,22 @@ function OngoingBikesOrders({ bikeTypeId, orderId, bikeCode, bikeId, gpsId, type
               </div>
           </div>
 
-          <div className='flex flex-col'>
-            <h1 className='text-sm font-akagi font-bold text-gray'>EXTENSION</h1>
-            <h1 className='text-sm font-akagi font-medium text-gray'>{extension}</h1>
-          </div>
+          {extensionsDuration?.length > 0 && (
+            <div className="flex flex-col">
+                <h1 className="text-sm font-akagi font-bold text-gray">
+                    EXTENSION
+                </h1>
+
+                <h1 className="text-sm font-akagi font-medium text-gray">
+                    {extensionsDuration
+                        .map(duration =>
+                            `${duration} ${duration === 1 ? "hour" : "hours"}`
+                        )
+                        .join(" + ")
+                    }
+                </h1>
+            </div>
+        )}
 
             {/*Return*/}
             { returned && 
