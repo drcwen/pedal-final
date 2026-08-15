@@ -5,6 +5,8 @@ import { supabase } from "../../../../lib/supabase"
 import { motion, AnimatePresence } from "motion/react"
 import { RiArrowLeftRightLine } from "react-icons/ri";
 import AssignChangeBikes from "./AssignChangeBikes"
+import { RiArrowDropDownLine } from "react-icons/ri";
+import { FaCalculator } from "react-icons/fa";
 
 function MaintenancePayment({setMaintenancePayment, maintenancePayment}) {
 
@@ -24,7 +26,9 @@ function MaintenancePayment({setMaintenancePayment, maintenancePayment}) {
     const [gcash, setGcash] = useState(false);
     const [cash, setCash] = useState(false);
 
-    const [reason, setReason] = useState("Enter reason for maintenance");
+    const [reason, setReason] = useState("Enter maintenance reason");
+
+    const [dropDown, setDropDown] = useState(false);
 
     const myMethod =
         gcash === true && cash === false
@@ -113,11 +117,112 @@ function MaintenancePayment({setMaintenancePayment, maintenancePayment}) {
                                         
                                     </div>
 
-                                    <div className='lg:px-10 px-5 flex flex-row items-center gap-2 font-akagi font-bold text-gray'>
-                                        <h1 className='text-md font-medium'>Reason:</h1>
-                                        <div className='w-full rounded-lg border border-gray px-3 py-1 items-center text-md'>
-                                            {reason}
+                                    <div className="lg:px-10 px-5 grid grid-cols-[60px_1fr] items-center gap-2 font-akagi font-bold text-gray">
+                                        <h1 className="text-md font-medium whitespace-nowrap">
+                                            Reason:
+                                        </h1>
+
+                                        <div className="relative w-full">
+                                            <div
+                                                onClick={() => setDropDown(prev => !prev)}
+                                                className="
+                                                    w-full
+                                                    flex flex-row
+                                                    justify-between
+                                                    items-center
+                                                    rounded-lg
+                                                    border border-gray
+                                                    px-3 py-2
+                                                    text-md
+                                                    cursor-pointer
+                                                    bg-[#ffffff]
+                                                "
+                                            >
+                                                <span className="truncate">
+                                                    {reason}
+                                                </span>
+
+                                                <RiArrowDropDownLine
+                                                    className={`text-2xl transition-transform duration-200 ${
+                                                        dropDown ? "rotate-180" : ""
+                                                    }`}
+                                                />
+                                            </div>
+
+                                            <AnimatePresence>
+                                                {dropDown && (
+                                                    <motion.div
+                                                        initial={{ opacity: 0, y: -5 }}
+                                                        animate={{ opacity: 1, y: 0 }}
+                                                        exit={{ opacity: 0, y: -5 }}
+                                                        transition={{ duration: 0.15 }}
+                                                        className="
+                                                            absolute
+                                                            top-full
+                                                            left-0
+                                                            mt-1
+                                                            w-full
+                                                            z-50
+                                                            bg-white
+                                                            border border-gray
+                                                            rounded-lg
+                                                            shadow-lg
+                                                            overflow-hidden
+                                                        "
+                                                    >
+                                                        {[
+                                                            "Damaged",
+                                                            "Flat Tire",
+                                                            "Battery Problem",
+                                                            "Mechanical Problem",
+                                                            "Cleaning",
+                                                            "Other",
+                                                        ].map((option) => (
+                                                            <div
+                                                                key={option}
+                                                                onClick={() => {
+                                                                    setReason(option);
+                                                                    setDropDown(false);
+                                                                }}
+                                                                className="
+                                                                    px-3 py-2
+                                                                    cursor-pointer
+                                                                    hover:bg-gray/20
+                                                                    transition
+                                                                "
+                                                            >
+                                                                {option}
+                                                            </div>
+                                                        ))}
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
                                         </div>
+                                    </div>
+
+                                    <div className='lg:px-10 px-5 grid grid-cols-[60px_1fr] items-center gap-2 font-akagi font-bold text-gray'>
+                                        <h1 className='text-md font-medium'>Price:</h1>
+                                        <div className="relative w-full">
+                                            <FaCalculator className="cursor-pointer absolute right-3 top-1/2 -translate-y-1/2 text-gray" />
+
+                                            <input
+                                                type="number"
+                                                placeholder="0"
+                                                className="
+                                                    w-full
+                                                    outline-none
+                                                    rounded-lg
+                                                    border border-gray
+                                                    px-3 py-2
+                                                    text-md
+                                                    bg-[#ffffff]
+                                                    [appearance:textfield]
+                                                    [&::-webkit-inner-spin-button]:appearance-none
+                                                    [&::-webkit-outer-spin-button]:appearance-none
+                                                "
+                                            />
+                                        </div>
+                                        
                                     </div>
                                 </div>
                                 
