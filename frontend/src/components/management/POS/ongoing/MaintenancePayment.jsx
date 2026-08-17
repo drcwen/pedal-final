@@ -1,26 +1,19 @@
 import { IoIosArrowBack } from "react-icons/io";
-import BikesTile from "../walk in rent/BikesTile"
 import { useState, useEffect } from 'react';
 import { supabase } from "../../../../lib/supabase"
 import { motion, AnimatePresence } from "motion/react"
-import { RiArrowLeftRightLine } from "react-icons/ri";
-import AssignChangeBikes from "./AssignChangeBikes"
 import { RiArrowDropDownLine } from "react-icons/ri";
 import { FaCalculator } from "react-icons/fa";
 
 function MaintenancePayment({setMaintenancePayment, maintenancePayment}) {
 
-    const [info, setInfo] = useState([]);
-    const [isOpen, setIsOpen] = useState();
-
-    const [openBikeId, setOpenBikeId] = useState(null);
-
-    const [loading, setLoading] = useState(true);    
-
     const [cashAmount, setCashAmount] = useState(null);
 
     const [gcash, setGcash] = useState(false);
     const [cash, setCash] = useState(false);
+    
+    const paymentMethod = 
+        gcash == true ? "GCash" : "Cash";
 
     const [reason, setReason] = useState("Select reason");
     const [otherReason, setOtherReason] = useState(null);
@@ -34,14 +27,7 @@ function MaintenancePayment({setMaintenancePayment, maintenancePayment}) {
 
     const [price, setPrice] = useState(0);
 
-    const myMethod =
-        gcash === true && cash === false
-            ? "GCash"
-            : cash === true && gcash === false
-                ? "Cash"
-                : "Cash";
-
-    const [confirmChange, setConfirmChange] = useState(false);
+    const change = cashAmount - price;
 
     const handleChange = (e) => {
         setCashAmount(e.target.value);
@@ -51,27 +37,123 @@ function MaintenancePayment({setMaintenancePayment, maintenancePayment}) {
         }
     };
 
-    useEffect(() => {
-        
-        if(paidBy === "Management") {
-            setPrice(0);
-            setCashAmount(0);
+    const insertToMaintenance = async (transactionId) => {
+        const { data, error } = await supabase
+            .from("maintenance_mod")
+            .insert({
+                order_id: maintenancePayment.orderId,
+                reason: reason === "Other" ? otherReason : reason,
+                payment_by: paidBy,
+                price: price,
+                status: "Ongoing",
+                transaction_id: transactionId
+            })
+            .select()
+            .single();
+
+        if (error) {
+            console.error(error);
+            alert(error.message);
+            return null;
         }
 
-        console.log("cashamount",cashAmount)
+        return data;
+    };
 
-    }, [paidBy])
+    const updateBike = async () => {
+        const {data, error} = await supabase
+            .from("bikes_mod")
+            .update({status: "Under Maintenance"})
+            .eq("id", maintenancePayment.bikeId)
 
-    useEffect(() => {
-        if (price === 0) {
-            setCashAmount(0);
-        } else if (price === 0) {
-            setCashAmount(null); 
+        const {data: user, error: err} = await supabase
+            .from("orders_mod")
+            .update({status: "maintenance"})
+            .eq("id", maintenancePayment.orderId)
+
+        const {data: gps, error: er} = await supabase
+            .from("gps_mod")
+            .update({status: "Available"})
+            .eq("id", maintenancePayment.gpsCode)
+
+        if (er) {
+            console.error(er);
+            alert(er.message);
+            return null;
         }
-    }, []);
 
+        if (err) {
+            console.error(err);
+            alert(err.message);
+            return null;
+        }
 
-  return (
+        if (error) {
+            console.error(error);
+            alert(error.message);
+            return null;
+        }
+    }
+
+    const insertTransaction = async () => {
+        const {
+            data: { user },
+            error: userError
+        } = await supabase.auth.getUser();
+
+        if (userError || !user) {
+            console.error(userError);
+            return null;
+        }
+
+        const { data, error } = await supabase
+            .from("transactions_mod")
+            .insert({
+                payment_method: paymentMethod,
+                total_amount: price,
+                amount_paid: cashAmount,
+                change_amount: change,
+                type: "maintenance",
+                status: "completed",
+                assisted_by: user.id
+            })
+            .select()
+            .single();
+
+        if (error) {
+            console.error(error);
+            alert(error.message);
+            return null;
+        }
+
+        return data.id;
+    };
+
+    const onSubmit = async (e) => {
+        e.preventDefault();
+
+        const transactionId = await insertTransaction();
+
+        if (!transactionId) {
+            return;
+        }
+
+        const maintenance = await insertToMaintenance(transactionId);
+
+        await updateBike();
+
+        if (!maintenance) {
+            return;
+        }
+
+        console.log("Transaction ID:", transactionId);
+        console.log("Maintenance:", maintenance);
+
+        setMaintenancePayment(null);
+    };
+
+    console.log(maintenancePayment.gpsCode)
+    return (
     <>
 
         <div className="w-full h-full fixed inset-0 bg-black/50 flex justify-center items-center z-100 md:p-5">
@@ -279,6 +361,13 @@ function MaintenancePayment({setMaintenancePayment, maintenancePayment}) {
                                                                 onClick={() => {
                                                                     setPaidBy(option);
                                                                     setPayDropDown(false);
+
+                                                                    if (option === "Management") {
+                                                                        setPrice(0);
+                                                                        setCashAmount(0);
+                                                                        setCash(false);
+                                                                        setGcash(false);
+                                                                    }
                                                                 }}
                                                                 className="
                                                                     px-3 py-2
@@ -308,7 +397,11 @@ function MaintenancePayment({setMaintenancePayment, maintenancePayment}) {
 
                                                 <input
                                                     value={price}
-                                                    onChange={(e) => setPrice(e.target.value)}
+                                                    onChange={(e) => {
+                                                        const value = Number(e.target.value);
+                                                        setPrice(value);
+                                                        setCashAmount(value === 0 ? 0 : null);
+                                                    }}
                                                     type="number"
                                                     placeholder="0"
                                                     className="
@@ -628,7 +721,7 @@ function MaintenancePayment({setMaintenancePayment, maintenancePayment}) {
                                         paidBy === "Management" ||
                                         (paidBy === "Customer" &&
                                             cashAmount !== 0 &&
-                                            Number(cashAmount) >= Number(price))
+                                            Number(cashAmount) >= Number(price) && Number(cashAmount) !== 0)
                                     ) && (
                                         <motion.div
                                             initial={{ height: 0, opacity: 0 }}
@@ -648,6 +741,7 @@ function MaintenancePayment({setMaintenancePayment, maintenancePayment}) {
                                                 cursor-pointer
                                                 text-center
                                             "
+                                            onClick={onSubmit}
                                         >
                                             <h1 className="text-lg font-bold font-akagi text-darkblue">
                                                 Proceed

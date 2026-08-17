@@ -14,40 +14,20 @@ function MaintenanceRow() {
   return (
     <>
         <div className='bg-[#F2F2F2] w-full rounded-lg px-3 py-2 border border-[#c9c9c9]'>
-            <div className='grid lg:grid-cols-[90px_1fr_1fr_1fr_1fr_90px] grid-cols-[90px_1fr_1fr_90px] gap-2 text-center items-center'>
-                <div className='flex flex-row justify-center items-center'>
-                    <div className='w-fit rounded-lg bg-blue p-1 text-sm font-akagi font-bold text-[#ffffff]'>
-                        W-1
+            
+            <div className='flex flex-row justify-between font-akagi font-bold text-gray items-center'>
+                    <div className='bg-blue p-1 rounded-lg text-[#ffffff] px-2 flex items-center'>
+                        W1
                     </div>
+
+                <div className='bg-red-400 rounded-lg p-1 px-2 text-[#ffffff]'>
+                    Unsettled
                 </div>
 
-                <div className='hidden md:block text-lg font-akagi font-bold text-gray'>
-                    Bike ID
+                <div className=''
+                    onClick={() => setDropDown(!dropDown)}>
+                    <RiArrowDropDownLine/>
                 </div>
-
-                <div className='hidden md:block text-lg font-akagi font-bold text-gray'>
-                    Bike Type
-                </div>
-
-                <div className='text-lg font-akagi font-bold text-gray'>
-                    Reason
-                </div>
-
-                <div className='text-lg font-akagi font-bold text-gray'>
-                    Status
-                </div>
-
-                <AnimatePresence initial={false}>
-                        <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.3, ease: "easeInOut" }} 
-                            className='flex items-center text-gray text-2xl justify-center cursor-pointer'
-                        >
-                            {dropDown === true ? <RiArrowDropUpLine onClick={() => {setDropDown(false)}}/> : <RiArrowDropDownLine onClick={() => {setDropDown(true)}}/>}
-                        </motion.div>
-                    </AnimatePresence>
             </div>
 
             <AnimatePresence initial={false}>

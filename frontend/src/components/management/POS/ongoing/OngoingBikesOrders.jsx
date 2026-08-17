@@ -6,7 +6,7 @@ import { GoDotFill } from "react-icons/go";
 import { supabase } from "../../../../lib/supabase"
 import WalkInRent from "../ongoing/WalkInRent"
 
-function OngoingBikesOrders({ bikeTypeId, orderId, bikeCode, bikeId, gpsId, type, price, duration, start, end, image, setExtendOrder, setMaintenancePayment, extensionsDuration, setChangeOrder, pricePerHour, transactionId }) {
+function OngoingBikesOrders({ bikeTypeId, orderId, bikeCode, bikeId, gpsId, gpsCode, type, price, duration, start, end, image, setExtendOrder, setMaintenancePayment, extensionsDuration, setChangeOrder, pricePerHour, transactionId }) {
 
     const [dot, setDot] = useState(false);
     const [returned, setReturned] = useState(false);
@@ -151,7 +151,10 @@ function OngoingBikesOrders({ bikeTypeId, orderId, bikeCode, bikeId, gpsId, type
                 image,
                 start,
                 pricePerHour,
-                bikeTypeId
+                bikeTypeId,
+                bikeId,
+                gpsId,
+                gpsCode
             })
         } else if(dropDownValue === "Available") {
             await returnBike();

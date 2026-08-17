@@ -164,6 +164,7 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
                                         bikeTypeId={bikes.bike_types_mod.id}
                                         bikeCode={bikes.bikes_mod?.code}
                                         gpsId={bikes.gps_mod?.code}
+                                        gpsCode={bikes.gps_mod?.id}
                                         type={bikes.bike_types_mod.name}
                                         image={bikes.bike_types_mod.image_url}
                                         price={bikes.bike_type_id.price}
