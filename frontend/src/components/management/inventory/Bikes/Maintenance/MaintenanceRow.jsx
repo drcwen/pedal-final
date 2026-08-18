@@ -11,8 +11,14 @@ function MaintenanceRow({
     paidBy,
     payment,
     change,
-    method
+    method,
+    setSettle,
+    settle,
+    bikeCode,
+    maintenanceId
 }) {
+
+    console.log(bikeCode)
 
     const [dropDown, setDropDown] = useState(false);
     const [statusDropDown, setStatusDropDown] = useState(false);
@@ -80,6 +86,16 @@ function MaintenanceRow({
                                     <div
                                         onClick={() => {
                                             setStatusDropDown(false);
+                                            setSettle({
+                                                bikeId,
+                                                bikeTypeId,
+                                                reason,
+                                                status,
+                                                settle,
+                                                bikeCode,
+                                                maintenanceId
+                                            }
+                                            )
                                         }}
                                         className='text-[#ffffff] px-3 py-2 cursor-pointer hover:bg-yellow transition-colors'
                                     >
