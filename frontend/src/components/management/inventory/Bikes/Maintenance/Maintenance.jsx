@@ -1,14 +1,42 @@
 import { MdModeEditOutline } from "react-icons/md";
 import { RiArrowDropDownLine, RiArrowDropUpLine } from "react-icons/ri";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react"
-import BikeInventoryInfo from "../BikeInventoryInfo"
-import { FaPlus } from "react-icons/fa";
-import { RiImageAddFill } from "react-icons/ri";
+import { supabase } from "../../../../../lib/supabase"
 import { IoChevronBack } from "react-icons/io5";
 import MaintenanceRow from "../Maintenance/MaintenanceRow"
+
 function Maintenance( {setMaintenance }) {
 
+    const [maintenanceInfo, setMaintenanceInfo] = useState([]);
+    const [settle, setSettle] = useState(null);
+
+    useEffect(() => {
+        const fetchMaintenanceBikes = async () => {
+            const { data, error } = await supabase
+                .from("maintenance_mod")
+                .select(`
+                    *,
+                    orders_mod (
+                        *,
+                        transactions_mod(*),
+                        bikes_mod (
+                            *,
+                            bike_types_mod (*)
+                        )
+                    ),
+                    transactions_mod (*)
+                `)
+                .eq('status', 'Ongoing')
+
+                setMaintenanceInfo(data || []);
+            
+            if(error) {
+                alert(error);
+            }
+        }
+        fetchMaintenanceBikes();
+    }, []);
 
   return (
     <>
@@ -29,34 +57,57 @@ function Maintenance( {setMaintenance }) {
 
                 <div className='flex flex-col gap-5'>
 
-                    <div className='hidden lg:grid lg:grid-cols-[90px_1fr_1fr_1fr_1fr_90px] gap-2 text-center items-center px-3'>
-                        <div className='flex flex-row justify-center items-center'>
-
+                    <div className='flex flex-row justify-between font-akagi font-medium text-gray items-center px-6'>
+                        <div className=''>
+                            ID
                         </div>
 
-                        <div className='text-md font-akagi font-bold text-gray'>
-                            Bike ID
+                        <div className='w-full grid md:grid-cols-[1fr_1fr_1fr] grid-cols-[1fr_1fr]'>
+                            <div className='w-full justify-center text-center'>
+                                <div className=''>
+                                    Bike ID
+                                </div>
+                            </div>
+
+                            <div className='hidden md:block w-full justify-center text-center'>
+                                <div className=''>
+                                    Reason
+                                </div>
+                            </div>
+
+                            <div className='w-full justify-center flex'>
+                                <div className=''>
+                                    Status
+                                </div>
+                            </div>
                         </div>
 
-                        <div className='text-md font-akagi font-bold text-gray'>
-                            Bike Type
-                        </div>
-
-                        <div className='text-md font-akagi font-bold text-gray'>
-                            Reason
-                        </div>
-
-                        <div className='text-md font-akagi font-bold text-gray'>
-                            Status
-                        </div>
-
-                        <div>
+                        <div className='w-3'>
                             
                         </div>
+                    </div>
+                    <div className='flex flex-col gap-3'>
+                        {maintenanceInfo.map((info) => (
+                            <MaintenanceRow 
+                                key={info.id}
+                                bikeId={info.orders_mod?.bikes_mod?.code}
+                                bikeTypeId={info.orders_mod?.bikes_mod?.bike_types_mod?.name}
+                                reason={info.reason}
+                                status={info.status}
+                                price={info.price}
+                                paidBy={info.payment_by}
+                                payment={info.transactions_mod?.amount_paid}
+                                change={info.transactions_mod?.change_amount}
+                                method={info.transactions_mod?.payment_method}
+                                setSettle={setSettle}
+                                settle={settle}
+
+                            />
+                        ))}
 
                     </div>
-                    
-                    <MaintenanceRow />
+
+
                 </div>
                 
             </div>

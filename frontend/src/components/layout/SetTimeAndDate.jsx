@@ -111,8 +111,9 @@ function SetTimeAndDate({ setReservationData, onClose }) {
                                 onChange={handleDateChange}
                                 dateFormat="MM  /  dd  /  YYYY"
                                 minDate={minDate}
+                                
                                 filterDate={(date) => date.getDay() !== 1}
-                                className='w-full py-1 text-md lg:text-xl font-akagi font-bold text-center text-navyblue cursor-pointer'
+                                className='w-full py-1 text-md lg:text-xl font-akagi font-bold text-center text-navyblue cursor-pointer outline-none'
                             />
                         </div>
 
@@ -138,7 +139,7 @@ function SetTimeAndDate({ setReservationData, onClose }) {
                                     createTime(15),
                                     createTime(16)
                                 ]} 
-                                className='w-full py-1 text-md lg:text-xl font-akagi font-bold text-center text-navyblue cursor-pointer'
+                                className='w-full py-1 text-md lg:text-xl font-akagi font-bold text-center text-navyblue cursor-pointer outline-none'
                             />
                         </div>
                         
