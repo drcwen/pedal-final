@@ -109,6 +109,20 @@ function POS() {
         return groups;
     }, {});
 
+    const formatTime = (time) => {
+        if (!time) return "";
+
+        const [hour, minute] = time.split(":");
+
+        let hours = Number(hour);
+        const ampm = hours >= 12 ? "PM" : "AM";
+
+        hours = hours % 12;
+        if (hours === 0) hours = 12;
+
+        return `${hours}:${minute} ${ampm}`;
+    };
+
 
   return (
     <>
@@ -247,7 +261,7 @@ function POS() {
                                                             : `${trans.orders_mod.length} Bikes`
                                                     }
                                                     type={trans.type}
-                                                    start={trans.orders_mod?.[0]?.start_time}
+                                                    start={formatTime(trans.orders_mod?.[0]?.start_time)}
                                                     bikeDetails={trans.orders_mod}
                                                     customer={trans.customer}
                                                     transaction={trans}
