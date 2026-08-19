@@ -89,6 +89,26 @@ function POS() {
         }
     };
 
+    const groupedReservations = transactions.reduce((groups, trans) => {
+        const startTime = trans.orders_mod?.[0]?.reservation_date;
+
+        if (!startTime) return groups;
+
+        const date = new Date(startTime + "T00:00:00").toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+        });
+
+        if (!groups[date]) {
+            groups[date] = [];
+        }
+
+        groups[date].push(trans);
+
+        return groups;
+    }, {});
+
 
   return (
     <>
@@ -200,29 +220,40 @@ function POS() {
                                         </h1>
                                     </div>
                                 ) : (
-                                    transactions.map((trans) => (
-                                        <ReservationRow
-                                            key={trans.id}
-                                            name={
-                                                trans.customer
-                                                    ? (
-                                                        trans.customer.first_name
-                                                            ? `${trans.customer.first_name} ${trans.customer.last_name}`
-                                                            : trans.customer.full_name
-                                                    )
-                                                    : "Unknown Customer"
-                                            }
-                                            ordercount={
-                                                trans.orders_mod.length === 1
-                                                    ? `${trans.orders_mod.length} Bike`
-                                                    : `${trans.orders_mod.length} Bikes`
-                                            }
-                                            type={trans.type}
-                                            start={trans.orders_mod[0].start_time}
-                                            bikeDetails={trans.orders_mod}
-                                            customer={trans.customer}
-                                            transaction={trans}
-                                        />
+                                    Object.entries(groupedReservations).map(([date, reservations]) => (
+                                        <div key={date} className="flex flex-col gap-3 pb-8">
+
+                                            {/* Date heading */}
+                                            <h2 className="font-akagi text-xl font-bold text-gray">
+                                                {date}
+                                            </h2>
+
+                                            {/* Reservations for this date */}
+                                            {reservations.map((trans) => (
+                                                <ReservationRow
+                                                    key={trans.id}
+                                                    name={
+                                                        trans.customer
+                                                            ? (
+                                                                trans.customer.first_name
+                                                                    ? `${trans.customer.first_name} ${trans.customer.last_name}`
+                                                                    : trans.customer.full_name
+                                                            )
+                                                            : "Unknown Customer"
+                                                    }
+                                                    ordercount={
+                                                        trans.orders_mod.length === 1
+                                                            ? `${trans.orders_mod.length} Bike`
+                                                            : `${trans.orders_mod.length} Bikes`
+                                                    }
+                                                    type={trans.type}
+                                                    start={trans.orders_mod?.[0]?.start_time}
+                                                    bikeDetails={trans.orders_mod}
+                                                    customer={trans.customer}
+                                                    transaction={trans}
+                                                />
+                                            ))}
+                                        </div>
                                     ))
                                 )}
 
