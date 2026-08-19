@@ -49,7 +49,7 @@ function WalkInRent() {
 
         fetchBikes()
 
-    }, [cart])
+    }, [])
 
     const handleDelete = (cartId) => {
         setCart(prev => prev.filter(item => item.cartId !== cartId));
@@ -128,6 +128,7 @@ function WalkInRent() {
                                                 setBikeData={setBikeData}
                                                 setCart={setCart}
                                                 price={bike.price}
+                                                cart={cart}
                                             />
                                         </motion.div>
                                     </>

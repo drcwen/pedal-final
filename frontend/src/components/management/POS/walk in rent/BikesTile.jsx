@@ -8,12 +8,19 @@ import { motion } from "motion/react"
 import { IoChevronBack } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 
-function WalkInRent({image, price, name, availableBikes, isOpen, onClick, bikeId, bikeData, setBikeData, setCart}) {
+function WalkInRent({image, price, name, availableBikes, isOpen, onClick, bikeId, bikeData, setBikeData, setCart, cart}) {
     
     const navigate = useNavigate();
 
     const quantity = bikeData[bikeId]?.quantity || 0;
     const hours = bikeData[bikeId]?.hours || 0;
+
+    const cartQuantity = cart.filter(item => item.bikeId === bikeId).length;
+
+    const remainingBikes = Math.max(
+        0,
+        availableBikes - cartQuantity
+    );
 
     const handleAdd = (e) => {
         e.stopPropagation();
@@ -22,6 +29,11 @@ function WalkInRent({image, price, name, availableBikes, isOpen, onClick, bikeId
         const hours = bikeData[bikeId]?.hours || 0;
 
         if (quantity === 0 || hours === 0) return;
+
+        if (quantity > remainingBikes) {
+            alert(`Only ${remainingBikes} ${name} unit(s) available.`);
+            return;
+        }
 
         const bikesToAdd = Array.from({ length: quantity }, (_, index) => ({
             cartId: `${bikeId}-${Date.now()}-${index}`,
@@ -72,7 +84,12 @@ function WalkInRent({image, price, name, availableBikes, isOpen, onClick, bikeId
                     transition={{ duration: 0.3, ease: "easeInOut" }}className='flex flex-col w-full gap-3'
                 >
 
-                <div className='bg-navyblue rounded-lg px-2 py-1 font-akagi font-medium text-sm text-yellow'>{availableBikes === 0 ? "No Available Units" : availableBikes + " units available"}</div>
+                <div className='bg-navyblue rounded-lg px-2 py-1 font-akagi font-medium text-sm text-yellow'>
+                    {remainingBikes === 0
+                        ? "No Available Units"
+                        : remainingBikes + " units available"
+                    }
+                </div>
                     <div className='flex md:flex-row flex-col justify-between px-4 md:items-center'>
                         <h1 className='text-md font-akagi font-medium text-[#ffffff]'>Quantity</h1>
                         <div className='rounded-lg border-2 border-[#ffffff] grid grid-cols-3 font-akagi font-medium'>
@@ -106,7 +123,7 @@ function WalkInRent({image, price, name, availableBikes, isOpen, onClick, bikeId
                                         [bikeId]: {
                                             ...prev[bikeId],
                                             quantity: Math.min(
-                                                availableBikes,
+                                                remainingBikes,
                                                 (prev[bikeId]?.quantity || 0) + 1
                                             )
                                         }

@@ -150,6 +150,7 @@ function MaintenancePayment({setMaintenancePayment, maintenancePayment}) {
         console.log("Maintenance:", maintenance);
 
         setMaintenancePayment(null);
+        window.location.reload();
     };
 
     console.log(maintenancePayment.gpsCode)

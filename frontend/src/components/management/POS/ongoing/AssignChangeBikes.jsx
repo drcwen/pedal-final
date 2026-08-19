@@ -2,6 +2,8 @@ import { IoIosArrowBack } from "react-icons/io";
 import { useState, useEffect } from 'react';
 import { supabase } from "../../../../lib/supabase"
 import DropDown from "./DropDown"
+import { IoIosWarning } from "react-icons/io";
+
 
 function AssignChangeBikes({beforeType, changedType, setConfirmChange, changedImage, gpsAssigned, transaction, orderId, toPay, payment, method, bikeTypeId, bikeId, changedBikeTypeId}) {
 
@@ -12,6 +14,8 @@ function AssignChangeBikes({beforeType, changedType, setConfirmChange, changedIm
     const [selectedGps, setSelectedGps] = useState(gpsAssigned);
 
     const [loading, setLoading] = useState(false);
+
+    const [error, setError] = useState(false);
 
 
     useEffect(() => {
@@ -190,30 +194,35 @@ function AssignChangeBikes({beforeType, changedType, setConfirmChange, changedIm
     }
 
     async function handleConfirm() {
-        setLoading(true);
 
-        try {
-            const transactionId = await insertTransaction();
+        if(selectedBike === null) {
+            setError(true);
+        } else {
+            setLoading(true);
 
-            if (!transactionId) {
-                console.error("Transaction was not created");
-                return;
+            try {
+                const transactionId = await insertTransaction();
+
+                if (!transactionId) {
+                    console.error("Transaction was not created");
+                    return;
+                }
+
+                console.log("Created transaction:", transactionId);
+
+                await insertChangeBike(transactionId);
+                await updateOrder();
+                await setBikeToAvailable();
+                await setBikeToRented();
+
+                console.log("Everything completed!");
+
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setLoading(false);
+                window.location.reload();
             }
-
-            console.log("Created transaction:", transactionId);
-
-            await insertChangeBike(transactionId);
-            await updateOrder();
-            await setBikeToAvailable();
-            await setBikeToRented();
-
-            console.log("Everything completed!");
-
-        } catch (err) {
-            console.error(err);
-        } finally {
-            setLoading(false);
-            window.location.reload();
         }
     }
 
@@ -321,6 +330,22 @@ function AssignChangeBikes({beforeType, changedType, setConfirmChange, changedIm
                         {loading ? "Processing..." : "Confirm"}
                     </div>
                 </div>
+
+                {error === true &&
+                    <div className='w-full h-full fixed inset-0 bg-black/50 flex justify-center items-center z-52 md:px-30 md:py-20 px-5 py-20'>
+                        <div className='bg-[#ffffff] rounded-xl flex flex-col gap-5 p-5 items-center text-center'>
+                            <div className='flex items-center flex-row gap-2 font-akagi font-bold text-blue text-2xl'>
+                                <IoIosWarning className='text-yellow'/>Assign bike first.
+                            </div>
+
+                            <div
+                                onClick={() => {setError(false)}} 
+                                className='border border-gray rounded-lg px-2 py-1 w-fit font-akagi font-bold text-gray cursor-pointer text-sm'>
+                                Back
+                            </div>
+                        </div>
+                    </div>
+                }
             </div>
         </div>
               
