@@ -79,18 +79,18 @@ function Monitoring() {
                 className='flex-1 p-5'>
 
                     <SidebarMobile active={'monitoring'}/>
-                <div className='grid grid-cols-3 bg-[#ffffff] w-full h-full rounded-xl md:p-10 px-3 z-100 py-7 gap-5 overflow-y-scroll scrollbar-thin scrollbar-thumb-[#B9B9B9] scrollbar-track-[#E2E2E2]'>
+                <div className='flex flex-col md:grid md:grid-cols-3 bg-[#ffffff] w-full h-full rounded-xl md:p-10 px-3 z-100 py-7 gap-5 overflow-y-scroll scrollbar-thin scrollbar-thumb-[#B9B9B9] scrollbar-track-[#E2E2E2]'>
 
-                    <div className='col-span-2'>
+                    <div className='flex md:col-span-2'>
 
-                    <div
-            ref={mapContainer}
-            className="w-full h-[500px]"
-        />
+                        <div
+                            ref={mapContainer}
+                            className="w-full h-[500px] "
+                        />
                         
                     </div>
 
-                    <div className='col-span-1 bg-red-100 rounded-xl'>
+                    <div className=' flex md:col-span-1 bg-red-100 rounded-xl'>
 
                     </div>
                     
