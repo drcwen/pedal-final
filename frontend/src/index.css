@@ -100,3 +100,6 @@ body {
   scroll-snap-type: y mandatory;
 }
 
+input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: invert(65%) sepia(5%) saturate(150%) hue-rotate(160deg) brightness(90%) contrast(90%);
+}
