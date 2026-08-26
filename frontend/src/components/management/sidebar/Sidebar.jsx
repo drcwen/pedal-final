@@ -10,6 +10,7 @@ import { FaUserCircle } from "react-icons/fa";
 import { PiSignOutBold } from "react-icons/pi";
 import { supabase } from "../../../lib/supabase"
 import { MdManageAccounts } from "react-icons/md";
+import { IoMdSettings } from "react-icons/io";
 
 function Sidebar({active}) {
 
@@ -61,6 +62,12 @@ function Sidebar({active}) {
     icon: MdManageAccounts,
     key: "accounts",
     route: "/accounts",
+  },
+  {
+    name: "Settings",
+    icon: IoMdSettings,
+    key: "settings",
+    route: "/settings",
   },
 
 ]

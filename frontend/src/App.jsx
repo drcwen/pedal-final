@@ -24,6 +24,7 @@
   import Monitoring from "./components/management/monitoring/Monitoring"
   import ManageAccount from "./components/management/manage account/ManageAccount"
   import AccountDetails from "./components/management/manage account/AccountDetails"
+  import Settings from "./components/management/settings/Settings"
 
   function App() {
     const [session, setSession] = useState(null);
@@ -218,6 +219,7 @@
             <Route path="/inventory" element={<Inventory/>}/>
             <Route path="/monitoring" element={<Monitoring/>}/>
             <Route path="/accounts" element={<ManageAccount/>}/>
+            <Route path="/settings" element={<Settings/>}/>
             
             {allAccountID.map((accountId) => (
               <Route 

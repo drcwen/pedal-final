@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from "motion/react"
 import { supabase } from "../../../lib/supabase"
 import { PiSignOutBold } from "react-icons/pi";
 import { MdManageAccounts } from "react-icons/md";
+import { IoMdSettings } from "react-icons/io";
 
 function SidebarMobile({active}) {
 
@@ -79,6 +80,12 @@ function SidebarMobile({active}) {
       key: "accounts",
       route: "/accounts",
     },
+    {
+        name: "Settings",
+        icon: IoMdSettings,
+        key: "settings",
+        route: "/settings",
+      },
     {
       name: "Sign out",
       icon: PiSignOutBold,
