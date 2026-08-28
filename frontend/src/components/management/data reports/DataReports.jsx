@@ -9,34 +9,95 @@ import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import { IoMdArrowDropdown } from "react-icons/io";
 import { Calendar } from 'primereact/calendar';
 import "primereact/resources/themes/lara-light-cyan/theme.css";
+import {
+    AreaChart,
+    Area,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    ResponsiveContainer
+} from "recharts";
 
 function DataReports() {
 
     const [dates, setDates] = useState(null);
+    const [dashboardData, setDashboardData] = useState([]);
+    const formatDate = (date) => {
+        if (!date) return null;
+
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+
+        return `${year}-${month}-${day}`;
+    };
     
+   
     useEffect(() => {
         const fetchData = async () => {
             const { data, error } = await supabase.rpc(
                 "get_daily_dashboard_data",
                 {
-                    start_date: "2026-08-01",
-                    end_date: "2026-08-31"
+                    start_date: formatDate(dates[0]),
+                    end_date: formatDate(dates[1])
                 }
             );
 
-            console.log("RPC DATA:", data);
-            console.log("RPC ERROR:", error);
-
             if (error) {
-                console.error("RPC Error:", error);
+                console.error(error);
                 return;
             }
 
-            console.log("Dashboard data:", data);
+            console.log(data);
+
+            setDashboardData(data);
+        };
+
+        const fetchHolderData = async () => {
+            const { data, error } = await supabase.rpc(
+                "get_daily_dashboard_data",
+                {
+                    start_date: '2026-08-01',
+                    end_date: '2026-08-05'
+                }
+            );
+
+            if (error) {
+                console.error(error);
+                return;
+            }
+
+            console.log(data);
+
+            setHolderData(data);
         };
 
         fetchData();
-    }, []);
+        fetchHolderData();
+    }, [dates]);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const { data, error } = await supabase.rpc(
+                "get_daily_dashboard_data",
+                {
+                    start_date: formatDate(dates[0]),
+                    end_date: formatDate(dates[1])
+                }
+            );
+
+            if (error) {
+                console.error(error);
+                return;
+            }
+
+            console.log(data);
+
+            setDashboardData(data);
+        };
+
+    }, [dates]);
   return (
     <>
 
@@ -103,9 +164,116 @@ function DataReports() {
                         />
                     </div>
 
-                    <div className='bg-[#ffffff] w-full rounded-xl p-5'>
+                    <div className='bg-[#ffffff] w-full rounded-xl p-5 flex flex-col gap-3'>
                         <h1 className='md:text-xl text-lg font-akagi font-bold tracking-wide text-gray'>Rentals for</h1>
+
+                        {/*Graph*/}
+                        <div className="w-full h-[250px] font-akagi font-medium text-sm">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart
+                                    data={dashboardData}
+                                    margin={{
+                                        top: 10,
+                                        right: 20,
+                                        left: 0,
+                                        bottom: 0
+                                    }}
+                                >
+                                    <defs>
+                                        <linearGradient
+                                            id="revenueGradient"
+                                            x1="0"
+                                            y1="0"
+                                            x2="0"
+                                            y2="1"
+                                        >
+                                            <stop
+                                                offset="0%"
+                                                stopColor="#078bf4"
+                                                stopOpacity={0.4}
+                                            />
+
+                                            <stop
+                                                offset="100%"
+                                                stopColor="#078bf4"
+                                                stopOpacity={0}
+                                            />
+                                        </linearGradient>
+                                    </defs>
+
+                                    <CartesianGrid
+                                        strokeDasharray="3 3"
+                                        vertical={false}
+                                        stroke="#E5E7EB"
+                                    />
+
+                                    <XAxis
+                                        dataKey="date"
+                                        tickFormatter={(date) =>
+                                            new Date(date).toLocaleDateString("en-US", {
+                                                month: "short",
+                                                day: "numeric"
+                                            })
+                                        }
+                                        axisLine={false}
+                                        tickLine={false}
+                                    />
+
+                                    <YAxis
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tickFormatter={(value) =>
+                                            `₱${value.toLocaleString()}`
+                                        }
+                                    />
+
+                                    <Tooltip
+                                        formatter={(value) =>
+                                            [`₱${Number(value).toLocaleString()}`, "Revenue"]
+                                        }
+                                        labelFormatter={(date) =>
+                                            new Date(date).toLocaleDateString("en-US", {
+                                                month: "long",
+                                                day: "numeric",
+                                                year: "numeric"
+                                            })
+                                        }
+                                    />
+
+                                    <Area
+                                        type="monotone"
+                                        dataKey="revenue"
+                                        stroke="#078bf4"
+                                        strokeWidth={3}
+                                        fill="url(#revenueGradient)"
+                                    />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        </div>
+
                     </div>
+
+                    <div className='w-full grid lg:grid-cols-4 grid-cols-2 gap-5'>
+                            <div className='bg-[#ffffff] p-5 font-akagi font-bold text-gray rounded-xl flex flex-col gap-2'>
+                                <h1>Total Revenue</h1>
+                                <h1 className='text-4xl'>P12000</h1>
+                            </div>
+
+                            <div className='bg-[#ffffff] p-5 font-akagi font-bold text-gray rounded-xl flex flex-col gap-2'>
+                                <h1>Total Rentals</h1>
+                                <h1 className='text-4xl'>P12000</h1>
+                            </div>
+
+                            <div className='bg-[#ffffff] p-5 font-akagi font-bold text-gray rounded-xl flex flex-col gap-2'>
+                                <h1>Avg Rent per Transaction</h1>
+                                <h1 className='text-4xl'>P12000</h1>
+                            </div>
+
+                            <div className='bg-[#ffffff] p-5 font-akagi font-bold text-gray rounded-xl flex flex-col gap-2'>
+                                <h1>Most Payment Method</h1>
+                                <h1 className='text-4xl'>P12000</h1>
+                            </div>
+                        </div>
                     
                 </div>
             </motion.div>
