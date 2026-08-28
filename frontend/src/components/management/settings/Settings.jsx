@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 import { motion } from "motion/react"
 import { useNavigate } from "react-router-dom";
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
+import { IoMdArrowDropdown } from "react-icons/io";
 
 function Settings() {
 
@@ -14,6 +15,24 @@ function Settings() {
     const [percent, setPercent] = useState("%");
 
     const [paymentOccurence, setPaymentOccurence] = useState("Periodic");
+
+    const [periodicOccurence, setPeriodicOccurence] = useState("Every transaction");
+    
+    const [type, setType] = useState(null);
+
+    const [percentage, setPercentage] = useState(null);
+
+    const [dateOccurence, setDateOccurence] = useState(null);
+
+    const periodicOccurenceOption = [
+        "Every transaction",
+        "Annually",
+        "Bi-annually",
+        "Quarterly",
+        "Monthly"
+    ]
+
+    const [open, setOpen] = useState(false);
 
     const handleChange = (event) => {
         setPaymentOccurence(event.target.value);
@@ -101,13 +120,14 @@ function Settings() {
                                     <div className='w-full lg:grid lg:grid-cols-2 flex flex-col gap-3 font-akagi font-bold text-gray'>
                                         <div className='flex flex-col gap-1'>
                                             <h1>Type</h1>
-                                            <input type='text' className='px-2 py-1 rounded-lg border border-gray focus:outline-none'/>
+                                            <input onChange={(e) => setType(e.target.value)} type='text' className='px-2 py-1 rounded-lg border border-gray focus:outline-none'/>
+
                                         </div>
 
                                         <div className='flex flex-col gap-1'>
                                             <h1>Percentage/Amount</h1>
                                             <div className='flex flex-row gap-3'>
-                                                <input type='text' className='w-full px-2 py-1 rounded-lg border border-gray focus:outline-none'/>
+                                                <input onChange={(e) => setPercentage(e.target.value)} type='number' className='w-full px-2 py-1 rounded-lg border border-gray focus:outline-none'/>
                                                 <div className='grid grid-cols-2 rounded-lg border border-blue'>
                                                     <div 
                                                         onClick={() => {setPercent("%")}}
@@ -124,26 +144,68 @@ function Settings() {
                                             </div>
                                         </div>
 
-                                        <div className='flex flex-col gap-1'>
-                                            <h1>Payment Occurence</h1>
-                                            <div className='flex flex-row gap-10 px-3'>
-                                                <div className='flex flex-row gap-1'>
-                                                    <input type='radio' value='Periodic' checked={paymentOccurence === 'Periodic'} onChange={handleChange}/>
-                                                    <h1 className='font-medium'>Periodic</h1>
-                                                </div>
+                                        <div className='flex flex-col gap-3'>
+                                            <div className='flex flex-col gap-1'>
+                                                <h1>Payment Occurence</h1>
+                                                <div className='flex flex-row gap-10 px-3'>
+                                                    <div className='flex flex-row gap-1'>
+                                                        <input type='radio' value='Periodic' checked={paymentOccurence === 'Periodic'} onChange={handleChange}/>
+                                                        <h1 className='font-medium'>Periodic</h1>
+                                                    </div>
 
-                                                <div className='flex flex-row gap-1'>
-                                                    <input type='radio' value='One-time' checked={paymentOccurence === 'One-time'} onChange={handleChange}/>
-                                                    <h1 className='font-medium'>One-time</h1>
+                                                    <div className='flex flex-row gap-1'>
+                                                        <input type='radio' value='One-time' checked={paymentOccurence === 'One-time'} onChange={handleChange}/>
+                                                        <h1 className='font-medium'>One-time</h1>
+                                                    </div>
                                                 </div>
                                             </div>
+
+                                            {paymentOccurence === "Periodic" &&
+                                                <>
+                                                    <div className="relative flex flex-row gap-5">
+                                                        <div className="relative">
+                                                            <div 
+                                                                onClick={() => {setOpen(!open)}}
+                                                                className="w-50 flex flex-row items-center justify-between border border-gray/60 px-2 py-1 rounded-lg text-md font-medium cursor-pointer">
+                                                                {periodicOccurence}
+                                                                <IoMdArrowDropdown className="text-xl" />
+                                                            </div>
+
+                                                            {open &&
+                                                                <div className="absolute top-full left-0 mt-1 w-50 bg-white border border-gray/60 rounded-lg shadow-md z-50">
+                                                                    {periodicOccurenceOption.map((option) => (
+                                                                        <div
+                                                                            key={option}
+                                                                            onClick={() => {
+                                                                                setPeriodicOccurence(option);
+                                                                                setOpen(false);
+                                                                            }}
+                                                                            className="py-2 px-2 cursor-pointer hover:bg-gray-100"
+                                                                        >
+                                                                            {option}
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            }   
+                                                        </div>
+                                                    </div>
+                                                </>
+                                            }
+
+                                            {paymentOccurence === "One-time" &&
+                                                <div className='flex flex-row gap-5'>
+                                                    <div className='w-fit flex flex-row items-center justify-between border border-gray/60 px-2 py-1 rounded-lg text-md font-medium'>
+                                                        <input type='date' value={dateOccurence} onChange={(e) => setDateOccurence(e.target.value)}/>
+                                                    </div>
+                                                </div>
+                                            }
                                         </div>
 
-                                        {paymentOccurence === "Periodic" &&
-                                            <div className='flex flex-row gap-5'>
-                                                
-                                            </div>
-                                        }
+                                        
+                                    </div>
+
+                                    <div className={`${type && percentage === null ? "hidden" : "block"} bg-yellow rounded-lg px-3 py-1 w-fit font-bold text-navyblue font-akagi cursor-pointer hover:scale-110 transition-all duration-300`}>
+                                        Submit
                                     </div>
 
                                 </div>

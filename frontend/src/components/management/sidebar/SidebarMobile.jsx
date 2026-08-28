@@ -12,6 +12,7 @@ import { supabase } from "../../../lib/supabase"
 import { PiSignOutBold } from "react-icons/pi";
 import { MdManageAccounts } from "react-icons/md";
 import { IoMdSettings } from "react-icons/io";
+import { TbReportAnalytics } from "react-icons/tb";
 
 function SidebarMobile({active}) {
 
@@ -79,6 +80,12 @@ function SidebarMobile({active}) {
       icon: MdManageAccounts,
       key: "accounts",
       route: "/accounts",
+    },
+    {
+      name: "Reports",
+      icon: TbReportAnalytics,
+      key: "datareports",
+      route: "/data-reports",
     },
     {
         name: "Settings",

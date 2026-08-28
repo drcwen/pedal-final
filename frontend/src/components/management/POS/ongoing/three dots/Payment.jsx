@@ -38,6 +38,7 @@ function Payment({total, setPayment, bikeId, bikeType, orderId, extensionClicked
                     amount_paid: cashAmount,
                     change_amount: cashAmount - total,
                     type: "extend",
+                    status: "completed",
                     assisted_by: assisted,
                 })
                 .select("id")

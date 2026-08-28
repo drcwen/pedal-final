@@ -25,6 +25,7 @@
   import ManageAccount from "./components/management/manage account/ManageAccount"
   import AccountDetails from "./components/management/manage account/AccountDetails"
   import Settings from "./components/management/settings/Settings"
+  import DataReports from "./components/management/data reports/DataReports"
 
   function App() {
     const [session, setSession] = useState(null);
@@ -220,6 +221,7 @@
             <Route path="/monitoring" element={<Monitoring/>}/>
             <Route path="/accounts" element={<ManageAccount/>}/>
             <Route path="/settings" element={<Settings/>}/>
+            <Route path="/data-reports" element={<DataReports/>}/>
             
             {allAccountID.map((accountId) => (
               <Route 

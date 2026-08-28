@@ -388,7 +388,7 @@ function MaintenancePayment({setMaintenancePayment, maintenancePayment}) {
                                         </div>
                                     </div>
 
-                                    {paidBy === "Customer" && 
+                                    {paidBy !== "Select payment by" && 
                                         <div className='lg:px-10 px-5 grid grid-cols-[60px_1fr] items-center gap-2 font-akagi font-bold text-gray'>
                                             <h1 className='text-md font-medium'>Price:</h1>
                                             <div className="relative w-full">
@@ -564,7 +564,7 @@ function MaintenancePayment({setMaintenancePayment, maintenancePayment}) {
                             
                             
                                 <div className='mt-auto flex flex-col gap-5'>
-                                    {paidBy === "Customer" && 
+                                    {(paidBy === "Customer") || (paidBy === "Management") && 
                                         <AnimatePresence initial={false}>
                                             {price > 0 && 
                                                 <motion.div
@@ -719,7 +719,9 @@ function MaintenancePayment({setMaintenancePayment, maintenancePayment}) {
                                 {/*Payment Button*/}
                                 <AnimatePresence initial={false}>
                                     {(
-                                        paidBy === "Management" ||
+                                        (paidBy === "Management" &&
+                                            cashAmount !== 0 &&
+                                            Number(cashAmount) >= Number(price) && Number(cashAmount) !== 0) ||
                                         (paidBy === "Customer" &&
                                             cashAmount !== 0 &&
                                             Number(cashAmount) >= Number(price) && Number(cashAmount) !== 0)
