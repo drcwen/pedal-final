@@ -21,32 +21,12 @@ function Dashboard() {
 
                 <SidebarMobile active={'dashboard'}/>
 
+                <h1 className='md:text-4xl text-2xl font-akagi font-bold tracking-wide text-blue'>Dashboard</h1>
+
                 {/*Upper Boards*/}
-                <div className='lg:flex lg:flex-row grid grid-cols-2 gap-5'>
+                <div className='xl:grid-cols-4 grid grid-cols-2 gap-5'>
                     <div className='bg-blue rounded-xl px-5 pl-6 py-5 flex flex-col gap-2'>
-                        <div className='flex flex-row justify-between'>
-                            <h1 className='font-akagi font-semibold text-md text-[#ffffff]'>Ongoing Rentals</h1>
-                            <div className='bg-white rounded-lg px-5 py-2'>
-                                <MdDirectionsBike className='text-xl text-[#1C1B1F]'/>
-                            </div>
-
-                        </div>
-
-                        <div className='px-2'>
-                            <div className='h-full flex flex-row justify-between gap-2'>
-                                <div className='flex flex-col gap-2 items-center'>
-                                    <h1 className='text-3xl font-akagi font-bold text-[#ffffff]'>236</h1>
-                                    <h1 className='text-sm font-akagi font-light text-[#ffffff] text-center'>* from Walk-ins</h1>
-                                </div>
-                                
-                                <div className='h-full w-0.5 bg-white/20'/>
-
-                                <div className='flex flex-col gap-2 items-center'>
-                                    <h1 className='text-3xl font-akagi font-bold text-[#ffffff]'>236</h1>
-                                    <h1 className='text-sm font-akagi font-light text-[#ffffff] text-center'>* from Walk-ins</h1>
-                                </div>
-                            </div>
-                        </div>
+                        
                     </div>
 
                     <div className='bg-blue rounded-xl px-5 pl-6 py-5 flex flex-col gap-2'>
@@ -101,6 +81,35 @@ function Dashboard() {
                                 </div>
                             </div>
                         </div>
+                        
+                    </div>
+
+                    <div className='bg-blue rounded-xl px-5 pl-6 py-5 flex flex-col gap-2'>
+                        
+                        <div className='flex flex-row justify-between'>
+                            <h1 className='font-akagi font-semibold text-md text-[#ffffff]'>Ongoing Rentals</h1>
+                            <div className='bg-white rounded-lg px-5 py-2'>
+                                <MdDirectionsBike className='text-xl text-[#1C1B1F]'/>
+                            </div>
+
+                        </div>
+
+                        <div className='px-2'>
+                            <div className='h-full flex flex-row justify-between gap-2'>
+                                <div className='flex flex-col gap-2 items-center'>
+                                    <h1 className='text-3xl font-akagi font-bold text-[#ffffff]'>236</h1>
+                                    <h1 className='text-sm font-akagi font-light text-[#ffffff] text-center'>* from Walk-ins</h1>
+                                </div>
+                                
+                                <div className='h-full w-0.5 bg-white/20'/>
+
+                                <div className='flex flex-col gap-2 items-center'>
+                                    <h1 className='text-3xl font-akagi font-bold text-[#ffffff]'>236</h1>
+                                    <h1 className='text-sm font-akagi font-light text-[#ffffff] text-center'>* from Walk-ins</h1>
+                                </div>
+                            </div>
+                        </div>
+                        
                     </div>
 
                 </div>

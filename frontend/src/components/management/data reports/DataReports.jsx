@@ -32,6 +32,8 @@ function DataReports() {
 
         return `${year}-${month}-${day}`;
     };
+
+    const [activeTab, setActiveTab] = useState("Sales");
     
    
     useEffect(() => {
@@ -117,143 +119,201 @@ function DataReports() {
                 <div className='flex flex-col gap-5'>
                     <h1 className='md:text-4xl text-2xl font-akagi font-bold tracking-wide text-blue'>Data Reports</h1>
                     
-                    <div className='flex flex-row justify-between gap-3 items-center'>
+                    <div className="flex flex-row justify-between gap-3 items-center">
 
-                        <div className='flex flex-row gap-3'>
-                            <h1 className='font-akagi font-medium text-gray'>Sales</h1>
-                        </div>
+                {/* Scrollable tabs */}
+                <div className="flex-1 min-w-0 overflow-x-auto whitespace-nowrap scrollbar-thin scrollbar-thumb-[#B9B9B9] scrollbar-track-transparent">
+                    
+                    <div className="flex flex-row lg:gap-8 gap-5 w-max">
+                        
+                        <h1
+                            onClick={() => setActiveTab("Sales")}
+                            className={`font-akagi font-medium cursor-pointer flex-shrink-0 ${
+                                activeTab === "Sales"
+                                    ? "text-blue hover:underline"
+                                    : "text-gray"
+                            }`}
+                        >
+                            Sales
+                        </h1>
 
-                        <Calendar 
-                            value={dates} 
-                            onChange={(e) => setDates(e.value)} 
-                            selectionMode="range" 
-                            readOnlyInput 
-                            hideOnRangeSelection 
-                            placeholder="Select date range" 
-                            showOtherMonths
-                            selectOtherMonths
-                            className="w-fit" 
-                            appendTo={document.body} 
-                            inputClassName="w-fit rounded-xl bg-[#D9D9D9] cursor-pointer font-akagi font-bold text-[#505050] border border-[#D9D9D9] md:px-4 md:py-2 px-2 py-2 focus:outline-none" 
-                            pt={{ 
-                                panel: 
-                                { 
-                                    className: "mt-2 rounded-2xl border border-[#E2E2E2] bg-white p-6 shadow-xl" 
-                                }, 
-                                header: 
-                                { 
-                                    className: "flex items-center justify-between border-none bg-transparent pb-4" 
-                                }, 
-                                title: 
-                                { 
-                                    className: "font-akagi text-lg font-bold text-blue w-full text-center" 
-                                }, 
-                                previousButton: 
-                                { 
-                                    className: "h-9 w-9 rounded-full text-[#505050] transition hover:bg-[#F0F0F0] flex items-center justify-center" 
-                                }, 
-                                nextButton: 
-                                { 
-                                    className: "h-9 w-9 rounded-full text-[#505050] transition hover:bg-[#F0F0F0] flex items-center justify-center" 
-                                }, 
-                                table: 
-                                {
-                                    className: "w-full font-akagi text-[#505050] cursor-pointer border-separate border-spacing-y-2 border-spacing-x-4 text-center"
-                                }
-                            }} 
-                        />
-                    </div>
+                        <h1
+                            onClick={() => setActiveTab("Net Sales")}
+                            className={`font-akagi font-medium cursor-pointer flex-shrink-0 ${
+                                activeTab === "Net Sales"
+                                    ? "text-blue hover:underline"
+                                    : "text-gray"
+                            }`}
+                        >
+                            Net Sales
+                        </h1>
 
-                    <div className='bg-[#ffffff] w-full rounded-xl p-5 flex flex-col gap-3'>
-                        <h1 className='md:text-xl text-lg font-akagi font-bold tracking-wide text-gray'>Rentals for</h1>
+                        <h1
+                            onClick={() => setActiveTab("Rentals")}
+                            className="font-akagi font-medium cursor-pointer flex-shrink-0 text-gray"
+                        >
+                            Rentals
+                        </h1>
 
-                        {/*Graph*/}
-                        <div className="w-full h-[250px] font-akagi font-medium text-sm">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <AreaChart
-                                    data={dashboardData}
-                                    margin={{
-                                        top: 10,
-                                        right: 20,
-                                        left: 0,
-                                        bottom: 0
-                                    }}
-                                >
-                                    <defs>
-                                        <linearGradient
-                                            id="revenueGradient"
-                                            x1="0"
-                                            y1="0"
-                                            x2="0"
-                                            y2="1"
-                                        >
-                                            <stop
-                                                offset="0%"
-                                                stopColor="#078bf4"
-                                                stopOpacity={0.4}
-                                            />
+                        <h1
+                            onClick={() => setActiveTab("Transactions")}
+                            className="font-akagi font-medium cursor-pointer flex-shrink-0 text-gray"
+                        >
+                            Transactions
+                        </h1>
 
-                                            <stop
-                                                offset="100%"
-                                                stopColor="#078bf4"
-                                                stopOpacity={0}
-                                            />
-                                        </linearGradient>
-                                    </defs>
+                        <h1
+                            onClick={() => setActiveTab("Payment Methods")}
+                            className="font-akagi font-medium cursor-pointer flex-shrink-0 text-gray"
+                        >
+                            Payment Methods
+                        </h1>
 
-                                    <CartesianGrid
-                                        strokeDasharray="3 3"
-                                        vertical={false}
-                                        stroke="#E5E7EB"
-                                    />
-
-                                    <XAxis
-                                        dataKey="date"
-                                        tickFormatter={(date) =>
-                                            new Date(date).toLocaleDateString("en-US", {
-                                                month: "short",
-                                                day: "numeric"
-                                            })
-                                        }
-                                        axisLine={false}
-                                        tickLine={false}
-                                    />
-
-                                    <YAxis
-                                        axisLine={false}
-                                        tickLine={false}
-                                        tickFormatter={(value) =>
-                                            `₱${value.toLocaleString()}`
-                                        }
-                                    />
-
-                                    <Tooltip
-                                        formatter={(value) =>
-                                            [`₱${Number(value).toLocaleString()}`, "Revenue"]
-                                        }
-                                        labelFormatter={(date) =>
-                                            new Date(date).toLocaleDateString("en-US", {
-                                                month: "long",
-                                                day: "numeric",
-                                                year: "numeric"
-                                            })
-                                        }
-                                    />
-
-                                    <Area
-                                        type="monotone"
-                                        dataKey="revenue"
-                                        stroke="#078bf4"
-                                        strokeWidth={3}
-                                        fill="url(#revenueGradient)"
-                                    />
-                                </AreaChart>
-                            </ResponsiveContainer>
-                        </div>
+                        <h1
+                            onClick={() => setActiveTab("Bike Types")}
+                            className="font-akagi font-medium cursor-pointer flex-shrink-0 text-gray"
+                        >
+                            Bike Types
+                        </h1>
 
                     </div>
 
-                    <div className='w-full grid lg:grid-cols-4 grid-cols-2 gap-5'>
+                </div>
+
+                {/* Calendar */}
+                <div className="flex-shrink-0">
+                    <Calendar 
+                        value={dates} 
+                        onChange={(e) => setDates(e.value)} 
+                        selectionMode="range" 
+                        readOnlyInput 
+                        hideOnRangeSelection 
+                        placeholder="Select date range" 
+                        showOtherMonths
+                        selectOtherMonths
+                        className="w-fit" 
+                        appendTo={document.body} 
+                        inputClassName="w-fit rounded-xl bg-[#D9D9D9] cursor-pointer font-akagi font-bold text-[#505050] border border-[#D9D9D9] md:px-4 md:py-2 px-2 py-2 focus:outline-none" 
+                        pt={{ 
+                            panel: { 
+                                className: "mt-2 rounded-2xl border border-[#E2E2E2] bg-white p-6 shadow-xl" 
+                            }, 
+                            header: { 
+                                className: "flex items-center justify-between border-none bg-transparent pb-4" 
+                            }, 
+                            title: { 
+                                className: "font-akagi text-lg font-bold text-blue w-full text-center" 
+                            }, 
+                            previousButton: { 
+                                className: "h-9 w-9 rounded-full text-[#505050] transition hover:bg-[#F0F0F0] flex items-center justify-center" 
+                            }, 
+                            nextButton: { 
+                                className: "h-9 w-9 rounded-full text-[#505050] transition hover:bg-[#F0F0F0] flex items-center justify-center" 
+                            }, 
+                            table: {
+                                className: "w-full font-akagi text-[#505050] cursor-pointer border-separate border-spacing-y-2 border-spacing-x-4 text-center"
+                            }
+                        }} 
+                    />
+                </div>
+
+            </div>
+
+                    {/*Sales*/}
+                    {activeTab === "Sales" &&
+
+                    <>
+                        <div className='bg-[#ffffff] w-full rounded-xl p-5 flex flex-col gap-3'>
+                            <h1 className='md:text-xl text-lg font-akagi font-bold tracking-wide text-gray'>Rentals for</h1>
+
+                            {/*Graph*/}
+                            <div className="w-full h-[250px] font-akagi font-medium text-sm">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <AreaChart
+                                        data={dashboardData}
+                                        margin={{
+                                            top: 10,
+                                            right: 20,
+                                            left: 0,
+                                            bottom: 0
+                                        }}
+                                    >
+                                        <defs>
+                                            <linearGradient
+                                                id="revenueGradient"
+                                                x1="0"
+                                                y1="0"
+                                                x2="0"
+                                                y2="1"
+                                            >
+                                                <stop
+                                                    offset="0%"
+                                                    stopColor="#078bf4"
+                                                    stopOpacity={0.4}
+                                                />
+
+                                                <stop
+                                                    offset="100%"
+                                                    stopColor="#078bf4"
+                                                    stopOpacity={0}
+                                                />
+                                            </linearGradient>
+                                        </defs>
+
+                                        <CartesianGrid
+                                            strokeDasharray="3 3"
+                                            vertical={false}
+                                            stroke="#E5E7EB"
+                                        />
+
+                                        <XAxis
+                                            dataKey="date"
+                                            tickFormatter={(date) =>
+                                                new Date(date).toLocaleDateString("en-US", {
+                                                    month: "short",
+                                                    day: "numeric"
+                                                })
+                                            }
+                                            axisLine={false}
+                                            tickLine={false}
+                                        />
+
+                                        <YAxis
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tickFormatter={(value) =>
+                                                `₱${value.toLocaleString()}`
+                                            }
+                                        />
+
+                                        <Tooltip
+                                            formatter={(value) =>
+                                                [`₱${Number(value).toLocaleString()}`, "Revenue"]
+                                            }
+                                            labelFormatter={(date) =>
+                                                new Date(date).toLocaleDateString("en-US", {
+                                                    month: "long",
+                                                    day: "numeric",
+                                                    year: "numeric"
+                                                })
+                                            }
+                                        />
+
+                                        <Area
+                                            type="monotone"
+                                            dataKey="revenue"
+                                            stroke="#078bf4"
+                                            strokeWidth={3}
+                                            fill="url(#revenueGradient)"
+                                        />
+                                    </AreaChart>
+                                </ResponsiveContainer>
+                            </div>
+
+                        </div>
+                    
+
+                        <div className='w-full grid lg:grid-cols-4 grid-cols-2 gap-5'>
                             <div className='bg-[#ffffff] p-5 font-akagi font-bold text-gray rounded-xl flex flex-col gap-2'>
                                 <h1>Total Revenue</h1>
                                 <h1 className='text-4xl'>P12000</h1>
@@ -274,6 +334,8 @@ function DataReports() {
                                 <h1 className='text-4xl'>P12000</h1>
                             </div>
                         </div>
+                    </>
+                    }
                     
                 </div>
             </motion.div>

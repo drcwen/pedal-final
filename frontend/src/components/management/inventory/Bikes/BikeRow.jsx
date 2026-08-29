@@ -30,6 +30,7 @@ function BikeRow({bikeType, capacity, price, image, bikes}) {
         bike => bike.status === "Lost"
     ).length;
 
+
   return (
     <>
             <div className='bg-[#EBEBEB] w-full rounded-lg px-3 py-2 border border-[#c9c9c9]'>
