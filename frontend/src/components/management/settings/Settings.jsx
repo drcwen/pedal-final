@@ -24,6 +24,10 @@ function Settings() {
 
     const [dateOccurence, setDateOccurence] = useState(null);
 
+    const [checked, setChecked] = useState(null);
+
+    const [schedule, setSchedule] = useState([]);
+
     const periodicOccurenceOption = [
         "Every transaction",
         "Annually",
@@ -37,6 +41,24 @@ function Settings() {
     const handleChange = (event) => {
         setPaymentOccurence(event.target.value);
     };
+
+    useEffect(() => {
+        const fetchSchedule = async () => {
+            const { data, error } = await supabase
+                .from("operating_hours_mod")
+                .select("*");
+
+            if (error) {
+                console.error(error);
+                return;
+            }
+
+            setSchedule(data || []);
+            console.log(data);
+        };
+
+        fetchSchedule();
+    }, []);
 
   return (
     <>
@@ -54,7 +76,7 @@ function Settings() {
 
                 <SidebarMobile active={'pos'}/>
                     
-                <div className='w-full h-full p-10 bg-[#ffffff] rounded-xl flex flex-col gap-5 overflow-y-scroll scrollbar-thin scrollbar-thumb-[#B9B9B9] scrollbar-track-[#E2E2E2]'>
+                <div className='w-full p-10 bg-[#ffffff] rounded-xl flex flex-col gap-5 overflow-y-scroll scrollbar-thin scrollbar-thumb-[#B9B9B9] scrollbar-track-[#E2E2E2]'>
                     
                     <h1 className='md:text-4xl text-2xl font-akagi font-bold tracking-wide text-blue'>System Settings</h1>
 
@@ -90,15 +112,77 @@ function Settings() {
                                     <h1 className='md:text-md text-sm font-akagi font-medium text-gray'>The unchecked date below will be unavailable for reservation.</h1>
                                 </div>
 
-                                <div className="w-full flex flex-col font-akagi font-medium text-gray gap-2">
+                                {schedule.map((sched) => (
+                                    <div className="w-full flex flex-col font-akagi font-medium text-gray gap-2">
 
-                                    <h1>Monday</h1>
+                                        <div className='flex flex-row gap-2'>
+                                            <input type='checkbox' className='w-4' checked={sched.availability}/>
+                                            <h1>{sched.day}</h1>
+                                        </div>
 
-                                    <div className='w-full flex flex-row justify-between items-center gap-3'>
-                                        <input type='time' className='w-full rounded-lg border border-gray px-2 py-1'/>
-                                        -
-                                        <input type='time' className='w-full rounded-lg border border-gray px-2 py-1'/>
+                                        <div className='w-full flex flex-row justify-between items-center gap-3'>
+                                            <input 
+                                                type='time' 
+                                                className='w-full rounded-lg border border-gray px-2 py-1 focus:outline-none'
+                                                value={sched.opening}
+                                            />
+                                            -
+                                            <input 
+                                                type='time' 
+                                                className='w-full rounded-lg border border-gray px-2 py-1 focus:outline-none'
+                                                value={sched.closing}
+                                            />
+                                        </div>
                                     </div>
+                                ))}
+
+                                <div className='w-fit rounded-lg bg-yellow px-4 py-1 font-akagi font-bold text-navyblue'>
+                                    Save
+                                </div>
+
+                                <div className='block md:hidden w-full h-0.5 bg-black/20 rounded-xl'/>
+                            </div>
+
+                            <div className='w-full p-5 md:border-r-1 md:border-gray/60 flex flex-col gap-5'>
+
+                                {/*Title*/}
+                                <div className='w-full flex flex-col gap-1'>
+                                    <h1 className='md:text-2xl text-xl font-akagi font-bold tracking-wide text-blue'>Special Non-Working Day/s</h1>
+                                    <h1 className='md:text-md text-sm font-akagi font-medium text-gray'>The dates below will be unavailable for reservation.</h1>
+                                </div>
+
+                                <div className='grid grid-cols-[60px_1fr] gap-2 items-center font-akagi font-bold text-gray'>
+                                    <h1>Day:</h1>
+                                    <input type='date' className='w-fit rounded-lg border border-gray px-3 py-1 focus:outline-none'/>
+
+                                    <h1>Event:</h1>
+                                    <input type='text' className='w-fit rounded-lg border border-gray px-3 py-1 focus:outline-none'/>
+                                </div>
+
+                                <div className='cursor-pointer w-fit rounded-lg bg-yellow px-4 py-1 font-akagi font-bold text-navyblue'>
+                                    Add
+                                </div>
+
+                                <div className='w-full rounded-xl bg-[#ffffff] p-2 border border-gray grid grid-cols-[1fr_1fr_30px] text-center font-akagi font-bold text-gray'>
+                                    <h1 className='font-medium'>Date</h1>
+                                    <h1 className='font-medium'>Event</h1>
+                                    <h1></h1>
+
+                                    <h1>February 10, 2026</h1>
+                                    <h1>HBD!</h1>
+                                    <h1></h1>
+
+                                    <h1>February 10, 2026</h1>
+                                    <h1>HBD!</h1>
+                                    <h1></h1>
+
+                                    <h1>February 10, 2026</h1>
+                                    <h1>HBD!</h1>
+                                    <h1></h1>
+
+                                    <h1>February 10, 2026</h1>
+                                    <h1>HBD!</h1>
+                                    <h1></h1>
                                 </div>
                             </div>
 
