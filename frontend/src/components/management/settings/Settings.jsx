@@ -94,7 +94,11 @@ function Settings() {
 
                                     <h1>Monday</h1>
 
-                                   
+                                    <div className='w-full flex flex-row justify-between items-center gap-3'>
+                                        <input type='time' className='w-full rounded-lg border border-gray px-2 py-1'/>
+                                        -
+                                        <input type='time' className='w-full rounded-lg border border-gray px-2 py-1'/>
+                                    </div>
                                 </div>
                             </div>
 

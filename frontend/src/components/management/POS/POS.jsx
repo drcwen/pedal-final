@@ -7,6 +7,7 @@ import OngoingRow from "./ongoing/OngoingRow"
 import { useState, useEffect } from 'react';
 import { motion } from "motion/react"
 import { useNavigate } from "react-router-dom";
+import { TbHistory } from "react-icons/tb";
 
 function POS() {
 
@@ -17,6 +18,8 @@ function POS() {
     const [ongoing, setOngoing] = useState([]);
 
     const [currentTime, setCurrentTime] = useState(new Date());
+
+    const [history, setHistory] = useState(false);
 
     useEffect(() => {
         fetchTransactions();
@@ -127,6 +130,7 @@ function POS() {
   return (
     <>
 
+
         <div className='w-full h-screen bg-[#F2F2F2] flex'>
             <Sidebar active={'pos'}/>
             
@@ -139,6 +143,7 @@ function POS() {
                 className='flex-1 lg:p-5'>
 
                 <SidebarMobile active={'pos'}/>
+                
                     
                 <div className='w-full h-full p-10 bg-[#ffffff] rounded-xl flex flex-col gap-12 overflow-y-scroll scrollbar-thin scrollbar-thumb-[#B9B9B9] scrollbar-track-[#E2E2E2]'>
                     
@@ -202,12 +207,21 @@ function POS() {
                                 </div>
 
                                 {/*Add Transactions*/}
+                                <div className='flex flex-row gap-3'>
+                                    {activeTab === "reservation" &&
+                                        <div 
+                                            onClick={() => {setHistory(!history)}}
+                                            className='bg-blue rounded-xl px-3 py-1 flex items-center'>
+                                            <TbHistory className='text-[#ffffff] text-2xl'/>
+                                        </div>
+                                    }
                                 <div 
                                     onClick={() => navigate("/pos/create")}
                                     className='w-fit rounded-xl lg:rounded-2xl bg-yellow items-center flex flex-row gap-3 lg:px-6 p-2 cursor-pointer'
                                 >
                                     <FaPlus className='lg:text-2xl text-lg text-darkblue'/>
                                     <h1 className='lg:text-xl text-md font-akagi font-bold text-darkblue tracking-wider'>ADD</h1>
+                                </div>
                                 </div>
 
                             </div>
@@ -323,8 +337,19 @@ function POS() {
                         
                     </div>
                 </div>
+                
             </motion.div>
+                
         </div>
+
+        {history && (
+            <div className="fixed inset-0 z-[9999] bg-black/50 flex justify-center items-center xl:px-20 px-10">
+                <div className="bg-white rounded-xl p-5 font-akagi font-bold text-gray text-xl w-full">
+                    <h1 className='text-2xl'>Reservation History</h1>
+                    
+                </div>  
+            </div>
+        )}
     </>
   )
 }

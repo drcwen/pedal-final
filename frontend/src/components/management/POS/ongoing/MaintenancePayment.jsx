@@ -719,9 +719,7 @@ function MaintenancePayment({setMaintenancePayment, maintenancePayment}) {
                                 {/*Payment Button*/}
                                 <AnimatePresence initial={false}>
                                     {(
-                                        (paidBy === "Management" &&
-                                            cashAmount !== 0 &&
-                                            Number(cashAmount) >= Number(price) && Number(cashAmount) !== 0) ||
+                                        (paidBy === "Management") ||
                                         (paidBy === "Customer" &&
                                             cashAmount !== 0 &&
                                             Number(cashAmount) >= Number(price) && Number(cashAmount) !== 0)
