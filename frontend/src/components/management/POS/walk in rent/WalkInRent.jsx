@@ -23,11 +23,15 @@ function WalkInRent() {
 
     const grandTotal = cart.reduce((sum, item) => sum + item.total, 0);
 
+    const [gcashStatus, setGcashStatus] = useState("waiting");
 
     const [bikeAvailability, setBikeAvailability] = useState([]);
 
     const [gcash, setGcash] = useState(false);
     const [cash, setCash] = useState(false);
+
+    const [method, setMethod] = useState(null);
+    const [referenceNo, setReferenceNo] = useState(null);
 
     const [cashAmount, setCashAmount] = useState(null);
     useEffect(() => {
@@ -61,6 +65,21 @@ function WalkInRent() {
         if (!isNaN(value)) {
             setCashAmount(value);
         }
+    };
+
+    const simulatePayment = () => {
+        const random = Math.floor(100000 + Math.random() * 900000);
+        const reference = `GC-${random}`;
+
+        setMethod("GCash");
+        setCashAmount(grandTotal);
+        setReferenceNo(reference);
+
+        setGcashStatus("processing");
+
+        setTimeout(() => {
+            setGcashStatus("success");
+        }, 2000);
     };
 
   return (
@@ -190,27 +209,45 @@ function WalkInRent() {
 
                                     <div className='grid grid-cols-2 gap-3 pb-5'>
                                         <div 
-                                            onClick={grandTotal === 0 ? undefined : () => {setGcash(true), cash === true ? setCash(!cash) : "", setCashAmount(null)}}
-                                            className={`border-2 border-gray rounded-lg text-center py-2 ${gcash === true ? `bg-gray text-[#ffffff]` : `bg-transparent `}`}>
-                                            <h1 className={`text-xl font-bold font-akagi ${gcash === true ? `text-[#fffffff]` : `text-gray`}`}>GCash</h1>
+                                            onClick={() => {
+                                                if (grandTotal === 0) return;
+
+                                                setGcash(true);
+                                                setCash(false);
+                                                setMethod("GCash");
+                                                setCashAmount(null);
+                                                setReferenceNo(null);
+                                                setGcashStatus("waiting");
+                                            }}
+                                            className={`border-2 border-gray rounded-lg text-center py-2 cursor-pointer ${
+                                                gcash ? "bg-gray text-white" : "bg-transparent"
+                                            }`}
+                                        >
+                                            <h1 className="text-xl font-bold font-akagi text-gray">
+                                                GCash
+                                            </h1>
                                         </div>
 
                                         <div 
-                                            onClick={() => {grandTotal === 0 ? undefined : setCash(true), gcash === true ? setGcash(!gcash) : ""}}
-                                            className={`border-2 border-gray rounded-lg text-center py-2 ${cash === true ? `bg-gray text-[#ffffff]` : `bg-transparent`}`}>
-                                            <h1 className={`text-xl font-bold font-akagi ${cash === true ? `text-[#fffffff]` : `text-gray`}`}>Cash</h1>
+                                            onClick={() => {
+                                                if (grandTotal === 0) return;
+
+                                                setCash(true);
+                                                setGcash(false);
+                                                setMethod("Cash");
+                                                setCashAmount(null);
+                                                setReferenceNo(null);
+                                                setGcashStatus("waiting");
+                                            }}
+                                            className={`border-2 border-gray rounded-lg text-center py-2 cursor-pointer ${
+                                                cash ? "bg-gray text-white" : "bg-transparent"
+                                            }`}
+                                        >
+                                            <h1 className="text-xl font-bold font-akagi text-gray">
+                                                Cash
+                                            </h1>
                                         </div>
                                     </div>
-
-                                    {gcash === true && 
-                                        <div
-                                            onClick={grandTotal === 0 ? setGcash(!gcash) : undefined} 
-                                            className='w-full rounded-xl bg-gray p-2'>
-
-                                                
-                                            
-                                        </div>
-                                    }
 
                                     {cash === true && 
                                         <div className='w-full rounded-xl bg-gray p-3 font-akagi font-bold text-gray text-xl'>
@@ -324,14 +361,25 @@ function WalkInRent() {
 
                                 {/*Payment Button*/}
                                 <div 
-                                    onClick={() => {setProceed(true)}}
+                                    onClick={() => {
+                                        if (gcash) {
+                                            setGcash(true);
+                                            setGcashStatus("waiting");
+                                        } else if (cash) {
+                                            setProceed(true);
+                                        }
+                                    }}
                                     className={`${
-                                        grandTotal === 0 || cashAmount === null || Number(cashAmount) < grandTotal
+                                        grandTotal === 0 ||
+                                        (!cash && !gcash) ||
+                                        (cash && (cashAmount === null || Number(cashAmount) < grandTotal))
                                             ? "hidden"
                                             : "block"
-                                        } w-fit self-end bg-yellow rounded-xl px-8 py-3 text-center`}
-                                    >
-                                    <h1 className='text-xl font-bold font-akagi text-darkblue'>Payment</h1>
+                                    } w-fit self-end bg-yellow rounded-xl px-8 py-3 text-center cursor-pointer`}
+                                >
+                                    <h1 className="text-xl font-bold font-akagi text-darkblue">
+                                        Payment
+                                    </h1>
                                 </div>
 
                                 {proceed && 
@@ -340,7 +388,8 @@ function WalkInRent() {
                                         cart={cart}
                                         cartTotal={grandTotal}
                                         cashTendered={cashAmount}
-                                        paymentMethod={gcash === true ? "GCash" : "Cash"}
+                                        paymentMethod={method}
+                                        reference={method === "GCash" ? referenceNo : undefined}
                                     />   
                                 }
 
@@ -349,6 +398,168 @@ function WalkInRent() {
                     </div>
                 </div>
             </div>
+
+            {gcash === true && (
+                <div
+                    onClick={(e) => {
+                        // Close only when clicking the dark background
+                        if (e.target === e.currentTarget) {
+                            setGcash(false);
+                            setGcashStatus("waiting");
+                        }
+                    }}
+                    className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center"
+                >
+                    <div
+                        className="bg-white rounded-2xl px-10 py-10 flex flex-col gap-5 items-center justify-center text-center"
+                    >
+
+                        {/* ========================= */}
+                        {/* WAITING FOR PAYMENT */}
+                        {/* ========================= */}
+
+                        {gcashStatus === "waiting" && (
+                            <>
+                                <h1 className="font-akagi font-bold text-[#505050] text-2xl">
+                                    Pay with GCash
+                                </h1>
+
+                                <div className="flex flex-col gap-2">
+                                    <h1 className="font-akagi font-bold text-[#505050] text-md">
+                                        Scan the QR below using the GCash app
+                                    </h1>
+                                </div>
+
+                                <div className="flex flex-col gap-5 items-center justify-center">
+
+                                    {/* QR CODE */}
+                                    <img
+                                        onClick={simulatePayment}
+                                        src="https://res.cloudinary.com/dp3vkgxtb/image/upload/v1779959866/qrcode_envfyr.png"
+                                        className="w-52 h-52 cursor-pointer hover:scale-105 transition-all duration-300"
+                                    />
+
+                                    <div className="flex flex-col gap-1">
+                                        <h1 className="font-akagi font-bold text-[#505050] text-md">
+                                            Amount to pay:
+                                        </h1>
+
+                                        <h1 className="font-akagi font-bold text-blue text-xl">
+                                            ₱{grandTotal}
+                                        </h1>
+                                    </div>
+
+                                    <div className="flex flex-col gap-5">
+
+                                        <h1 className="font-akagi font-light text-[#505050] text-md">
+                                            Waiting for payment...
+                                        </h1>
+
+                                        <div className="flex flex-col gap-4">
+
+                                            {/* DEMO BUTTON */}
+                                            <div
+                                                onClick={simulatePayment}
+                                                className="px-5 py-2 rounded-full bg-blue cursor-pointer hover:scale-105 transition-all duration-300"
+                                            >
+                                                <h1 className="font-akagi font-bold text-white text-md">
+                                                    Simulate Payment
+                                                </h1>
+                                            </div>
+
+                                            <h1
+                                                onClick={() => {
+                                                    setGcash(false);
+                                                    setGcashStatus("waiting");
+                                                }}
+                                                className="text-sm font-akagi text-black/30 hover:underline duration-300 cursor-pointer transition-all"
+                                            >
+                                                Cancel
+                                            </h1>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+
+
+                        {/* ========================= */}
+                        {/* PROCESSING PAYMENT */}
+                        {/* ========================= */}
+
+                        {gcashStatus === "processing" && (
+                            <div className="flex flex-col items-center gap-5 py-10">
+
+                                <div className="w-14 h-14 border-4 border-gray/20 border-t-blue rounded-full animate-spin"></div>
+
+                                <h1 className="font-akagi font-bold text-[#505050] text-2xl">
+                                    Processing Payment
+                                </h1>
+
+                                <h1 className="font-akagi text-[#505050]/60 text-md">
+                                    Verifying GCash payment...
+                                </h1>
+
+                                <h1 className="font-akagi font-bold text-blue text-xl">
+                                    ₱{grandTotal}
+                                </h1>
+
+                            </div>
+                        )}
+
+
+                        {/* ========================= */}
+                        {/* PAYMENT SUCCESS */}
+                        {/* ========================= */}
+
+                        {gcashStatus === "success" && (
+                            <div className="flex flex-col items-center gap-5 py-10">
+
+                                <div className="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center">
+                                    <h1 className="text-white text-3xl font-bold">
+                                        ✓
+                                    </h1>
+                                </div>
+
+                                <h1 className="font-akagi font-bold text-[#505050] text-2xl">
+                                    Payment Successful
+                                </h1>
+
+                                <div className="flex flex-col gap-1">
+                                    <h1 className="font-akagi font-bold text-[#505050] text-md">
+                                        Amount Paid
+                                    </h1>
+
+                                    <h1 className="font-akagi font-bold text-blue text-2xl">
+                                        ₱{grandTotal}
+                                    </h1>
+                                </div>
+
+                                <h1 className="font-akagi text-[#505050]/60 text-sm">
+                                    GCash payment has been verified.
+                                </h1>
+
+                                <div
+                                    onClick={() => {
+                                        setGcash(false);
+                                        setGcashStatus("waiting");
+                                        setProceed(true);
+                                    }}
+                                    className="px-8 py-3 rounded-full bg-blue cursor-pointer hover:scale-105 transition-all duration-300"
+                                >
+                                    <h1 className="font-akagi font-bold text-white text-md">
+                                        Continue
+                                    </h1>
+                                </div>
+
+                            </div>
+                        )}
+
+                    </div>
+                </div>
+            )}
+
         </div>
     </>
   )

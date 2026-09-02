@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { FaCheckCircle } from "react-icons/fa";
 import { motion } from "motion/react"
 
-function ProceedWalkInRent({onClose, cart, cartTotal, cashTendered, paymentMethod}) {
+function ProceedWalkInRent({onClose, cart, cartTotal, cashTendered, paymentMethod, reference}) {
 
     const [selectedItems, setSelectedItems] = useState({});
     const [confirmProceed, setConfirmProceed] = useState(false);
@@ -85,6 +85,7 @@ function ProceedWalkInRent({onClose, cart, cartTotal, cashTendered, paymentMetho
                 status: "started",
                 type: "walk-in",
                 assisted_by: assisted,
+                reference_number: reference
             })
             .select()
             .single()
@@ -346,7 +347,7 @@ function ProceedWalkInRent({onClose, cart, cartTotal, cashTendered, paymentMetho
 
                     <div className={`flex flex-row justify-between items-center md:pl-10 ${paymentMethod === "GCash" ? "block" : "hidden"}`}>
                         <h1 className='lg:text-lg font-medium font-akagi text-[#6D7172]'>Reference No:</h1>
-                        <h1 className='lg:text-lg font-medium font-akagi text-[#6D7172]'>123</h1>
+                        <h1 className='lg:text-lg font-medium font-akagi text-[#6D7172]'>{reference}</h1>
                     </div>
                 </div>
 
