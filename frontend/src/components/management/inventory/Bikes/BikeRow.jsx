@@ -7,10 +7,13 @@ import { FaPlus } from "react-icons/fa";
 import { RiImageAddFill } from "react-icons/ri";
 import { supabase } from "../../../../lib/supabase"
 
-function BikeRow({bikeType, capacity, price, image, bikes}) {
+function BikeRow({bikeType, capacity, price, image, bikes, bikeTypeId}) {
 
     const [dropDown, setDropDown] = useState(false);
     const [addBike, setAddBike] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+
+    const [bikeId, setBikeId] = useState("");
 
     const totalBikes = bikes.length;
     
@@ -29,6 +32,34 @@ function BikeRow({bikeType, capacity, price, image, bikes}) {
     const lostCount = bikes.filter(
         bike => bike.status === "Lost"
     ).length;
+
+    const handleNewBikeSubmit = async () => {
+        if (!bikeId) return; // Prevent empty submissions
+    
+        setIsLoading(true); 
+
+        try {
+            const { data, error } = await supabase
+                .from("bikes_mod")
+                .insert({
+                    code: bikeId,
+                    bike_type_id: bikeTypeId,
+                    status: "Available"
+                });
+
+            if (error) {
+                console.error("Error adding bike:", error);
+
+            } else {
+                setAddBike(false); 
+                setBikeId("");
+
+            }
+        } finally {
+            setIsLoading(false); 
+            window.location.reload();
+        }
+    }
 
 
   return (
@@ -165,37 +196,37 @@ function BikeRow({bikeType, capacity, price, image, bikes}) {
                     <div className='fixed inset-0 bg-black/60 flex items-center justify-center'>
                         <div className='bg-[#ffffff] p-5 rounded-xl flex md:flex-row flex-col gap-5'>
                             <div className='flex flex-col cursor-pointer gap-2 items-center justify-center'>
-                                <div className='bg-[#EBEBEB] p-10 rounded-xl'>
-                                    <RiImageAddFill className='text-7xl text-gray'/>
+                                <div className='bg-[#EBEBEB] p-3 rounded-xl'>
+                                    <img src={image} className='w-30 text-gray'/>
                                 </div>
 
-                                <h1 className='text-lg font-akagi font-medium cursor-pointer hover:underline text-gray'>Upload Image</h1>
+                                <h1 className='text-lg font-akagi font-medium cursor-pointer hover:underline text-gray'>{bikeType}</h1>
                             </div>
 
-                            <div className='flex flex-col gap-4 font-akagi font-bold text-gray'>
-                                <div className='flex flex-col gap-1'>
-                                    <h1>Set Quantity</h1>
-                                    <input 
-                                        className='font-medium bg-[#EBEBEB] text-[#505050]/50 rounded-lg py-1 px-2'
-                                        placeholder='Enter bike type name'/>
-                                </div>
+                            <div className='flex flex-col gap-4 font-akagi font-bold text-gray justify-between'>
 
+                                <h1 className='hidden md:block text-xl text-blue'>Add Bike</h1>
                                 <div className='flex flex-col gap-1'>
                                     <h1>Add Bike ID</h1>
                                     <input 
-                                        className='font-medium bg-[#EBEBEB] text-[#505050]/50 rounded-lg py-1 px-2'
+                                        value={bikeId}
+                                        onChange={(e) => setBikeId(e.target.value)}
+                                        className='focus:outline-none font-medium bg-[#EBEBEB] text-[#505050]/50 rounded-lg py-1 px-2'
                                         placeholder='Enter bike type name'/>
                                 </div>
 
                                 <div className='w-full flex flex-row gap-2 justify-end'>
                                     <div 
                                         onClick={() => {setAddBike(false)}}
-                                        className='bg-red-500 rounded-lg px-2 py-1 text-[#ffffff] hover:bg-red-500 transition-all duration-300 hover:scale-103 cursor-pointer'>
+                                        className='bg-red-500 rounded-lg px-2 py-1 text-[#ffffff] transition-all duration-300 hover:scale-103 cursor-pointer'>
                                         Cancel
                                     </div>
 
-                                    <div className='bg-green-500 rounded-lg px-2 py-1 text-[#ffffff] hover:bg-green-500 transition-all duration-300 hover:scale-103 cursor-pointer'>
-                                        Save
+                                    <div 
+                                        onClick={isLoading ? undefined : handleNewBikeSubmit}
+                                        className={`${isLoading ? 'bg-green-300 cursor-not-allowed' : 'bg-green-500 hover:scale-103 cursor-pointer'} rounded-lg px-2 py-1 text-[#ffffff] transition-all duration-300`}
+                                    >
+                                        {isLoading ? 'Saving...' : 'Save'}
                                     </div>
                                 </div>
 

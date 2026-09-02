@@ -299,6 +299,7 @@ function Inventory() {
                                                 capacity={bikeType.capacity}
                                                 price={bikeType.price}
                                                 bikes={bikeType.bikes_mod}
+                                                bikeTypeId={bikeType.id}
                                             />
                                         ))}
                                     </div>

@@ -133,25 +133,30 @@ function Maintenance( {setMaintenance }) {
                         </div>
                     </div>
                     <div className='flex flex-col gap-3'>
-                        {maintenanceInfo.map((info) => (
-                            <MaintenanceRow 
-                                key={info.id}
-                                bikeId={info.orders_mod?.bikes_mod?.code}
-                                bikeCode={info.orders_mod?.bikes_mod?.id}
-                                bikeTypeId={info.orders_mod?.bikes_mod?.bike_types_mod?.name}
-                                reason={info.reason}
-                                status={info.status}
-                                price={info.price}
-                                paidBy={info.payment_by}
-                                payment={info.transactions_mod?.amount_paid}
-                                change={info.transactions_mod?.change_amount}
-                                method={info.transactions_mod?.payment_method}
-                                setSettle={setSettle}
-                                settle={settle}
-                                maintenanceId={info.id}
-
-                            />
-                        ))}
+                        {maintenanceInfo.length === 0 ? (
+                            <div className='text-center py-10 font-akagi font-medium text-gray text-lg'>
+                                No maintenance yet
+                            </div>
+                        ) : (
+                            maintenanceInfo.map((info) => (
+                                <MaintenanceRow 
+                                    key={info.id}
+                                    bikeId={info.orders_mod?.bikes_mod?.code}
+                                    bikeCode={info.orders_mod?.bikes_mod?.id}
+                                    bikeTypeId={info.orders_mod?.bikes_mod?.bike_types_mod?.name}
+                                    reason={info.reason}
+                                    status={info.status}
+                                    price={info.price}
+                                    paidBy={info.payment_by}
+                                    payment={info.transactions_mod?.amount_paid}
+                                    change={info.transactions_mod?.change_amount}
+                                    method={info.transactions_mod?.payment_method}
+                                    setSettle={setSettle}
+                                    settle={settle}
+                                    maintenanceId={info.id}
+                                />
+                            ))
+                        )}
 
                     </div>
 

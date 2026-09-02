@@ -24,6 +24,9 @@ function MaintenancePayment({setMaintenancePayment, maintenancePayment}) {
     const [paidBy, setPaidBy] = useState("Select payment by");
 
     const [selectPrice, setSelectPrice] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+
+    const [confirmation, setConfirmation] = useState(false);
 
     const [price, setPrice] = useState(0);
 
@@ -130,27 +133,34 @@ function MaintenancePayment({setMaintenancePayment, maintenancePayment}) {
     };
 
     const onSubmit = async (e) => {
-        e.preventDefault();
+        if (e) e.preventDefault();
+        setIsLoading(true);
 
-        const transactionId = await insertTransaction();
+        try {
+            const transactionId = await insertTransaction();
 
-        if (!transactionId) {
-            return;
+            if (!transactionId) {
+                setIsLoading(false);
+                return;
+            }
+
+            const maintenance = await insertToMaintenance(transactionId);
+            await updateBike();
+
+            if (!maintenance) {
+                setIsLoading(false);
+                return;
+            }
+
+            console.log("Transaction ID:", transactionId);
+            console.log("Maintenance:", maintenance);
+
+            setMaintenancePayment(null);
+            window.location.reload();
+        } catch (error) {
+            console.error("Submission failed:", error);
+            setIsLoading(false);
         }
-
-        const maintenance = await insertToMaintenance(transactionId);
-
-        await updateBike();
-
-        if (!maintenance) {
-            return;
-        }
-
-        console.log("Transaction ID:", transactionId);
-        console.log("Maintenance:", maintenance);
-
-        setMaintenancePayment(null);
-        window.location.reload();
     };
 
     console.log(maintenancePayment.gpsCode)
@@ -564,7 +574,7 @@ function MaintenancePayment({setMaintenancePayment, maintenancePayment}) {
                             
                             
                                 <div className='mt-auto flex flex-col gap-5'>
-                                    {(paidBy === "Customer") || (paidBy === "Management") && 
+                                    {((paidBy === "Customer") || (paidBy === "Management")) && 
                                         <AnimatePresence initial={false}>
                                             {price > 0 && 
                                                 <motion.div
@@ -719,7 +729,9 @@ function MaintenancePayment({setMaintenancePayment, maintenancePayment}) {
                                 {/*Payment Button*/}
                                 <AnimatePresence initial={false}>
                                     {(
-                                        (paidBy === "Management") ||
+                                        (paidBy === "Management" &&
+                                            cashAmount !== 0 &&
+                                            Number(cashAmount) >= Number(price) && Number(cashAmount) !== 0) ||
                                         (paidBy === "Customer" &&
                                             cashAmount !== 0 &&
                                             Number(cashAmount) >= Number(price) && Number(cashAmount) !== 0)
@@ -742,7 +754,7 @@ function MaintenancePayment({setMaintenancePayment, maintenancePayment}) {
                                                 cursor-pointer
                                                 text-center
                                             "
-                                            onClick={onSubmit}
+                                            onClick={() => setConfirmation(true)}
                                         >
                                             <h1 className="text-lg font-bold font-akagi text-darkblue">
                                                 Proceed
@@ -755,6 +767,68 @@ function MaintenancePayment({setMaintenancePayment, maintenancePayment}) {
                     </div>
                 </div>
             </div>
+
+            {confirmation &&
+                <div className='w-full h-full fixed inset-0 bg-black/50 flex justify-center items-center z-100 p-10'>
+                    <div className=' bg-[#ffffff] rounded-lg p-10 font-akagi font-bold text-gray flex flex-col gap-5'>
+                        <h1 className='text-blue text-3xl'>Maintenance Confirmation</h1>
+
+                        <div className='flex flex-row gap-2 rounded-lg p-2 items-center '>
+                            <img src={maintenancePayment.image} className='w-15 bg-yellow rounded-lg p-2' />
+                            <h1 className='text-md'>{maintenancePayment.type}</h1>
+                            <div className='bg-blue rounded-lg px-3 py-1'>
+                                <h1 className='text-md text-[#ffffff]'>{maintenancePayment.bikeCode}</h1>
+                            </div>
+                        </div>
+
+                        <div className='flex flex-col gap-2'>
+                            <div className='grid grid-cols-[120px_1fr]'>
+                                <h1>Reason:</h1>
+                                <h1 className='font-medium'>{reason}</h1>
+                            </div>
+
+                            <div className='grid grid-cols-[120px_1fr]'>
+                                <h1>Payment by:</h1>
+                                <h1 className='font-medium'>{paidBy}</h1>
+                            </div>
+
+                            <div className='grid grid-cols-[120px_1fr]'>
+                                <h1>Price:</h1>
+                                <h1 className='font-medium'>P{price}</h1>
+                            </div>
+
+                            <div className='grid grid-cols-[120px_1fr]'>
+                                <h1>Tendered:</h1>
+                                <h1 className='font-medium'>P{cashAmount}</h1>
+                            </div>
+
+                            <div className='grid grid-cols-[120px_1fr]'>
+                                <h1>Change:</h1>
+                                <h1 className='font-medium'>P{change}</h1>
+                            </div>
+                        </div> 
+
+                        <div className='flex flex-row justify-between'>
+                            <div 
+                                onClick={isLoading ? undefined : () => {setConfirmation(false)}}
+                                className={`rounded-lg border border-gray px-3 py-1 transition-all ${
+                                    isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                                }`}>
+                                Back
+                            </div>
+
+                            <div 
+                                onClick={isLoading ? undefined : onSubmit}
+                                className={`rounded-lg bg-green-500 text-[#ffffff] px-3 py-1 transition-all ${
+                                    isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-103'
+                                }`}>
+                                {isLoading ? 'Processing...' : 'Proceed'}
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            }
         </div>
 
 
