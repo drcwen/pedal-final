@@ -292,7 +292,13 @@ function Settings() {
                                         
                                     </div>
 
-                                    <div className={`${type && percentage === null ? "hidden" : "block"} bg-yellow rounded-lg px-3 py-1 w-fit font-bold text-navyblue font-akagi cursor-pointer hover:scale-110 transition-all duration-300`}>
+                                    <div
+                                        className={`${
+                                            paymentOccurence === "Periodic" && (!type || percentage === null)
+                                                ? "hidden"
+                                                : "block"
+                                        } bg-yellow rounded-lg px-3 py-1 w-fit font-bold text-navyblue font-akagi cursor-pointer hover:scale-110 transition-all duration-300`}
+                                    >
                                         Submit
                                     </div>
 
