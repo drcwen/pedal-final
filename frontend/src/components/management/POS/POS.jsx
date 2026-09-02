@@ -15,6 +15,7 @@ function POS() {
     const navigate = useNavigate();
 
     const [transactions, setTransactions] = useState([]);
+    const [reservationHistory, setReservationHistory] = useState([]);
     const [ongoing, setOngoing] = useState([]);
 
     const [currentTime, setCurrentTime] = useState(new Date());
@@ -36,26 +37,72 @@ function POS() {
     }, []);
 
     const fetchTransactions = async () => {
+        const today = new Intl.DateTimeFormat("en-CA", {
+            timeZone: "Asia/Manila",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit"
+        }).format(new Date());
+
         const { data, error } = await supabase
             .from("transactions_mod")
             .select(`
                 *,
                 customer:profiles_mod!transactions_mod_user_id_fkey1 (
-                *
-                ),
-                orders_mod (
-                *,
-                bike_types_mod (
                     *
-                )
+                ),
+                orders_mod!inner (
+                    *,
+                    bike_types_mod (
+                        *
+                    )
                 )
             `)
             .eq("type", "reservation")
-            .eq("status", "pending");
+            .eq("status", "pending")
+            .gte("orders_mod.reservation_date", today);
+
+        if (error) {
+            console.error("Error fetching reservations:", error);
+            return;
+        }
 
         setTransactions(data || []);
-        
-    }
+    };
+
+    const fetchHistory = async () => {
+        const today = new Intl.DateTimeFormat("en-CA", {
+            timeZone: "Asia/Manila",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit"
+        }).format(new Date());
+
+        const { data, error } = await supabase
+            .from("transactions_mod")
+            .select(`
+                *,
+                customer:profiles_mod!transactions_mod_user_id_fkey1 (
+                    *
+                ),
+                orders_mod!inner (
+                    *,
+                    bike_types_mod (
+                        *
+                    )
+                )
+            `)
+            .eq("type", "reservation")
+            .eq("status", "pending")
+            .lt("orders_mod.reservation_date", today);
+
+        if (error) {
+            console.error("Error fetching reservations:", error);
+            return;
+        }
+
+        setReservationHistory(data || []);
+    };
 
     const fetchOngoing = async () => {
         const { data, error } = await supabase
@@ -87,12 +134,33 @@ function POS() {
 
         if (tab === "reservation") {
             await fetchTransactions();
+            await fetchHistory();
         } else {
             await fetchOngoing();
         }
     };
 
     const groupedReservations = transactions.reduce((groups, trans) => {
+        const startTime = trans.orders_mod?.[0]?.reservation_date;
+
+        if (!startTime) return groups;
+
+        const date = new Date(startTime + "T00:00:00").toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+        });
+
+        if (!groups[date]) {
+            groups[date] = [];
+        }
+
+        groups[date].push(trans);
+
+        return groups;
+    }, {});
+
+    const groupedHistory = reservationHistory.reduce((groups, trans) => {
         const startTime = trans.orders_mod?.[0]?.reservation_date;
 
         if (!startTime) return groups;
@@ -343,10 +411,74 @@ function POS() {
         </div>
 
         {history && (
-            <div className="fixed inset-0 z-[9999] bg-black/50 flex justify-center items-center xl:px-20 px-10">
-                <div className="bg-white rounded-xl p-5 font-akagi font-bold text-gray text-xl w-full">
-                    <h1 className='text-2xl'>Reservation History</h1>
-                    
+            <div className="fixed inset-0 z-[9999] bg-black/50 flex justify-center items-center xl:px-70 px-10">
+                <div className="w-full bg-[#ffffff] rounded-xl p-5 font-akagi font-bold text-gray flex flex-col gap-5">
+                    <h1 className='text-2xl text-blue'>Reservation History</h1>
+
+                    <div className=''>
+                        <motion.div 
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: "auto", opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.25, ease: "easeInOut" }} 
+                                className='flex flex-col gap-3'
+                            >
+                                
+                                {reservationHistory.length === 0 ? (
+                                    <div className="py-10 text-center">
+                                        <h1 className="font-akagi text-lg text-gray-500">
+                                            No reservations yet.
+                                        </h1>
+                                    </div>
+                                ) : (
+                                    Object.entries(groupedHistory).map(([date, reservations]) => (
+                                        <div key={date} className="flex flex-col gap-3 pb-8">
+
+                                            {/* Date heading */}
+                                            <h2 className="font-akagi text-xl font-bold text-gray">
+                                                {date}
+                                            </h2>
+
+                                            {/* Reservations for this date */}
+                                            {reservations.map((trans) => (
+                                                <ReservationRow
+                                                    key={trans.id}
+                                                    name={
+                                                        trans.customer
+                                                            ? (
+                                                                trans.customer.first_name
+                                                                    ? `${trans.customer.first_name} ${trans.customer.last_name}`
+                                                                    : trans.customer.full_name
+                                                            )
+                                                            : "Unknown Customer"
+                                                    }
+                                                    ordercount={
+                                                        trans.orders_mod.length === 1
+                                                            ? `${trans.orders_mod.length} Bike`
+                                                            : `${trans.orders_mod.length} Bikes`
+                                                    }
+                                                    type={trans.type}
+                                                    start={formatTime(trans.orders_mod?.[0]?.start_time)}
+                                                    bikeDetails={trans.orders_mod}
+                                                    customer={trans.customer}
+                                                    transaction={trans}
+                                                />
+                                            ))}
+                                        </div>
+                                    ))
+                                )}
+
+                                
+                            </motion.div >
+                    </div>
+
+                    <div className='flex justify-between'>
+                        <div 
+                            onClick={() => {setHistory(false)}}
+                            className='w-fit cursor-pointer text-md rounded-lg px-3 py-1 border border-gray'>
+                            Back
+                        </div>
+                    </div>
                 </div>  
             </div>
         )}

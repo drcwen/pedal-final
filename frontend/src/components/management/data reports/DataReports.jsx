@@ -18,6 +18,7 @@ import {
     Tooltip,
     ResponsiveContainer
 } from "recharts";
+import { GrTransaction } from "react-icons/gr";
 
 function DataReports() {
 
@@ -333,6 +334,10 @@ function DataReports() {
                                 <h1>Most Payment Method</h1>
                                 <h1 className='text-4xl'>P12000</h1>
                             </div>
+                        </div>
+
+                        <div className='w-full rounded-xl p-2 bg-[#ffffff] border border-gray/50'>
+                            
                         </div>
                     </>
                     }
