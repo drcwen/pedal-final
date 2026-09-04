@@ -11,6 +11,10 @@ function MaintenancePayment({setMaintenancePayment, maintenancePayment}) {
 
     const [gcash, setGcash] = useState(false);
     const [cash, setCash] = useState(false);
+
+    const [gcashStatus, setGcashStatus] = useState("waiting");
+    const [method, setMethod] = useState(null);
+    const [referenceNo, setReferenceNo] = useState(null);
     
     const paymentMethod = 
         gcash == true ? "GCash" : "Cash";
@@ -50,6 +54,7 @@ function MaintenancePayment({setMaintenancePayment, maintenancePayment}) {
                 price: price,
                 status: "Ongoing",
                 transaction_id: transactionId
+                
             })
             .select()
             .single();
@@ -98,7 +103,7 @@ function MaintenancePayment({setMaintenancePayment, maintenancePayment}) {
         }
     }
 
-    const insertTransaction = async () => {
+    const insertTransaction = async (amountPaid = cashAmount) => {
         const {
             data: { user },
             error: userError
@@ -114,11 +119,12 @@ function MaintenancePayment({setMaintenancePayment, maintenancePayment}) {
             .insert({
                 payment_method: paymentMethod,
                 total_amount: price,
-                amount_paid: cashAmount,
-                change_amount: change,
+                amount_paid: amountPaid,
+                change_amount: amountPaid - price,
                 type: "maintenance",
                 status: "completed",
-                assisted_by: user.id
+                assisted_by: user.id,
+                reference_number: referenceNo
             })
             .select()
             .single();
@@ -163,7 +169,65 @@ function MaintenancePayment({setMaintenancePayment, maintenancePayment}) {
         }
     };
 
-    console.log(maintenancePayment.gpsCode)
+    const GCashonSubmit = async (e) => {
+        if (e) e.preventDefault();
+
+        setIsLoading(true);
+
+        try {
+            // Explicitly pass price as the amount paid
+            const transactionId = await insertTransaction(price);
+
+            if (!transactionId) {
+                return;
+            }
+
+            const maintenance = await insertToMaintenance(transactionId);
+
+            if (!maintenance) {
+                return;
+            }
+
+            await updateBike();
+
+            console.log("Transaction ID:", transactionId);
+            console.log("Maintenance:", maintenance);
+
+            return true;
+
+        } catch (error) {
+            console.error("Submission failed:", error);
+            return false;
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const simulatePayment = async () => {
+        const random = Math.floor(100000 + Math.random() * 900000);
+        const reference = `GC-${random}`;
+
+        setMethod("GCash");
+        setGcash(true);
+        setCash(false);
+        setCashAmount(price);
+        setReferenceNo(reference);
+
+        setGcashStatus("processing");
+
+        const success = await GCashonSubmit();
+
+        if (!success) {
+            setGcashStatus("waiting");
+            return;
+        }
+
+        setTimeout(() => {
+            setGcashStatus("success");
+        }, 2000);
+    };
+
+    console.log(price)
     return (
     <>
 
@@ -600,13 +664,153 @@ function MaintenancePayment({setMaintenancePayment, maintenancePayment}) {
                                                         </div>
                                                     </div>
 
-                                                    {gcash === true && 
+                                                    {gcash === true && (
                                                         <div
-                                                            onClick={price === 0 ? () => setGcash(!gcash) : undefined} 
-                                                            className='w-full rounded-xl bg-gray p-2'>
-                                                            
+                                                            onClick={(e) => {
+                                                                // Close only when clicking the dark background
+                                                                if (e.target === e.currentTarget) {
+                                                                    setGcash(false);
+                                                                    setGcashStatus("waiting");
+                                                                }
+                                                            }}
+                                                            className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center"
+                                                        >
+                                                            <div
+                                                                className="bg-white rounded-2xl px-10 py-10 flex flex-col gap-5 items-center justify-center text-center"
+                                                            >
+
+                                                                {gcashStatus === "waiting" && (
+                                                                    <>
+                                                                        <h1 className="font-akagi font-bold text-[#505050] text-2xl">
+                                                                            Pay with GCash
+                                                                        </h1>
+
+                                                                        <div className="flex flex-col gap-2">
+                                                                            <h1 className="font-akagi font-bold text-[#505050] text-md">
+                                                                                Scan the QR below using the GCash app
+                                                                            </h1>
+                                                                        </div>
+
+                                                                        <div className="flex flex-col gap-5 items-center justify-center">
+
+                                                                            {/* QR CODE */}
+                                                                            <img
+                                                                                onClick={simulatePayment}
+                                                                                src="https://res.cloudinary.com/dp3vkgxtb/image/upload/v1779959866/qrcode_envfyr.png"
+                                                                                className="w-52 h-52 cursor-pointer hover:scale-105 transition-all duration-300"
+                                                                            />
+
+                                                                            <div className="flex flex-col gap-1">
+                                                                                <h1 className="font-akagi font-bold text-[#505050] text-md">
+                                                                                    Amount to pay:
+                                                                                </h1>
+
+                                                                                <h1 className="font-akagi font-bold text-blue text-xl">
+                                                                                    ₱{price}
+                                                                                </h1>
+                                                                            </div>
+
+                                                                            <div className="flex flex-col gap-5">
+
+                                                                                <h1 className="font-akagi font-light text-[#505050] text-md">
+                                                                                    Waiting for payment...
+                                                                                </h1>
+
+                                                                                <div className="flex flex-col gap-4">
+
+                                                                                    {/* DEMO BUTTON */}
+                                                                                    <div
+                                                                                        onClick={simulatePayment}
+                                                                                        className="px-5 py-2 rounded-full bg-blue cursor-pointer hover:scale-105 transition-all duration-300"
+                                                                                    >
+                                                                                        <h1 className="font-akagi font-bold text-white text-md">
+                                                                                            Pay
+                                                                                        </h1>
+                                                                                    </div>
+
+                                                                                    <h1
+                                                                                        onClick={() => {
+                                                                                            setGcash(false);
+                                                                                            setGcashStatus("waiting");
+                                                                                        }}
+                                                                                        className="text-sm font-akagi text-black/30 hover:underline duration-300 cursor-pointer transition-all"
+                                                                                    >
+                                                                                        Cancel
+                                                                                    </h1>
+
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </>
+                                                                )}
+
+                                                                {gcashStatus === "processing" && (
+                                                                    <div className="flex flex-col items-center gap-5 py-10">
+
+                                                                        <div className="w-14 h-14 border-4 border-gray/20 border-t-blue rounded-full animate-spin"></div>
+
+                                                                        <h1 className="font-akagi font-bold text-[#505050] text-2xl">
+                                                                            Processing Payment
+                                                                        </h1>
+
+                                                                        <h1 className="font-akagi text-[#505050]/60 text-md">
+                                                                            Verifying GCash payment...
+                                                                        </h1>
+
+                                                                        <h1 className="font-akagi font-bold text-blue text-xl">
+                                                                            ₱{price}
+                                                                        </h1>
+
+                                                                    </div>
+                                                                )}
+
+
+                                                                {gcashStatus === "success" && (
+                                                                    <div className="flex flex-col items-center gap-5 py-10">
+
+                                                                        <div className="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center">
+                                                                            <h1 className="text-white text-3xl font-bold">
+                                                                                ✓
+                                                                            </h1>
+                                                                        </div>
+
+                                                                        <h1 className="font-akagi font-bold text-[#505050] text-2xl">
+                                                                            Payment Successful
+                                                                        </h1>
+
+                                                                        <div className="flex flex-col gap-1">
+                                                                            <h1 className="font-akagi font-bold text-[#505050] text-md">
+                                                                                Amount Paid
+                                                                            </h1>
+
+                                                                            <h1 className="font-akagi font-bold text-blue text-2xl">
+                                                                                ₱{price}
+                                                                            </h1>
+                                                                        </div>
+
+                                                                        <h1 className="font-akagi text-[#505050]/60 text-sm">
+                                                                            GCash payment has been verified.
+                                                                        </h1>
+
+                                                                        <div
+                                                                            onClick={() => {
+                                                                                setGcash(false);
+                                                                                setGcashStatus("waiting");
+                                                                                window.location.reload();
+                                                                            }}
+                                                                            className="px-8 py-3 rounded-full bg-blue cursor-pointer hover:scale-105 transition-all duration-300"
+                                                                        >
+                                                                            <h1 className="font-akagi font-bold text-white text-md">
+                                                                                Continue
+                                                                            </h1>
+                                                                        </div>
+
+                                                                    </div>
+                                                                )}
+
+                                                            </div>
                                                         </div>
-                                                    }
+                                                    )}
 
                                                     {cash === true && 
                                                         <div

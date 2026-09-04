@@ -76,7 +76,7 @@ function Settings() {
 
                 <SidebarMobile active={'pos'}/>
                     
-                <div className='w-full p-10 bg-[#ffffff] rounded-xl flex flex-col gap-5 overflow-y-scroll scrollbar-thin scrollbar-thumb-[#B9B9B9] scrollbar-track-[#E2E2E2]'>
+                <div className='w-full h-full p-10 bg-[#ffffff] rounded-xl flex flex-col gap-5'>
                     
                     <h1 className='md:text-4xl text-2xl font-akagi font-bold tracking-wide text-blue'>System Settings</h1>
 
@@ -102,7 +102,7 @@ function Settings() {
                             animate={{ height: "auto", opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
                             transition={{ duration: 0.3, ease: "easeInOut" }}
-                            className="w-full flex-1 min-h-0 md:grid md:grid-cols-2 flex flex-col rounded-xl bg-[#ebebeb] border border-gray/60"
+                            className="w-full flex-1 min-h-0 md:grid md:grid-cols-2 flex flex-col rounded-xl bg-[#ebebeb] overflow-y-scroll scrollbar-thin scrollbar-thumb-[#B9B9B9] scrollbar-track-[#E2E2E2] border border-gray/60"
                         >
                             <div className='w-full p-5 md:border-r-1 md:border-gray/60 flex flex-col gap-5'>
 

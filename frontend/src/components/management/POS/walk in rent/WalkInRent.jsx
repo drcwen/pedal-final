@@ -414,10 +414,6 @@ function WalkInRent() {
                         className="bg-white rounded-2xl px-10 py-10 flex flex-col gap-5 items-center justify-center text-center"
                     >
 
-                        {/* ========================= */}
-                        {/* WAITING FOR PAYMENT */}
-                        {/* ========================= */}
-
                         {gcashStatus === "waiting" && (
                             <>
                                 <h1 className="font-akagi font-bold text-[#505050] text-2xl">
@@ -483,11 +479,6 @@ function WalkInRent() {
                             </>
                         )}
 
-
-                        {/* ========================= */}
-                        {/* PROCESSING PAYMENT */}
-                        {/* ========================= */}
-
                         {gcashStatus === "processing" && (
                             <div className="flex flex-col items-center gap-5 py-10">
 
@@ -508,10 +499,6 @@ function WalkInRent() {
                             </div>
                         )}
 
-
-                        {/* ========================= */}
-                        {/* PAYMENT SUCCESS */}
-                        {/* ========================= */}
 
                         {gcashStatus === "success" && (
                             <div className="flex flex-col items-center gap-5 py-10">

@@ -22,7 +22,6 @@ import { GrTransaction } from "react-icons/gr";
 
 function DataReports() {
 
-    const [dates, setDates] = useState(null);
     const [dashboardData, setDashboardData] = useState([]);
     const formatDate = (date) => {
         if (!date) return null;
@@ -35,8 +34,33 @@ function DataReports() {
     };
 
     const [activeTab, setActiveTab] = useState("Sales");
-    
-   
+
+    const today = new Date();
+
+    const firstDay = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        1
+    );
+
+    const lastDay = new Date(
+        today.getFullYear(),
+        today.getMonth() + 1,
+        0
+    );
+
+    const formatDisplayDate = (date) => {
+        if (!date) return "";
+
+        return date.toLocaleDateString("en-US", {
+            month: "long",
+            day: "numeric",
+            year: "numeric"
+        });
+    };
+
+    const [dates, setDates] = useState([firstDay, lastDay]);
+
     useEffect(() => {
         const fetchData = async () => {
             const { data, error } = await supabase.rpc(
@@ -225,7 +249,12 @@ function DataReports() {
 
                     <>
                         <div className='bg-[#ffffff] w-full rounded-xl p-5 flex flex-col gap-3'>
-                            <h1 className='md:text-xl text-lg font-akagi font-bold tracking-wide text-gray'>Rentals for</h1>
+                            <h1 className='md:text-xl text-lg font-akagi font-bold tracking-wide text-gray'>
+                                Rentals for {dates?.[0] && dates?.[1]
+                                    ? `${formatDisplayDate(dates[0])} – ${formatDisplayDate(dates[1])}`
+                                    : "selected dates"
+                                }
+                            </h1>
 
                             {/*Graph*/}
                             <div className="w-full h-[250px] font-akagi font-medium text-sm">
