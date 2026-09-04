@@ -28,7 +28,7 @@ function SoloBikesDisplay() {
     return (
         <>
             
-            <div className='flex flex-col lg:grid lg:grid-cols-3 lg:gap-15 gap-20'>
+            <div className='grid grid-cols-2 lg:grid-cols-3 lg:gap-15 gap-10 items-center'>
         
                 {info.map((bike) => (
                     <motion.div
@@ -36,6 +36,7 @@ function SoloBikesDisplay() {
                         animate={fadeScale.animate}
                         transition={fadeScale.transition} 
                         key={bike.id}
+                        className='w-full h-full flex'
                     >
                         <BikeCard bike={bike} />
                     </motion.div>
