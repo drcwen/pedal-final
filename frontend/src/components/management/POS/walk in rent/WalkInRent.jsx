@@ -223,7 +223,9 @@ function WalkInRent() {
                                                 gcash ? "bg-gray text-white" : "bg-transparent"
                                             }`}
                                         >
-                                            <h1 className="text-xl font-bold font-akagi text-gray">
+                                            <h1 className={`text-xl font-bold font-akagi ${
+                                                gcash ? "text-[#ffffff]" : "text-gray"
+                                            }`}>
                                                 GCash
                                             </h1>
                                         </div>
@@ -243,14 +245,22 @@ function WalkInRent() {
                                                 cash ? "bg-gray text-white" : "bg-transparent"
                                             }`}
                                         >
-                                            <h1 className="text-xl font-bold font-akagi text-gray">
+                                            <h1 className={`text-xl font-bold font-akagi ${
+                                                cash ? "text-[#ffffff]" : "text-gray"
+                                            }`}>
                                                 Cash
                                             </h1>
                                         </div>
                                     </div>
 
                                     {cash === true && 
-                                        <div className='w-full rounded-xl bg-gray p-3 font-akagi font-bold text-gray text-xl'>
+                                        <motion.div 
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: "auto", opacity: 1 }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            transition={{ duration: 0.25, ease: "easeInOut" }}  
+                                            className='w-full rounded-xl bg-gray p-3 font-akagi font-bold text-gray text-xl'
+                                        >
                                             <div className='grid grid-cols-3 gap-3'>
                                                 <div
                                                     onClick={150 < grandTotal ? undefined : () => setCashAmount(150)}
@@ -355,7 +365,7 @@ function WalkInRent() {
                                                     className='bg-[#fffffff] border-2 border-white w-full text-[#ffffff] rounded-xl focus:outline-none px-3 py-1 font-bold'/>
                                             </div>
 
-                                        </div>
+                                        </motion.div >
                                     }
                                 </div>
 

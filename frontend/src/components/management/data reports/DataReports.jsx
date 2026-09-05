@@ -9,6 +9,7 @@ import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import { IoMdArrowDropdown } from "react-icons/io";
 import { Calendar } from 'primereact/calendar';
 import "primereact/resources/themes/lara-light-cyan/theme.css";
+import { IoIosInformationCircleOutline } from "react-icons/io";
 import {
     AreaChart,
     Area,
@@ -16,13 +17,21 @@ import {
     YAxis,
     CartesianGrid,
     Tooltip,
-    ResponsiveContainer
+    ResponsiveContainer,
+    BarChart,
+    Bar
 } from "recharts";
-import { GrTransaction } from "react-icons/gr";
+import { FaPrint } from "react-icons/fa6";
 
 function DataReports() {
 
     const [dashboardData, setDashboardData] = useState([]);
+    const [gross, setGross] = useState("...");
+    const [reservationGross, setReservationGross] = useState("...");
+    const [walkInGross , setWalkInGross] = useState("...");
+    const [extensionsGross, setExtensionsGross] = useState("...");
+    const [changeGross, setChangeGross] = useState("...");
+
     const formatDate = (date) => {
         if (!date) return null;
 
@@ -81,33 +90,9 @@ function DataReports() {
             setDashboardData(data);
         };
 
-        const fetchHolderData = async () => {
+        const fetchGross = async () => {
             const { data, error } = await supabase.rpc(
-                "get_daily_dashboard_data",
-                {
-                    start_date: '2026-08-01',
-                    end_date: '2026-08-05'
-                }
-            );
-
-            if (error) {
-                console.error(error);
-                return;
-            }
-
-            console.log(data);
-
-            setHolderData(data);
-        };
-
-        fetchData();
-        fetchHolderData();
-    }, [dates]);
-
-    useEffect(() => {
-        const fetchData = async () => {
-            const { data, error } = await supabase.rpc(
-                "get_daily_dashboard_data",
+                "get_date_gross_revenue",
                 {
                     start_date: formatDate(dates[0]),
                     end_date: formatDate(dates[1])
@@ -121,10 +106,93 @@ function DataReports() {
 
             console.log(data);
 
-            setDashboardData(data);
+            setGross(data);
         };
 
+        const fetchReservationGross = async () => {
+            const { data, error } = await supabase.rpc(
+                "get_date_reservation_gross_revenue",
+                {
+                    start_date: formatDate(dates[0]),
+                    end_date: formatDate(dates[1])
+                }
+            );
+
+            if (error) {
+                console.error(error);
+                return;
+            }
+
+            console.log(data);
+
+            setReservationGross(data);
+        };
+
+        const fetchWalkInGross = async () => {
+            const { data, error } = await supabase.rpc(
+                "get_date_walkin_gross_revenue",
+                {
+                    start_date: formatDate(dates[0]),
+                    end_date: formatDate(dates[1])
+                }
+            );
+
+            if (error) {
+                console.error(error);
+                return;
+            }
+
+            console.log(data);
+
+            setWalkInGross(data);
+        };
+
+        const fetchExtensions = async () => {
+            const { data, error } = await supabase.rpc(
+                "get_date_extensions_gross_revenue",
+                {
+                    start_date: formatDate(dates[0]),
+                    end_date: formatDate(dates[1])
+                }
+            );
+
+            if (error) {
+                console.error(error);
+                return;
+            }
+
+            console.log(data);
+
+            setExtensionsGross(data);
+        };
+
+        const fetchChange = async () => {
+            const { data, error } = await supabase.rpc(
+                "get_date_change_gross_revenue",
+                {
+                    start_date: formatDate(dates[0]),
+                    end_date: formatDate(dates[1])
+                }
+            );
+
+            if (error) {
+                console.error(error);
+                return;
+            }
+
+            console.log(data);
+
+            setChangeGross(data);
+        };
+
+        fetchData();
+        fetchGross();
+        fetchReservationGross();
+        fetchWalkInGross();
+        fetchExtensions();
+        fetchChange();
     }, [dates]);
+
   return (
     <>
 
@@ -159,7 +227,7 @@ function DataReports() {
                                     : "text-gray"
                             }`}
                         >
-                            Sales
+                            All Sales
                         </h1>
 
                         <h1
@@ -173,32 +241,17 @@ function DataReports() {
                             Net Sales
                         </h1>
 
-                        <h1
-                            onClick={() => setActiveTab("Rentals")}
-                            className="font-akagi font-medium cursor-pointer flex-shrink-0 text-gray"
-                        >
-                            Rentals
-                        </h1>
+
 
                         <h1
-                            onClick={() => setActiveTab("Transactions")}
-                            className="font-akagi font-medium cursor-pointer flex-shrink-0 text-gray"
+                            onClick={() => setActiveTab("Maintenance")}
+                            className={`font-akagi font-medium cursor-pointer flex-shrink-0 ${
+                                activeTab === "Maintenance"
+                                    ? "text-blue hover:underline"
+                                    : "text-gray"
+                            }`}
                         >
-                            Transactions
-                        </h1>
-
-                        <h1
-                            onClick={() => setActiveTab("Payment Methods")}
-                            className="font-akagi font-medium cursor-pointer flex-shrink-0 text-gray"
-                        >
-                            Payment Methods
-                        </h1>
-
-                        <h1
-                            onClick={() => setActiveTab("Bike Types")}
-                            className="font-akagi font-medium cursor-pointer flex-shrink-0 text-gray"
-                        >
-                            Bike Types
+                            Maintenance
                         </h1>
 
                     </div>
@@ -250,7 +303,7 @@ function DataReports() {
                     <>
                         <div className='bg-[#ffffff] w-full rounded-xl p-5 flex flex-col gap-3'>
                             <h1 className='md:text-xl text-lg font-akagi font-bold tracking-wide text-gray'>
-                                Rentals for {dates?.[0] && dates?.[1]
+                                Gross Revenue for {dates?.[0] && dates?.[1]
                                     ? `${formatDisplayDate(dates[0])} – ${formatDisplayDate(dates[1])}`
                                     : "selected dates"
                                 }
@@ -345,29 +398,178 @@ function DataReports() {
 
                         <div className='w-full grid lg:grid-cols-4 grid-cols-2 gap-5'>
                             <div className='bg-[#ffffff] p-5 font-akagi font-bold text-gray rounded-xl flex flex-col gap-2'>
-                                <h1>Total Revenue</h1>
-                                <h1 className='text-4xl'>P12000</h1>
+                                <h1 className=''>Gross Revenue</h1>
+                                <h1 className='text-4xl'>P{gross}</h1>
+                                    <div className="w-full h-[70px]">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart
+                                                data={dashboardData}
+                                                margin={{ top: 5, right: 0, left: 0, bottom: 0 }}
+                                            >
+                                                <Bar
+                                                    dataKey="revenue"
+                                                    radius={[3, 3, 3, 3]}
+                                                    fill="#E4E017"
+                                                />
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    </div>
                             </div>
 
                             <div className='bg-[#ffffff] p-5 font-akagi font-bold text-gray rounded-xl flex flex-col gap-2'>
-                                <h1>Total Rentals</h1>
+                                <div className='flex flex-row justify-between items-center'>
+                                    <h1>Net Revenue</h1>
+                                    <IoIosInformationCircleOutline className='text-xl cursor-pointer'/>
+                                </div>
                                 <h1 className='text-4xl'>P12000</h1>
+                                <div className="w-full h-[70px]">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart
+                                            data={dashboardData}
+                                            margin={{ top: 5, right: 0, left: 0, bottom: 0 }}
+                                        >
+                                            <Bar
+                                                dataKey="revenue"
+                                                radius={[3, 3, 3, 3]}
+                                                fill="#104459"
+                                            />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
                             </div>
 
                             <div className='bg-[#ffffff] p-5 font-akagi font-bold text-gray rounded-xl flex flex-col gap-2'>
-                                <h1>Avg Rent per Transaction</h1>
-                                <h1 className='text-4xl'>P12000</h1>
+                                <h1>Walk-In Gross Revenue</h1>
+                                <h1 className='text-4xl'>P{walkInGross}</h1>
+                                <div className="w-full h-[70px]">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart
+                                            data={dashboardData}
+                                            margin={{ top: 5, right: 0, left: 0, bottom: 0 }}
+                                        >
+                                            <Bar
+                                                dataKey="revenue"
+                                                radius={[3, 3, 3, 3]}
+                                                fill="#2F5B7E"
+                                            />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                                
                             </div>
 
                             <div className='bg-[#ffffff] p-5 font-akagi font-bold text-gray rounded-xl flex flex-col gap-2'>
-                                <h1>Most Payment Method</h1>
-                                <h1 className='text-4xl'>P12000</h1>
+                                <h1>Reservation Gross Revenue</h1>
+                                <h1 className='text-4xl'>P{reservationGross}</h1>
+                                <div className="w-full h-[70px]">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart
+                                            data={dashboardData}
+                                            margin={{ top: 5, right: 0, left: 0, bottom: 0 }}
+                                        >
+                                            <Bar
+                                                dataKey="revenue"
+                                                radius={[3, 3, 3, 3]}
+                                                fill="#979B9D"
+                                            />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
                             </div>
+
+                            <div className='bg-[#ffffff] p-5 font-akagi font-bold text-gray rounded-xl flex flex-col gap-2'>
+                                <h1>Extensions Gross Revenue</h1>
+                                <h1 className='text-4xl'>P{extensionsGross}</h1>
+                                <div className="w-full h-[70px]">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart
+                                            data={dashboardData}
+                                            margin={{ top: 5, right: 0, left: 0, bottom: 0 }}
+                                        >
+                                            <Bar
+                                                dataKey="revenue"
+                                                radius={[3, 3, 3, 3]}
+                                                fill="#979B9D"
+                                            />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
+
+                            <div className='bg-[#ffffff] p-5 font-akagi font-bold text-gray rounded-xl flex flex-col gap-2'>
+                                <h1>Changed Bikes Gross Revenue</h1>
+                                <h1 className='text-4xl'>P{changeGross}</h1>
+                                <div className="w-full h-[70px]">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart
+                                            data={dashboardData}
+                                            margin={{ top: 5, right: 0, left: 0, bottom: 0 }}
+                                        >
+                                            <Bar
+                                                dataKey="revenue"
+                                                radius={[3, 3, 3, 3]}
+                                                fill="#979B9D"
+                                            />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
+
                         </div>
 
-                        <div className='w-full rounded-xl p-2 bg-[#ffffff] border border-gray/50'>
+                        <div className='pt-10 flex flex-col gap-2'>
+                            <div className='pb-5 flex flex-row justify-between gap-5 items-center'>
+
+                                <div className="flex-1 min-w-0 overflow-x-auto whitespace-nowrap scrollbar-thin scrollbar-thumb-[#B9B9B9] scrollbar-track-transparent">
+                                    <div className="flex flex-row lg:gap-8 gap-5 w-max">
+                                        <div className='flex flex-row gap-2 font-akagi font-bold text-gray'>
+                                            <input type='checkbox' className='cursor-pointer'/>
+                                            <h1>Walk-ins</h1>
+                                        </div>
+
+                                        <div className='flex flex-row gap-2 font-akagi font-bold text-gray'>
+                                            <input type='checkbox' className='cursor-pointer'/>
+                                            <h1>Reservations</h1>
+                                        </div>
+
+                                        <div className='flex flex-row gap-2 font-akagi font-bold text-gray'>
+                                            <input type='checkbox' className='cursor-pointer'/>
+                                            <h1>Extensions</h1>
+                                        </div>
+
+                                        <div className='flex flex-row gap-2 font-akagi font-bold text-gray'>
+                                            <input type='checkbox' className='cursor-pointer'/>
+                                            <h1>Changed Bikes</h1>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className='flex flex-row cursor-pointer gap-2 rounded-lg bg-blue font-akagi font-bold text-md px-3 py-1 items-center text-[#ffffff]'>
+                                    <FaPrint className='text-sm'/>
+                                    Get Excel 
+                                </div>
+                            </div>
+                            <div className='w-full h-[50px] rounded-xl p-2 bg-[#ffffff] border border-gray/50'>
                             
+                            </div>
+                            <div className='w-full h-[50px] rounded-xl p-2 bg-[#ffffff] border border-gray/50'>
+                            
+                            </div>
+                            <div className='w-full h-[50px] rounded-xl p-2 bg-[#ffffff] border border-gray/50'>
+                            
+                            </div>
+                            <div className='w-full h-[50px] rounded-xl p-2 bg-[#ffffff] border border-gray/50'>
+                            
+                            </div>
+                            <div className='w-full h-[50px] rounded-xl p-2 bg-[#ffffff] border border-gray/50'>
+                            
+                            </div>
+                            <div className='w-full h-[50px] rounded-xl p-2 bg-[#ffffff] border border-gray/50'>
+                            
+                            </div>
+
                         </div>
+                        
                     </>
                     }
                     

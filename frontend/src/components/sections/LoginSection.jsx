@@ -128,6 +128,7 @@ function LoginSection() {
                                 
                                 {/*Username*/}
                                 <TextField type="text" 
+                                            className='focus:outline-none'
                                             placeholder="Username"
                                             value={username}
                                             onChange={(e) => setUsername(e.target.value)}/>
