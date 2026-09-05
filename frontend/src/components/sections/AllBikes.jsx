@@ -78,19 +78,19 @@ function AllBikes({ reservationData }) {
   });
 
   return (
-    <div className="py-30 px-10 flex flex-col justify-center gap-15">
+    <div className="w-full md:h-screen py-30 px-10 flex flex-col justify-center gap-15">
       <h1 className="text-4xl font-akagi font-black text-blue">
         All Bikes
       </h1>
 
-      <div className="grid grid-cols-2 lg:grid-cols-3 md:grid-cols-2 lg:gap-20 flex flex-col md:gap-10 gap-10 gap-y-20 place-items-center">
+      <div className="grid grid-cols-2 lg:grid-cols-3 md:grid-cols-2 lg:gap-20 md:gap-10 gap-10 gap-y-20 place-items-center">
         {bikesWithAvailability.map((allBikes) => (
           <motion.div
             key={allBikes.id}
             initial={fade.initial}
             animate={fade.animate}
             transition={fade.transition}
-            className="lg:w-80 w-full "
+            className="w-full flex justify-center"
           >
             <BikesCardDark bike={allBikes} reservationData={reservationData} />
           </motion.div>

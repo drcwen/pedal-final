@@ -35,7 +35,7 @@ function FamilyBikesDisplay() {
                         animate={fadeScale.animate}
                         transition={fadeScale.transition} 
                         key={bike.id}
-                        className='w-full h-full flex'
+                        className='w-full h-full flex items-center justify-center'
                     >
                         <BikeCard bike={bike} />
                     </motion.div>
