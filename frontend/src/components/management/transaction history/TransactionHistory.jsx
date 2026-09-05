@@ -32,6 +32,22 @@ function TransactionHistory() {
                             bike_types_mod (*),
                             bikes_mod (*),
                             gps_mod (*)
+                        ),
+                        extensions_mod (
+                            *,
+                            orders_mod (
+                                *,
+                                bikes_mod (
+                                    *,
+                                    bike_types_mod (
+                                        *
+                                    )
+                                )
+                            )
+                        ),
+                        change_bikes_mod (
+                            *,
+                            orders_mod (*)
                         )
                     `);
 
@@ -46,6 +62,7 @@ function TransactionHistory() {
             };
 
             getTransactions();
+            console.log(transactionData)
         }, []);
 
         useEffect(() => {
@@ -172,6 +189,9 @@ function TransactionHistory() {
                                             timeAdded={2}
                                             status={transaction.status}
                                             transactionData={transaction.orders_mod}
+                                            transactionPayment={transaction}
+                                            extensionsData={transaction.extensions_mod}
+                                            changeBikesData={transaction.change_bikes_mod}
                                         />
                                     );
                                 })

@@ -10,7 +10,7 @@ function TransactionBikes({image, bikeType, price, unitId, gpsId, duration, star
   return (
     <>
         
-        <div className=' border-1 shadow-md border-[#DBDBDB] p-3 rounded-lg flex flex-col gap-4'>
+        <div className='border shadow-md border-[#DBDBDB] p-3 rounded-lg flex flex-col gap-4'>
             <div className='flex flex-row justify-between items-center'>
                 <div className='flex flex-row gap-3 items-center'>
                     <div className='items-center bg-yellow p-1 rounded-lg'>
