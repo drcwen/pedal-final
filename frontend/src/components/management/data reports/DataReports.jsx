@@ -21,6 +21,7 @@ import {
     BarChart,
     Bar
 } from "recharts";
+import { RiArrowDropDownLine, RiArrowDropUpLine } from "react-icons/ri";
 import { FaPrint } from "react-icons/fa6";
 
 function DataReports() {
@@ -549,8 +550,30 @@ function DataReports() {
                                     Get Excel 
                                 </div>
                             </div>
-                            <div className='w-full h-[50px] rounded-xl p-2 bg-[#ffffff] border border-gray/50'>
-                            
+                            <div className='grid grid-cols-[70px_1fr_1fr_1fr_1fr_20px] items-center w-full h-[50px] rounded-xl p-2 bg-[#ffffff] border border-gray/50 font-akagi font-bold text-[#ffffff]'>
+                                <div className='rounded-lg bg-blue px-3 py-1 w-fit'>
+                                    1
+                                </div>
+
+                                <div className='text-gray text-center'>
+                                    301
+                                </div>
+
+                                <div className='text-gray text-center'>
+                                    Wendel Derraco
+                                </div>
+
+                                <div className='text-gray text-center'>
+                                    reservation
+                                </div>
+
+                                <div className='text-gray text-center'>
+                                    P380
+                                </div>
+
+                                <div className='text-gray text-center'>
+                                    <RiArrowDropDownLine/>
+                                </div>
                             </div>
                             <div className='w-full h-[50px] rounded-xl p-2 bg-[#ffffff] border border-gray/50'>
                             
