@@ -56,6 +56,7 @@ function Settings() {
             setSchedule(data || []);
             console.log(data);
         };
+        console.log("date",dateOccurence);
 
         fetchSchedule();
     }, []);
@@ -294,7 +295,13 @@ function Settings() {
 
                                     <div
                                         className={`${
-                                            paymentOccurence === "Periodic" && (!type || percentage === null)
+                                            paymentOccurence === "Periodic" &&
+                                            (!type || percentage === null)
+                                                ? "hidden"
+                                                : "block"
+                                        } ${
+                                            paymentOccurence === "One-time" &&
+                                            (!type || percentage === null || !dateOccurence)
                                                 ? "hidden"
                                                 : "block"
                                         } bg-yellow rounded-lg px-3 py-1 w-fit font-bold text-navyblue font-akagi cursor-pointer hover:scale-110 transition-all duration-300`}
@@ -316,7 +323,11 @@ function Settings() {
 
                                     {/*Title*/}
                                     <div className='w-full flex flex-col gap-1'>
-                                        <h1 className='md:text-2xl text-xl font-akagi font-bold tracking-wide text-blue'>Add a Revenue Deduction</h1>
+                                        <h1 className='md:text-2xl text-xl font-akagi font-bold tracking-wide text-blue'>Revenue Deductions</h1>
+
+                                        <div className='w-full grid grid-cols-[1fr_1fr_1fr_'>
+
+                                        </div>
                                     </div>
 
                                 </div>
