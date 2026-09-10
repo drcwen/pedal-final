@@ -4,9 +4,8 @@ import { useState, useEffect } from "react";
 import { RiArrowDropDownLine, RiArrowDropUpLine } from "react-icons/ri";
 import { motion, AnimatePresence } from "motion/react"
 
-function TransactionBikes({image, bikeType, price, unitId, gpsId, duration, start, end}) {
-
-
+function TransactionBikes({image, bikeType, price, unitId, gpsId, duration, start, end, extension}) {
+    
   return (
     <>
         
@@ -51,6 +50,11 @@ function TransactionBikes({image, bikeType, price, unitId, gpsId, duration, star
                     <div className='flex flex-col'>
                         <h1 className='text-sm font-akagi font-bold text-gray'>END</h1>
                         <h1 className='text-sm font-akagi font-medium text-gray'>{end}</h1>
+                    </div>
+
+                    <div className='flex flex-col'>
+                        <h1 className='text-sm font-akagi font-bold text-gray'>EXTENSION</h1>
+                        <h1 className='text-sm font-akagi font-medium text-gray'>{extension}</h1>
                     </div>
                 </div>
             </div>

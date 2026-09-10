@@ -28,6 +28,8 @@ function Settings() {
 
     const [schedule, setSchedule] = useState([]);
 
+    const [deductions, setDeductions] = useState([]);
+
     const periodicOccurenceOption = [
         "Every transaction",
         "Annually",
@@ -42,7 +44,45 @@ function Settings() {
         setPaymentOccurence(event.target.value);
     };
 
+    const handleAdd = async () => {
+        const {data, error} = await supabase
+            .from("revenue_deductions_mod")
+            .insert({
+                "type": type,
+                "calculation": percent === "%" ? "Percentage" : "Fixed Amount",
+                "value": percentage,
+                "occurence": paymentOccurence === "Periodic" ? periodicOccurence : undefined,
+                "deadline": paymentOccurence === "One-time" ? dateOccurence : undefined
+            })
+        
+        if(error) {
+            console.log(error);
+            return;
+        }
+
+        await fetchRevenueDeductions();
+
+        setType("");
+        setPercentage(null);
+        setDateOccurence(null);
+        setPercent("%");
+    }
+
+    const fetchRevenueDeductions = async () => {
+        const {data, error} = await supabase
+            .from("revenue_deductions_mod")
+            .select("*");
+        
+        if (error) {
+            console.log(error);
+            return;
+        }
+
+        setDeductions(data);
+    }
+
     useEffect(() => {
+        
         const fetchSchedule = async () => {
             const { data, error } = await supabase
                 .from("operating_hours_mod")
@@ -54,11 +94,10 @@ function Settings() {
             }
 
             setSchedule(data || []);
-            console.log(data);
         };
-        console.log("date",dateOccurence);
 
         fetchSchedule();
+        fetchRevenueDeductions();
     }, []);
 
   return (
@@ -209,14 +248,14 @@ function Settings() {
                                     <div className='w-full lg:grid lg:grid-cols-2 flex flex-col gap-3 font-akagi font-bold text-gray'>
                                         <div className='flex flex-col gap-1'>
                                             <h1>Type</h1>
-                                            <input onChange={(e) => setType(e.target.value)} type='text' className='px-2 py-1 rounded-lg border border-gray focus:outline-none'/>
+                                            <input onChange={(e) => setType(e.target.value)} value={type} type='text' className='px-2 py-1 rounded-lg border border-gray focus:outline-none'/>
 
                                         </div>
 
                                         <div className='flex flex-col gap-1'>
                                             <h1>Percentage/Amount</h1>
                                             <div className='flex flex-row gap-3'>
-                                                <input onChange={(e) => setPercentage(e.target.value)} type='number' className='w-full px-2 py-1 rounded-lg border border-gray focus:outline-none'/>
+                                                <input onChange={(e) => setPercentage(e.target.value)} value={percentage} type='number' className='w-full px-2 py-1 rounded-lg border border-gray focus:outline-none'/>
                                                 <div className='grid grid-cols-2 rounded-lg border border-blue'>
                                                     <div 
                                                         onClick={() => {setPercent("%")}}
@@ -294,6 +333,7 @@ function Settings() {
                                     </div>
 
                                     <div
+                                        onClick={handleAdd}
                                         className={`${
                                             paymentOccurence === "Periodic" &&
                                             (!type || percentage === null)
@@ -325,9 +365,35 @@ function Settings() {
                                     <div className='w-full flex flex-col gap-1'>
                                         <h1 className='md:text-2xl text-xl font-akagi font-bold tracking-wide text-blue'>Revenue Deductions</h1>
 
-                                        <div className='w-full grid grid-cols-[1fr_1fr_1fr_'>
+                                        <div className='items-center w-full grid grid-cols-[1fr_50px_1fr_1fr_1fr_20px] px-3 py-1 rounded-xl font-akagi font-bold text-gray text-center'>
+                                                <h1>Type</h1>
+                                                <h1>%</h1>
+                                                <h1>Amount</h1>
+                                                <h1>Period</h1>
+                                                <h1>Due Date</h1>
+                                                <h1></h1>
+                                            </div>
+                                        <div className='w-full rounded-xl p-2 font-akagi font-medium text-gray text-center flex flex-col gap-2'>
+                                            
+                                            {deductions.map((deduction) => (
+                                                <div className='items-center w-full grid grid-cols-[1fr_50px_1fr_1fr_1fr_20px] bg-[#ffffff] border border-gray/40 py-2 rounded-xl text-center'>
+                                                    <h1>{deduction.type}</h1>
+                                                    <h1>{deduction.calculation === "Percentage" ? deduction.value : "-"}</h1>
+                                                    <h1>{deduction.calculation === "Fixed Amount" ? "P"+deduction.value : "-"}</h1>
+                                                    <h1>
+                                                        {deduction.occurence || "-"}
+                                                    </h1>
+
+                                                    <h1>
+                                                        {deduction.deadline || "-"}
+                                                    </h1>
+                                                    <h1></h1>
+                                                </div>
+                                            ))}
+                                            
 
                                         </div>
+
                                     </div>
 
                                 </div>

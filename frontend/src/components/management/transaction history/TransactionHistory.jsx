@@ -179,10 +179,15 @@ function TransactionHistory() {
                                         )
                                         : transaction.walk_in?.[0]?.full_name;
 
+                                    const extensionData = transaction.extensions_mod?.[0];
+                                    console.log("extensionData", transaction.extensions_mod?.[0])
+
                                     return (
                                         <TransactionRow
                                             key={transaction.id}
-                                            totalBikes={transaction.orders_mod.length}
+                                            totalBikes={(transaction.type === "walk-in" || transaction.type === "reservation")
+                                                ? transaction.orders_mod.length
+                                                : (transaction.type === "change" ? "C" : "E")}
                                             transactionId={transaction.id}
                                             fullName={customerName}
                                             transactionType={transaction.type}
@@ -190,7 +195,7 @@ function TransactionHistory() {
                                             status={transaction.status}
                                             transactionData={transaction.orders_mod}
                                             transactionPayment={transaction}
-                                            extensionsData={transaction.extensions_mod}
+                                            extensionsData={extensionData}
                                             changeBikesData={transaction.change_bikes_mod}
                                         />
                                     );

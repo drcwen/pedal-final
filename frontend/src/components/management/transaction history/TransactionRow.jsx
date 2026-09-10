@@ -8,9 +8,43 @@ import { MdOutlineKeyboardArrowRight } from "react-icons/md";
 function TransactionRow({totalBikes, transactionId, fullName, transactionType, timeAdded, status, transactionData, transactionPayment, extensionsData, changeBikesData}) {
 
     const [dropDown, setDropDown] = useState(false);
+
+    function formatTimeTo12Hour(time) {
+        const [hours, minutes, seconds] = time.split(":").map(Number);
+
+        const date = new Date();
+        date.setHours(hours, minutes, seconds);
+
+        return date.toLocaleTimeString("en-PH", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+        });
+    }
+
+    function getEndTimeOnly(tstzrange) {
+        const match = tstzrange.match(/\["[^"]+","([^"]+)"\)/);
+
+        if (!match) return null;
+
+        const utcDate = new Date(
+            match[1]
+                .replace(" ", "T")
+                .replace("+00", "Z")
+        );
+
+        return utcDate.toLocaleTimeString("en-PH", {
+            timeZone: "Asia/Manila",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+        });
+    }
+
     useEffect(() => {
-    console.log(extensionsData);
-}, []);
+        console.log(extensionsData);
+    }, []);
+
 
   return (
     <>
@@ -110,8 +144,19 @@ function TransactionRow({totalBikes, transactionId, fullName, transactionType, t
                             </div>
 
                         {transactionType === "extend" && (
-                            <div className="flex flex-col gap-2">
+                            <div className="grid grid-cols-3 gap-2">
 
+                                <TransactionBikes 
+                                    image={extensionsData?.orders_mod.bikes_mod.bike_types_mod.image_url}
+                                    bikeType={extensionsData?.orders_mod.bikes_mod.bike_types_mod.name}
+                                    price={"P"+extensionsData?.orders_mod.bikes_mod.bike_types_mod.price}
+                                    unitId={extensionsData?.orders_mod.bikes_mod.code}
+                                    gpsId={"-"}
+                                    duration={extensionsData?.orders_mod.duration_hours + " hour"}
+                                    start={formatTimeTo12Hour(extensionsData?.orders_mod.start_time)}
+                                    end={getEndTimeOnly(extensionsData?.new_reservation_range)}
+                                    extension={"+" + extensionsData?.extension_duration + " hour"}
+                                    />
                             </div>
                         )}
                         

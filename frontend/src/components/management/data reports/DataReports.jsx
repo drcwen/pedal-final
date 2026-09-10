@@ -86,7 +86,7 @@ function DataReports() {
                 return;
             }
 
-            console.log(data);
+            console.log("datas", data);
 
             setDashboardData(data);
         };
@@ -518,7 +518,7 @@ function DataReports() {
 
                         </div>
 
-                        <div className='pt-10 flex flex-col gap-2'>
+                        <div className='pt-10 flex flex-col gap-4'>
                             <div className='pb-5 flex flex-row justify-between gap-5 items-center'>
 
                                 <div className="flex-1 min-w-0 overflow-x-auto whitespace-nowrap scrollbar-thin scrollbar-thumb-[#B9B9B9] scrollbar-track-transparent">
@@ -547,49 +547,50 @@ function DataReports() {
 
                                 <div className='flex flex-row cursor-pointer gap-2 rounded-lg bg-blue font-akagi font-bold text-md px-3 py-1 items-center text-[#ffffff]'>
                                     <FaPrint className='text-sm'/>
-                                    Get Excel 
+                                    Export
                                 </div>
                             </div>
-                            <div className='grid grid-cols-[70px_1fr_1fr_1fr_1fr_20px] items-center w-full h-[50px] rounded-xl p-2 bg-[#ffffff] border border-gray/50 font-akagi font-bold text-[#ffffff]'>
-                                <div className='rounded-lg bg-blue px-3 py-1 w-fit'>
-                                    1
+
+                            {/*Reservations*/}
+                            <div className='flex flex-col gap-2'>
+
+                                <h1 className='font-akagi font-bold text-gray text-xl'>Reservations</h1>
+                                <div className='grid grid-cols-[70px_100px_1fr_1fr_120px_120px_120px] items-center w-full rounded-xl p-2 bg-[#ffffff] border border-gray/50 font-akagi font-bold text-[#ffffff]'>
+                                    <div className='rounded-lg bg-blue px-3 py-1 w-fit'>
+                                        1004
+                                    </div>
+
+                                    <div className='text-gray text-center '>
+                                        10/9/26
+                                    </div>
+
+                                    <div className='text-gray text-center'>
+                                        Wendel Derraco
+                                    </div>
+
+                                    <div className='text-gray text-center'>
+                                        H1
+                                        
+                                    </div>
+
+                                    <div className='text-gray text-center'>
+                                        reservation
+                                    </div>
+
+                                    <div className='text-gray text-center'>
+                                        GCash
+                                    </div>
+
+                                    <div className='text-gray text-center'>
+                                        P380
+                                    </div>
+
                                 </div>
 
-                                <div className='text-gray text-center'>
-                                    301
-                                </div>
+                            </div>
 
-                                <div className='text-gray text-center'>
-                                    Wendel Derraco
-                                </div>
+                            
 
-                                <div className='text-gray text-center'>
-                                    reservation
-                                </div>
-
-                                <div className='text-gray text-center'>
-                                    P380
-                                </div>
-
-                                <div className='text-gray text-center'>
-                                    <RiArrowDropDownLine/>
-                                </div>
-                            </div>
-                            <div className='w-full h-[50px] rounded-xl p-2 bg-[#ffffff] border border-gray/50'>
-                            
-                            </div>
-                            <div className='w-full h-[50px] rounded-xl p-2 bg-[#ffffff] border border-gray/50'>
-                            
-                            </div>
-                            <div className='w-full h-[50px] rounded-xl p-2 bg-[#ffffff] border border-gray/50'>
-                            
-                            </div>
-                            <div className='w-full h-[50px] rounded-xl p-2 bg-[#ffffff] border border-gray/50'>
-                            
-                            </div>
-                            <div className='w-full h-[50px] rounded-xl p-2 bg-[#ffffff] border border-gray/50'>
-                            
-                            </div>
 
                         </div>
                         
