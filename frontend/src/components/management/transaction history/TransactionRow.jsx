@@ -144,7 +144,7 @@ function TransactionRow({totalBikes, transactionId, fullName, transactionType, t
                             </div>
 
                         {transactionType === "extend" && (
-                            <div className="grid grid-cols-3 gap-2">
+                            <div className="grid md:grid-cols-3 gap-2 pb-5">
 
                                 <TransactionBikes 
                                     image={extensionsData?.orders_mod.bikes_mod.bike_types_mod.image_url}

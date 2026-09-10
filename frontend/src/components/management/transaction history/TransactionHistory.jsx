@@ -14,6 +14,15 @@ function TransactionHistory() {
     const [transactionData, setTransactionData] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    function formatDate(timestamp) {
+  return new Intl.DateTimeFormat("en-PH", {
+    timeZone: "Asia/Manila",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date(timestamp));
+}
+
         useEffect(() => {
             const getTransactions = async () => {
                 setLoading(true);
@@ -42,7 +51,8 @@ function TransactionHistory() {
                                     bike_types_mod (
                                         *
                                     )
-                                )
+                                ),
+                                profiles_mod(*)
                             )
                         ),
                         change_bikes_mod (
@@ -191,7 +201,7 @@ function TransactionHistory() {
                                             transactionId={transaction.id}
                                             fullName={customerName}
                                             transactionType={transaction.type}
-                                            timeAdded={2}
+                                            timeAdded={formatDate(transaction.created_at)}
                                             status={transaction.status}
                                             transactionData={transaction.orders_mod}
                                             transactionPayment={transaction}
