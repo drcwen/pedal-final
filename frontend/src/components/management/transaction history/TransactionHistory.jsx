@@ -77,6 +77,8 @@ function TransactionHistory() {
                         ),
                         change_bikes_mod (
                             *,
+                            bikes_mod (*),
+                            bike_types_mod (*),
                             orders_mod (
                                 *,
                                 bikes_mod (

@@ -163,8 +163,21 @@ function TransactionRow({totalBikes, transactionId, fullName, transactionType, t
                         {transactionType === "change" && (
                             <div className="grid md:grid-cols-3 gap-2 pb-5">
 
-                                <div className='w-full '>
+                                <div className='w-full border shadow-md border-[#DBDBDB] p-3 rounded-lg flex flex-col gap-4 font-akagi font-bold text-gray'>
+                                    <h1>Previous Bike</h1>
 
+                                    <div className='flex flex-row justify-between'>
+                                        <div className='flex flex-row gap-3 items-center'>
+                                            <div className='items-center bg-yellow p-1 rounded-lg'>
+                                                <img 
+                                                    src={changeBikesData.bike_types_mod.image_url}
+                                                    className='w-6'
+                                                />
+                                            </div>
+
+                                            <h1 className='text-md font-akagi font-bold text-gray'>{bikeType}</h1>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         )}
