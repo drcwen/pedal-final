@@ -15,17 +15,33 @@ function TransactionHistory() {
     const [loading, setLoading] = useState(true);
 
     function formatDate(timestamp) {
-  return new Intl.DateTimeFormat("en-PH", {
-    timeZone: "Asia/Manila",
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date(timestamp));
-}
+        return new Intl.DateTimeFormat("en-PH", {
+            timeZone: "Asia/Manila",
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+        }).format(new Date(timestamp));
+        }
 
         useEffect(() => {
             const getTransactions = async () => {
+
+                if (!dates || dates.length < 2 || !dates[0] || !dates[1]) {
+                    setTransactionData([]);
+                    return;
+                }
+
                 setLoading(true);
+
+                const startDate = dates[0];
+                const endDate = dates[1];
+
+                const start = new Date(startDate);
+                start.setHours(0, 0, 0, 0);
+
+                const end = new Date(endDate);
+                end.setHours(23, 59, 59, 999);
+
                 const { data, error } = await supabase
                     .from("transactions_mod")
                     .select(`
@@ -52,18 +68,35 @@ function TransactionHistory() {
                                         *
                                     )
                                 ),
-                                profiles_mod(*)
+                                transaction:transactions_mod (
+                                    *,
+                                    profile:profiles_mod!transactions_mod_user_id_fkey1 (*),
+                                    walk_in:walk_ins_users_mod (*)
+                                )
                             )
                         ),
                         change_bikes_mod (
                             *,
-                            orders_mod (*)
+                            orders_mod (
+                                *,
+                                bikes_mod (
+                                    *,
+                                    bike_types_mod (*)
+                                ),
+                                transaction:transactions_mod (
+                                    *,
+                                    profile:profiles_mod!transactions_mod_user_id_fkey1 (*),
+                                    walk_in:walk_ins_users_mod (*)
+                                )
+                            )
                         )
-                    `);
+                    `)
+                    .gte("created_at", start.toISOString())
+                    .lte("created_at", end.toISOString())
+                    .order("created_at", { ascending: false });
 
                 if (error) {
                     console.error(error);
-                    return;
                 } else {
                     setTransactionData(data);
                 }
@@ -72,8 +105,8 @@ function TransactionHistory() {
             };
 
             getTransactions();
-            console.log(transactionData)
-        }, []);
+
+        }, [dates]);
 
         useEffect(() => {
             console.log("transactionData:", transactionData);
@@ -182,22 +215,55 @@ function TransactionHistory() {
                                 </div>
                             ) : (
                                 transactionData.map((transaction) => {
-                                    const customerName = transaction.profile
-                                        ? (
-                                            transaction.profile.full_name ??
-                                            `${transaction.profile.first_name} ${transaction.profile.last_name}`
-                                        )
-                                        : transaction.walk_in?.[0]?.full_name;
 
-                                    const extensionData = transaction.extensions_mod?.[0];
-                                    console.log("extensionData", transaction.extensions_mod?.[0])
+                                    const extensionTransaction =
+                                        transaction.type === "extend"
+                                            ? transaction.extensions_mod?.[0]?.orders_mod?.transaction
+                                            : null;
+
+                                    const changeTransaction =
+                                        transaction.type === "change"
+                                            ? transaction.change_bikes_mod?.[0]?.orders_mod?.transaction
+                                            : null;
+
+                                    const profile =
+                                        transaction.type === "extend"
+                                            ? extensionTransaction?.profile
+                                            : transaction.type === "change"
+                                                ? changeTransaction?.profile
+                                                : transaction.profile;
+
+                                    const walkIn =
+                                        transaction.type === "extend"
+                                            ? extensionTransaction?.walk_in
+                                            : transaction.type === "change"
+                                                ? changeTransaction?.walk_in
+                                                : transaction.walk_in;
+
+                                    const customerName = profile
+                                        ? (
+                                            profile.full_name ??
+                                            `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim()
+                                        )
+                                        : walkIn?.[0]?.full_name ?? "Unknown Customer";
+
+                                    const extensionData =
+                                        transaction.extensions_mod?.[0];
+
+                                    const changedBikesData =
+                                        transaction.change_bikes_mod?.[0];
 
                                     return (
                                         <TransactionRow
                                             key={transaction.id}
-                                            totalBikes={(transaction.type === "walk-in" || transaction.type === "reservation")
-                                                ? transaction.orders_mod.length
-                                                : (transaction.type === "change" ? "C" : "E")}
+                                            totalBikes={
+                                                transaction.type === "walk-in" ||
+                                                transaction.type === "reservation"
+                                                    ? transaction.orders_mod.length
+                                                    : transaction.type === "change"
+                                                        ? "C"
+                                                        : "E"
+                                            }
                                             transactionId={transaction.id}
                                             fullName={customerName}
                                             transactionType={transaction.type}
@@ -206,10 +272,12 @@ function TransactionHistory() {
                                             transactionData={transaction.orders_mod}
                                             transactionPayment={transaction}
                                             extensionsData={extensionData}
-                                            changeBikesData={transaction.change_bikes_mod}
+                                            changeBikesData={changedBikesData}
                                         />
                                     );
                                 })
+
+
                             )}
 
                         </div>

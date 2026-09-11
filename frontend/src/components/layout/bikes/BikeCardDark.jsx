@@ -34,7 +34,6 @@ function BikeCardDark({ bike, reservationData }) {
               <h1 className='text-sm font-bold font-akagi text-navyblue'>{bike.available_bikes} units</h1>
             </div>
           </div>
-d
         </div>
 
         <motion.button

@@ -159,6 +159,15 @@ function TransactionRow({totalBikes, transactionId, fullName, transactionType, t
                                     />
                             </div>
                         )}
+
+                        {transactionType === "change" && (
+                            <div className="grid md:grid-cols-3 gap-2 pb-5">
+
+                                <div className='w-full '>
+
+                                </div>
+                            </div>
+                        )}
                         
                     </motion.div>   
                 }
