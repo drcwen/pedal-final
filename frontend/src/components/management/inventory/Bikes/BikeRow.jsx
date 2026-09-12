@@ -7,7 +7,7 @@ import { FaPlus } from "react-icons/fa";
 import { RiImageAddFill } from "react-icons/ri";
 import { supabase } from "../../../../lib/supabase"
 
-function BikeRow({bikeType, capacity, price, image, bikes, bikeTypeId}) {
+function BikeRow({bikeType, capacity, price, image, bikes, bikeTypeId, setBikeEdit, setFetchBikeCode, setFetchBikeStatus, setEditBikeType, setEditBikeImage}) {
 
     const [dropDown, setDropDown] = useState(false);
     const [addBike, setAddBike] = useState(false);
@@ -80,7 +80,9 @@ function BikeRow({bikeType, capacity, price, image, bikes, bikeTypeId}) {
                     <h1 className='hidden md:block'>{price}</h1>
 
                     <div className={`w-full flex flex-row justify-center items-center`}>
-                        <div className={`bg-blue flex flex-row gap-2 px-5 py-1 rounded-lg items-center cursor-pointer ${dropDown === true ? 'block' : 'hidden'}`}>
+                        <div 
+                            onClick={() => {setEditBikeType(true), setEditBikeImage(image)}}
+                            className={`bg-blue flex flex-row gap-2 px-5 py-1 rounded-lg items-center cursor-pointer ${dropDown === true ? 'block' : 'hidden'}`}>
                             <MdModeEditOutline className='text-md text-[#ffffff]'/>
                             <h1 className='text-[#ffffff] text-md'>Edit</h1>
                         </div>
@@ -172,6 +174,9 @@ function BikeRow({bikeType, capacity, price, image, bikes, bikeTypeId}) {
                                                     key={bike.id}
                                                     bikeCode={bike.code}
                                                     status={bike.status}
+                                                    setBikeEdit={setBikeEdit}
+                                                    setFetchBikeCode={setFetchBikeCode}
+                                                    setFetchBikeStatus={setFetchBikeStatus}
                                                 />
                                             ))
                                         }
