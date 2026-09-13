@@ -7,7 +7,7 @@ import { FaPlus } from "react-icons/fa";
 import { RiImageAddFill } from "react-icons/ri";
 import { supabase } from "../../../../lib/supabase"
 
-function BikeRow({bikeType, capacity, price, image, bikes, bikeTypeId, setBikeEdit, setFetchBikeCode, setFetchBikeStatus, setEditBikeType, setEditBikeImage}) {
+function BikeRow({bikeType, capacity, price, image, bikes, bikeTypeId, setBikeEdit, setFetchBikeCode, setFetchBikeStatus, setEditBikeType, setEditBikeImage, setBikeType, setPrice, setEditBikeTypeId, setBikeCapacity}) {
 
     const [dropDown, setDropDown] = useState(false);
     const [addBike, setAddBike] = useState(false);
@@ -81,7 +81,7 @@ function BikeRow({bikeType, capacity, price, image, bikes, bikeTypeId, setBikeEd
 
                     <div className={`w-full flex flex-row justify-center items-center`}>
                         <div 
-                            onClick={() => {setEditBikeType(true), setEditBikeImage(image)}}
+                            onClick={() => {setEditBikeType(true), setEditBikeImage(image), setBikeType(bikeType), setPrice(price), setBikeCapacity(capacity), setEditBikeTypeId(bikeTypeId)}}
                             className={`bg-blue flex flex-row gap-2 px-5 py-1 rounded-lg items-center cursor-pointer ${dropDown === true ? 'block' : 'hidden'}`}>
                             <MdModeEditOutline className='text-md text-[#ffffff]'/>
                             <h1 className='text-[#ffffff] text-md'>Edit</h1>

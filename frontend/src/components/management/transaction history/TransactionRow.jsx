@@ -175,7 +175,7 @@ function TransactionRow({totalBikes, transactionId, fullName, transactionType, t
                                                 />
                                             </div>
 
-                                            <h1 className='text-md font-akagi font-bold text-gray'>{bikeType}</h1>
+                                            <h1 className='text-md font-akagi font-bold text-gray'></h1>
                                         </div>
                                     </div>
                                 </div>

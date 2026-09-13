@@ -5,7 +5,7 @@ import DropDown from "./DropDown"
 import { IoIosWarning } from "react-icons/io";
 
 
-function AssignChangeBikes({beforeType, changedType, setConfirmChange, changedImage, gpsAssigned, transaction, orderId, toPay, payment, method, bikeTypeId, bikeId, changedBikeTypeId}) {
+function AssignChangeBikes({beforeType, changedType, setConfirmChange, changedImage, gpsAssigned, transaction, orderId, referenceNo, toPay, payment, method, bikeTypeId, bikeId, changedBikeTypeId}) {
 
     const [bikes, setBikes] = useState([]);
     const [gps, setGps] = useState([]);
@@ -69,6 +69,7 @@ function AssignChangeBikes({beforeType, changedType, setConfirmChange, changedIm
                     amount_paid: payment,
                     status: "completed",
                     type: "change",
+                    reference_number: referenceNo,
                     assisted_by: user.id
                 })
                 .select("id")

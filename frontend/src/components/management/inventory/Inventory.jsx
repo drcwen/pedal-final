@@ -39,19 +39,115 @@
         //Edit bike type details
         const [editBikeType, setEditBikeType] = useState(false);
         const [editBikeImage, setEditBikeImage] = useState(null);
+        const [editBikeImageFile, setEditBikeImageFile] = useState(null);
+        const [editBikeTypeId, setEditBikeTypeId] = useState(null);
+
+        const [bikeType, setBikeType] = useState("");
+        const [price, setPrice] = useState("");
+        const [bikeCapacity, setBikeCapacity] = useState("");
+
+        const [editLoading, setEditLoading] = useState(false);
+
+        const handleEditBikeImage = (e) => {
+            const file = e.target.files[0];
+
+            if (!file) return;
+
+            setEditBikeImageFile(file);
+
+            const previewUrl = URL.createObjectURL(file);
+            setEditBikeImage(previewUrl);
+        };
+
+        const handleEditBikeTypeSubmit = async () => {
+
+            console.log("EDIT SUBMIT CLICKED");
+            console.log("ID:", editBikeTypeId);
+            console.log("Bike Type:", bikeType);
+            console.log("Capacity:", bikeCapacity);
+            console.log("Price:", price);
+            console.log("Image File:", editBikeImageFile);
+
+            if (!editBikeTypeId) {
+                console.error("NO BIKE TYPE ID");
+                return;
+            }
+
+            setEditLoading(true);
+
+            try {
+
+                let imageUrl = editBikeImage;
+
+                // Only upload if a new image was selected
+                if (editBikeImageFile) {
+
+                    console.log("Uploading new image...");
+
+                    imageUrl = await uploadImage(editBikeImageFile);
+
+                    console.log("New image URL:", imageUrl);
+
+                    if (!imageUrl) {
+                        console.error("IMAGE UPLOAD FAILED");
+                        return;
+                    }
+                }
+
+                console.log("Updating Supabase...");
+
+                const { data, error } = await supabase
+                    .from("bike_types_mod")
+                    .update({
+                        name: bikeType,
+                        capacity: Number(bikeCapacity),
+                        price: Number(price),
+                        image_url: imageUrl
+                    })
+                    .eq("id", editBikeTypeId)
+                    .select();
+
+                if (error) {
+                    console.error("SUPABASE UPDATE ERROR:", error);
+                    return;
+                }
+
+                console.log("UPDATED DATA:", data);
+
+                await fetchBikes();
+
+                setEditBikeType(false);
+
+                setEditBikeImage(null);
+                setEditBikeImageFile(null);
+                setEditBikeTypeId(null);
+
+                setBikeType("");
+                setBikeCapacity("");
+                setPrice("");
+
+            } catch (error) {
+
+                console.error("EDIT BIKE TYPE ERROR:", error);
+
+            } finally {
+
+                setEditLoading(false);
+
+            }
+        };
 
         const uploadImage = async (file) => {
+
             if (!file) return null;
 
             const formData = new FormData();
 
             formData.append("file", file);
-            formData.append(
-                "upload_preset",
-                "bike_type_upload"
-            );
+            formData.append("upload_preset", "bike_type_upload");
 
             try {
+
                 const response = await fetch(
                     `https://api.cloudinary.com/v1_1/dp3vkgxtb/image/upload`,
                     {
@@ -63,15 +159,17 @@
                 const data = await response.json();
 
                 if (!response.ok) {
-                    console.error(data);
+                    console.error("Cloudinary response:", data);
                     throw new Error("Image upload failed");
                 }
 
                 return data.secure_url;
 
             } catch (error) {
+
                 console.error("Cloudinary error:", error);
                 return null;
+
             }
         };
 
@@ -324,6 +422,10 @@
                                                     setFetchBikeStatus={setFetchBikeStatus}
                                                     setEditBikeType={setEditBikeType}
                                                     setEditBikeImage={setEditBikeImage}
+                                                    setBikeType={setBikeType}
+                                                    setPrice={setPrice}
+                                                    setBikeCapacity={setBikeCapacity}
+                                                    setEditBikeTypeId={setEditBikeTypeId}                                                    
                                                 />
                                             ))}
                                         </div>
@@ -573,8 +675,61 @@
 
                             {editBikeType &&
                                 <div className='fixed inset-0 bg-black/60 z-50 flex items-center justify-center px-5'>
-                                    <div className='bg-[#ffffff] w-100 rounded-xl flex flex-col md:flex-row gap-5 p-5 font-akagi font-bold text-gray'>
-                                        <img src={editBikeImage}></img>
+                                    <div className='bg-[#ffffff] rounded-xl flex flex-col gap-5 p-5 font-akagi font-bold text-gray'>
+                                        <div className='flex flex-row gap-4 items-center'>
+                                            <div className='flex flex-col gap-2'>
+                                                <div className='flex flex-col gap-2'>
+
+                                                    <label
+                                                        htmlFor="edit-bike-image"
+                                                        className='cursor-pointer'
+                                                    >
+                                                        <img
+                                                            src={editBikeImage}
+                                                            className='border border-gray/50 bg-gray/20 p-2 rounded-xl w-70 h-40 object-contain hover:opacity-70 transition-all duration-300'
+                                                        />
+                                                    </label>
+
+                                                    <input
+                                                        id="edit-bike-image"
+                                                        type="file"
+                                                        accept="image/png,image/jpeg,image/jpg"
+                                                        onChange={handleEditBikeImage}
+                                                        className="hidden"
+                                                    />
+
+                                                    <div className='flex justify-center'>
+                                                        <label
+                                                            htmlFor="edit-bike-image"
+                                                            className='font-medium text-sm hover:underline cursor-pointer'
+                                                        >
+                                                            Change photo
+                                                        </label>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+
+                                            <div className='w-full flex flex-col gap-2'>
+
+                                                <div className='flex flex-col gap-1'>
+                                                    <h1 className='text-black/60'>Edit Bike Type</h1>
+                                                    <input value={bikeType} onChange={(e) => setBikeType(e.target.value)} className='focus:outline-none bg-gray/20 rounded-md px-2 py-1 text-black/60 font-medium'/>
+                                                </div>
+
+                                                <div className='flex flex-col gap-1'>
+                                                    <h1 className='text-black/60'>Edit Capacity</h1>
+                                                    <input value={bikeCapacity} onChange={(e) => setBikeCapacity(e.target.value)} className='focus:outline-none bg-gray/20 rounded-md px-2 py-1 text-black/60 font-medium'/>
+                                                </div>
+
+                                                <div className='flex flex-col gap-1'>
+                                                    <h1 className='text-black/60'>Edit Rent Price per Hour</h1>
+                                                    <input type='number' value={price} onChange={(e) => setPrice(e.target.value)} className='focus:outline-none bg-gray/20 rounded-md px-2 py-1 text-black/60 font-medium'/>
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                        
 
                                         <div  className='pt-5 flex flex-row justify-between font-akagi font-bold text-gray'>
                                             <div 
@@ -583,8 +738,22 @@
                                                 Back
                                             </div>
 
-                                            <div className='rounded-lg bg-green-400 text-[#ffffff] px-2 py-0.5 cursor-pointer'>
-                                                Submit
+                                            <div
+                                                onClick={!editLoading ? handleEditBikeTypeSubmit : undefined}
+                                                className={`
+                                                    rounded-lg px-3 py-1 text-[#ffffff]
+                                                    transition-all duration-300
+                                                    flex items-center justify-center
+                                                    min-w-[70px]
+
+                                                    ${
+                                                        editLoading
+                                                            ? "bg-gray-400 cursor-not-allowed"
+                                                            : "bg-green-400 hover:bg-green-500 cursor-pointer"
+                                                    }
+                                                `}
+                                            >
+                                                {editLoading ? "Saving..." : "Submit"}
                                             </div>
                                         </div>
                                     </div>

@@ -469,7 +469,7 @@ function WalkInRent() {
                                                 className="px-5 py-2 rounded-full bg-blue cursor-pointer hover:scale-105 transition-all duration-300"
                                             >
                                                 <h1 className="font-akagi font-bold text-white text-md">
-                                                    Simulate Payment
+                                                    Pay
                                                 </h1>
                                             </div>
 

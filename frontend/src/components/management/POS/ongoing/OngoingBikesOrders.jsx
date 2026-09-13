@@ -336,6 +336,7 @@ function OngoingBikesOrders({ bikeTypeId, orderId, bikeCode, bikeId, gpsId, gpsC
                             <div 
                                 onClick={() => {setChangeOrder({
                                     bikeTypeId,
+                                    bikeCode,
                                     orderId,
                                     image,
                                     type,
