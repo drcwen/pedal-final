@@ -154,6 +154,7 @@ function Maintenance( {setMaintenance }) {
                                     setSettle={setSettle}
                                     settle={settle}
                                     maintenanceId={info.id}
+                                    assistedBy={info.transactions_mod?.assisted_by}
                                 />
                             ))
                         )}

@@ -7,13 +7,14 @@ import { FaPlus } from "react-icons/fa";
 import { RiImageAddFill } from "react-icons/ri";
 import { supabase } from "../../../../lib/supabase"
 
-function BikeRow({bikeType, capacity, price, image, bikes, bikeTypeId, setBikeEdit, setFetchBikeCode, setFetchBikeStatus, setEditBikeType, setEditBikeImage, setBikeType, setPrice, setEditBikeTypeId, setBikeCapacity}) {
+function BikeRow({bikeType, capacity, price, image, bikes, bikeTypeId, setBikeEdit, setBikeTypes, setFetchBikeCode, setFetchBikeStatus, setEditBikeType, setEditBikeImage, setBikeType, setPrice, setEditBikeTypeId, setBikeCapacity}) {
 
     const [dropDown, setDropDown] = useState(false);
     const [addBike, setAddBike] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
     const [bikeId, setBikeId] = useState("");
+    const [bikeIdError, setBikeIdError] = useState("");
 
     const totalBikes = bikes.length;
     
@@ -34,32 +35,77 @@ function BikeRow({bikeType, capacity, price, image, bikes, bikeTypeId, setBikeEd
     ).length;
 
     const handleNewBikeSubmit = async () => {
-        if (!bikeId) return; // Prevent empty submissions
-    
-        setIsLoading(true); 
+        const trimmedBikeId = bikeId.trim();
+
+        if (!trimmedBikeId) {
+            setBikeIdError("Bike ID is required.");
+            return;
+        }
+
+        setBikeIdError("");
+        setIsLoading(true);
 
         try {
-            const { data, error } = await supabase
+            const { data: existingBike, error: checkError } = await supabase
+                .from("bikes_mod")
+                .select("id, code")
+                .ilike("code", trimmedBikeId)
+                .maybeSingle();
+
+            if (checkError) {
+                console.error("Error checking bike ID:", checkError);
+                setBikeIdError("Unable to validate Bike ID. Please try again.");
+                return;
+            }
+
+            if (existingBike) {
+                setBikeIdError(`Bike ID "${trimmedBikeId}" already exists.`);
+                return;
+            }
+
+            const { data: newBike, error } = await supabase
                 .from("bikes_mod")
                 .insert({
-                    code: bikeId,
+                    code: trimmedBikeId,
                     bike_type_id: bikeTypeId,
                     status: "Available"
-                });
+                })
+                .select()
+                .single();
 
             if (error) {
                 console.error("Error adding bike:", error);
 
-            } else {
-                setAddBike(false); 
-                setBikeId("");
+                if (error.code === "23505") {
+                    setBikeIdError(`Bike ID "${trimmedBikeId}" already exists.`);
+                } else {
+                    setBikeIdError("Failed to add bike. Please try again.");
+                }
 
+                return;
             }
+
+            // Update the correct bike type in Inventory state
+            setBikeTypes(prevBikeTypes =>
+                prevBikeTypes.map(type =>
+                    type.id === bikeTypeId
+                        ? {
+                            ...type,
+                            bikes_mod: [...(type.bikes_mod || []), newBike]
+                        }
+                        : type
+                )
+            );
+
+            // Close modal
+            setAddBike(false);
+            setBikeId("");
+            setBikeIdError("");
+
         } finally {
-            setIsLoading(false); 
-            window.location.reload();
+            setIsLoading(false);
         }
-    }
+    };
 
 
   return (
@@ -213,11 +259,26 @@ function BikeRow({bikeType, capacity, price, image, bikes, bikeTypeId, setBikeEd
                                 <h1 className='hidden md:block text-xl text-blue'>Add Bike</h1>
                                 <div className='flex flex-col gap-1'>
                                     <h1>Add Bike ID</h1>
-                                    <input 
+
+                                    <input
                                         value={bikeId}
-                                        onChange={(e) => setBikeId(e.target.value)}
-                                        className='focus:outline-none font-medium bg-[#EBEBEB] text-[#505050]/50 rounded-lg py-1 px-2'
-                                        placeholder='Enter bike type name'/>
+                                        onChange={(e) => {
+                                            setBikeId(e.target.value);
+                                            setBikeIdError("");
+                                        }}
+                                        className={`focus:outline-none font-medium bg-[#EBEBEB] rounded-lg py-1 px-2 border ${
+                                            bikeIdError
+                                                ? 'border-red-500'
+                                                : 'border-transparent'
+                                        }`}
+                                        placeholder='Enter bike ID'
+                                    />
+
+                                    {bikeIdError && (
+                                        <p className='text-red-500 text-sm font-medium'>
+                                            {bikeIdError}
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div className='w-full flex flex-row gap-2 justify-end'>

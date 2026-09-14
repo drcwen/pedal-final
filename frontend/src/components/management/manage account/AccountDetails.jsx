@@ -8,10 +8,22 @@ import { MdOutlineAccountCircle } from "react-icons/md";
 import { RiEdit2Line } from "react-icons/ri";
 import { IoPersonSharp } from "react-icons/io5";
 import { MdWork } from "react-icons/md";
+import { RiArrowDropDownLine } from "react-icons/ri";
 
-function AccountDetails({ fullName, role, email, contact, id, branch }) {
+function AccountDetails({ fullName, role, email, contact, id, branch, firstName, lastName, username }) {
 
     const navigate = useNavigate();
+
+    const [edit, setEdit] = useState(false);
+    const [editUsername, setEditUsername] = useState(username);
+    const [editEmail, setEditEmail] = useState(email);
+    const [editFirstName, setEditFirstName] = useState(firstName);
+    const [editLastName, setEditLastName] = useState(lastName);
+    const [editRole, setEditRole] = useState(role);
+    const [editContact, setEditContact] = useState(contact);
+    const [editBranch, setEditBranch] = useState(branch);
+
+    const [roleDropDown, setRoleDropDown] = useState(false);
 
   return (
     <>
@@ -32,10 +44,12 @@ function AccountDetails({ fullName, role, email, contact, id, branch }) {
                 
                 <div className='flex flex-col bg-[#ffffff] w-full h-full rounded-xl md:p-10 px-3 py-7 gap-6 overflow-y-scroll scrollbar-thin scrollbar-thumb-[#B9B9B9] scrollbar-track-[#E2E2E2]'>
                         
-                    <IoChevronBack 
+                    <div
                         onClick={() => navigate("/accounts")}
-                        className='text-3xl text-gray cursor-pointer'
-                    />
+                        className="w-fit flex items-center cursor-pointer"
+                    >
+                        <IoChevronBack className="text-3xl text-gray hover:text-[#148BB8] transition-colors" />
+                    </div>
 
                     <div className='hidden md:flex md:flex-row md:justify-between md:items-center'>
                         <div className='flex flex-row gap-5 items-center'>
@@ -59,9 +73,24 @@ function AccountDetails({ fullName, role, email, contact, id, branch }) {
                             </div>
                         </div>
 
-                        <div className='flex flex-row gap-3 px-3 py-2 border-2 border-blue font-akagi font-bold text-[#148BB8] md:text-xl text-lg rounded-xl'>
+                        <div 
+                            onClick={() => {
+                                if (edit) {
+                                    setEditFirstName(firstName);
+                                    setEditLastName(lastName);
+                                    setEditRole(role);
+                                    setEditEmail(email);
+                                    setEditContact(contact);
+                                    setEditUsername(username);
+
+                                    setEdit(false);
+                                } else {
+                                    setEdit(true);
+                                }
+                            }}
+                            className='cursor-pointer flex flex-row gap-3 px-3 py-2 border-2 border-blue font-akagi font-bold text-[#148BB8] md:text-xl text-lg rounded-xl'>
                             <RiEdit2Line className='md:text-2xl text-lg'/>
-                            Edit Profile
+                                {!edit ? <h1>Edit Profile</h1> : <h1>Cancel</h1>}
                         </div>
                     </div>
 
@@ -75,19 +104,62 @@ function AccountDetails({ fullName, role, email, contact, id, branch }) {
                         </div>
 
                         <div className='flex flex-col md:grid md:grid-cols-2 gap-3 font-akagi text-sm md:text-lg text-[#505050]'>
+
+                            <div className='flex flex-col'>
+                                <h1 className='font-medium'>First Name</h1>
+                                {!edit ? 
+                                    <h1 className='font-bold'>{editFirstName}</h1> 
+                                    : 
+                                    <input 
+                                        value={editFirstName}
+                                        onChange={(e) => {setEditFirstName(e.target.value)}}
+                                        className='bg-gray/20 font-bold focus:outline-none px-3 py-1 rounded-lg border border-gray'/>
+                                }
+        
+                            </div>
+
+                            <div className='flex flex-col'>
+                                <h1 className='font-medium'>Last Name</h1>
+                                {!edit ? 
+                                    <h1 className='font-bold'>{editLastName}</h1> 
+                                    : 
+                                    <input 
+                                        value={editLastName}
+                                        onChange={(e) => {setEditLastName(e.target.value)}}
+                                        className='bg-gray/20 font-bold focus:outline-none px-3 py-1 rounded-lg border border-gray'/>
+                                }
+        
+                            </div>
+
                             <div className='flex flex-col'>
                                 <h1 className='font-medium'>Username</h1>
-                                <h1 className='font-bold'>{fullName}</h1>
+                                {!edit ? 
+                                    <h1 className='font-bold'>{editUsername}</h1> 
+                                    : 
+                                    <input 
+                                        value={editUsername}
+                                        onChange={(e) => {setEditUsername(e.target.value)}}
+                                        className='bg-gray/20 font-bold focus:outline-none px-3 py-1 rounded-lg border border-gray'/>
+                                }
+        
                             </div>
 
                             <div className='flex flex-col'>
                                 <h1 className='font-medium'>Email Address</h1>
-                                <h1 className='font-bold'>{email}</h1>
+                                <h1 className='font-bold'>{editEmail}</h1> 
+                                    
                             </div>
 
                             <div className='flex flex-col'>
                                 <h1 className='font-medium'>Contact Number</h1>
-                                <h1 className='font-bold'>{contact}</h1>
+                                {!edit ? 
+                                    <h1 className='font-bold'>{editContact}</h1> 
+                                    : 
+                                    <input 
+                                        value={editContact}
+                                        onChange={(e) => {setEditContact(e.target.value)}}
+                                        className='bg-gray/20 font-bold focus:outline-none px-3 py-1 rounded-lg border border-gray'/>
+                                }
                             </div>
 
                             <div className='flex flex-col'>
@@ -95,10 +167,6 @@ function AccountDetails({ fullName, role, email, contact, id, branch }) {
                                 <h1 className='font-bold'>{id}</h1>
                             </div>
 
-                            <div className='flex flex-col'>
-                                <h1 className='font-medium'>Date Hired</h1>
-                                <h1 className='font-bold'>March 13, 2026</h1>
-                            </div>
                         </div>
                     </div>
 
@@ -114,9 +182,39 @@ function AccountDetails({ fullName, role, email, contact, id, branch }) {
                         <div className='flex flex-col gap-3 font-akagi text-sm md:text-lg text-[#505050]'>
                             <div className='flex flex-col'>
                                 <h1 className='font-medium'>Position</h1>
-                                <div className='w-fit border border-[#505050]/30 rounded-lg px-2 py-1'>
-                                    <h1 className='font-bold first-letter:uppercase'>{role}</h1>
-                                </div>
+                                    <div className={`w-fit ${edit ? undefined : "border border-[#505050]/30"} rounded-lg ${!edit ? "px-2 py-1" : undefined}`}>
+                                        {!edit ? 
+                                            <h1 className='font-bold first-letter:uppercase'>{editRole}</h1> 
+                                            : 
+                                            <div 
+                                                onClick={() => {setRoleDropDown(!roleDropDown)}}
+                                                className='relative cursor-pointer w-80 rounded-lg border border-gray bg-gray/30 px-3 py-1 flex justify-between items-center font-bold'>
+                                                <h1 className='first-letter:uppercase'>{editRole}</h1>
+                                                <RiArrowDropDownLine className='text-xl'/>
+
+                                                {roleDropDown ? 
+                                                    <div className='absolute top-full left-0 w-full bg-white rounded-lg border border-[#9E9E9E] z-50 mt-1 '>
+                                                        <div 
+                                                            onClick={() => {setEditRole("Cashier")}}
+                                                            className='px-3 py-1 hover:bg-gray/70 hover:text-[#ffffff] rounded-md'>
+                                                            Cashier
+                                                        </div>
+
+                                                        <div 
+                                                            onClick={() => {setEditRole("Admin")}}
+                                                            className='px-3 py-1 hover:bg-gray/70 hover:text-[#ffffff] rounded-md'>
+                                                            Admin
+                                                        </div>
+                                                    </div> : undefined}
+
+                                                {/*<input 
+                                                value={editRole}
+                                                onChange={(e) => {setEditRole(e.target.value)}}
+                                                className='bg-gray/20 font-bold focus:outline-none px-3 py-1 rounded-lg border border-gray'/>*/}
+                                            </div>
+                                            
+                                        }
+                                    </div>
                                 
                             </div>
 

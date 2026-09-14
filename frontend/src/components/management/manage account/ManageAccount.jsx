@@ -127,6 +127,8 @@ function ManageAccount() {
                                             onClick={() => navigate(`/accounts/${cashier.id}`)}
                                             key={cashier.id}
                                             fullName={cashier.first_name + " " + cashier.last_name}
+                                            firstName={cashier.first_name}
+                                            lastName={cashier.last_name}
                                         />
                                     ))}
                                     
@@ -149,6 +151,8 @@ function ManageAccount() {
                                             onClick={() => navigate(`/accounts/${admin.id}`)}
                                             key={admin.id}
                                             fullName={admin.first_name + " " + admin.last_name}
+                                            firstName={admin.first_name}
+                                            lastName={admin.last_name}
                                         />
                                     ))}
                                     

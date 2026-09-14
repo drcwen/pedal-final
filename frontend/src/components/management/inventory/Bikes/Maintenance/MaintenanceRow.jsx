@@ -15,10 +15,12 @@ function MaintenanceRow({
     setSettle,
     settle,
     bikeCode,
-    maintenanceId
+    maintenanceId,
+    assistedBy
 }) {
 
     console.log(bikeCode)
+    console.log(assistedBy)
 
     const [dropDown, setDropDown] = useState(false);
     const [statusDropDown, setStatusDropDown] = useState(false);

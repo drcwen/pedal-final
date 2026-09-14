@@ -26,15 +26,24 @@
         // Add Bike Type Variables
         const [loading, setLoading] = useState(false);
         const [image, setImage] = useState(null);
-        const [newBikeType, setNewBikeType] = useState(null);
-        const [capacity, setCapacity] = useState(null);
-        const [pricePerHour, setPricePerHour] = useState(null);
+        const [newBikeType, setNewBikeType] = useState("");
+        const [capacity, setCapacity] = useState("");
+        const [pricePerHour, setPricePerHour] = useState("");
 
         //Edit status of each bikes
         const [bikeEdit, setBikeEdit] = useState(false);
         const [fetchBikeCode, setFetchBikeCode] = useState(null);
         const [fetchBikeStatus, setFetchBikeStatus] = useState(false);
         const [dropDown, setDropDown] = useState(false);
+
+        const [bikeError, setBikeError] = useState("");
+        const [gpsError, setGpsError] = useState("");
+
+        //Adding new GPS
+        const [gpsName, setGpsName] = useState("");
+        const [simNumber, setSimNumber] = useState("");
+        const [confirmAddGps, setConfirmAddGps] = useState(false);
+        const [gpsLoading, setGpsLoading] = useState(false);
 
         //Edit bike type details
         const [editBikeType, setEditBikeType] = useState(false);
@@ -193,29 +202,195 @@
             }
         };
 
+        const fetchGPS = async () => {
+            const {data, error} = await supabase
+                .from("gps_mod")
+                .select(`*`);
+
+            if(!error) {
+                setGPS(data || []);
+            }
+
+            console.log(data);
+        }
+
+        const handleGpsAdd = async () => {
+
+            setGpsLoading(true);
+            setGpsError("");
+
+            // Basic validation
+            if (!gpsName.trim()) {
+                setGpsError("Please enter a GPS name.");
+                setGpsLoading(false);
+                return;
+            }
+
+            if (!simNumber.trim()) {
+                setGpsError("Please enter a SIM number.");
+                setGpsLoading(false);
+                return;
+            }
+
+            try {
+
+                // Check GPS name
+                const { data: existingGpsName, error: gpsNameError } = await supabase
+                    .from("gps_mod")
+                    .select("id, code")
+                    .ilike("code", gpsName.trim());
+
+                if (gpsNameError) {
+                    console.error("Error checking GPS name:", gpsNameError);
+                    setGpsError("Unable to check GPS name.");
+                    return;
+                }
+
+                if (existingGpsName && existingGpsName.length > 0) {
+                    setGpsError("This GPS name already exists.");
+                    return;
+                }
+
+
+                // Check SIM number
+                const { data: existingSim, error: simError } = await supabase
+                    .from("gps_mod")
+                    .select("id, sim_number")
+                    .eq("sim_number", simNumber.trim());
+
+                if (simError) {
+                    console.error("Error checking SIM number:", simError);
+                    setGpsError("Unable to check SIM number.");
+                    return;
+                }
+
+                if (existingSim && existingSim.length > 0) {
+                    setGpsError("This SIM number is already registered.");
+                    return;
+                }
+
+
+                // Insert GPS
+                const { data, error } = await supabase
+                    .from("gps_mod")
+                    .insert({
+                        code: gpsName.trim(),
+                        sim_number: simNumber.trim(),
+                        status: "Available",
+                        battery_life: "0"
+                    })
+                    .select();
+
+                if (error) {
+                    console.error("Error creating GPS:", error);
+
+                    if (error.code === "23505") {
+                        setGpsError("GPS name or SIM number already exists.");
+                    } else {
+                        setGpsError("Failed to add GPS.");
+                    }
+
+                    return;
+                }
+
+                console.log("GPS created:", data);
+
+                await fetchGPS();
+
+                // Close confirmation modal
+                setConfirmAddGps(false);
+
+                // Reset values
+                setGpsName("");
+                setSimNumber("");
+
+            } catch (error) {
+
+                console.error("Submit error:", error);
+                setGpsError("Something went wrong. Please try again.");
+
+            } finally {
+                setGpsLoading(false);
+            }
+        };
+
+        const handleGpsConfirmation = () => {
+
+            setGpsError("");
+
+            if (!gpsName.trim()) {
+                setGpsError("Please enter a GPS name.");
+                return;
+            }
+
+            if (!simNumber.trim()) {
+                setGpsError("Please enter a SIM number.");
+                return;
+            }
+
+            setAddGPS(false);
+            setConfirmAddGps(true);
+        };
+
         const handleSubmit = async () => {
-            if (!image) {
-                console.log("No image selected");
+
+            setBikeError("");
+
+            if (!newBikeType.trim()) {
+                setBikeError("Please enter a bike type name.");
+                return;
+            }
+
+            if (!capacity) {
+                setBikeError("Please enter the maximum capacity.");
+                return;
+            }
+
+            if (!pricePerHour) {
+                setBikeError("Please enter the rent price.");
                 return;
             }
 
             setLoading(true);
 
             try {
+
+                // Check if bike type already exists
+                const { data: existingBike, error: checkError } = await supabase
+                    .from("bike_types_mod")
+                    .select("id, name")
+                    .ilike("name", newBikeType.trim());
+
+                if (checkError) {
+                    console.error("Error checking bike type:", checkError);
+                    setBikeError("Unable to check bike type. Please try again.");
+                    return;
+                }
+
+                if (existingBike && existingBike.length > 0) {
+                    setBikeError("This bike type already exists.");
+                    return;
+                }
+
+                if (!image) {
+                    setBikeError("Please select an image.");
+                    return;
+                }
+
                 const imageUrl = await uploadImage(image);
 
                 if (!imageUrl) {
-                    console.log("Image upload failed");
+                    setBikeError("Image upload failed.");
                     return;
                 }
 
                 const { data, error } = await supabase
                     .from("bike_types_mod")
                     .insert({
-                        name: newBikeType,
+                        name: newBikeType.trim(),
                         image_url: imageUrl,
-                        price: pricePerHour,
-                        capacity: capacity,
+                        price: Number(pricePerHour),
+                        capacity: Number(capacity),
                         is_for_kids: false,
                         is_solo: false
                     })
@@ -223,6 +398,13 @@
 
                 if (error) {
                     console.error("Error creating bike:", error);
+
+                    if (error.code === "23505") {
+                        setBikeError("This bike type already exists.");
+                    } else {
+                        setBikeError("Failed to create bike type.");
+                    }
+
                     return;
                 }
 
@@ -238,7 +420,9 @@
                 setPricePerHour("");
 
             } catch (error) {
+
                 console.error("Submit error:", error);
+                setBikeError("Something went wrong. Please try again.");
 
             } finally {
                 setLoading(false);
@@ -246,18 +430,6 @@
         };
 
         useEffect(() => {
-            
-            const fetchGPS = async () => {
-                const {data, error} = await supabase
-                    .from("gps_mod")
-                    .select(`*`);
-
-                if(!error) {
-                    setGPS(data || []);
-                }
-
-                console.log(data);
-            }
 
             fetchBikes();
             fetchGPS();
@@ -425,7 +597,8 @@
                                                     setBikeType={setBikeType}
                                                     setPrice={setPrice}
                                                     setBikeCapacity={setBikeCapacity}
-                                                    setEditBikeTypeId={setEditBikeTypeId}                                                    
+                                                    setEditBikeTypeId={setEditBikeTypeId}       
+                                                    setBikeTypes={setBikeTypes}                                             
                                                 />
                                             ))}
                                         </div>
@@ -442,6 +615,8 @@
                                             <div className='flex flex-col gap-1'>
                                                 <h1>New GPS Name</h1>
                                                 <input 
+                                                    value={gpsName}
+                                                    onChange={(e) => setGpsName(e.target.value)}
                                                     className='focus:outline-none font-medium bg-[#EBEBEB] text-[#505050]/50 rounded-lg py-1 px-2'
                                                     placeholder='Enter bike type name'/>
                                             </div>
@@ -449,16 +624,10 @@
                                             <div className='flex flex-col gap-1'>
                                                 <h1>New SIM Number</h1>
                                                 <input 
+                                                    value={simNumber}
+                                                    onChange={(e) => setSimNumber(e.target.value)}
                                                     className='focus:outline-none font-medium bg-[#EBEBEB] text-[#505050]/50 rounded-lg py-1 px-2'
                                                     placeholder='Enter bike type name'/>
-                                            </div>
-
-                                            <div className='flex flex-col gap-1'>
-                                                <h1>New Unique ID/IMEI</h1>
-                                                <input 
-                                                    className='focus:outline-none font-medium bg-[#EBEBEB] text-[#505050]/50 rounded-lg py-1 px-2'
-                                                    placeholder='Enter bike type name'/>
-
                                             </div>
 
                                             <div className='w-full flex flex-row gap-2 justify-end'>
@@ -468,7 +637,9 @@
                                                     Cancel
                                                 </div>
 
-                                                <div className='bg-green-500 rounded-lg px-2 py-1 text-[#ffffff] hover:bg-green-500 transition-all duration-300 hover:scale-103 cursor-pointer'>
+                                                <div 
+                                                    onClick={handleGpsConfirmation}
+                                                    className='bg-green-500 rounded-lg px-2 py-1 text-[#ffffff] hover:bg-green-500 transition-all duration-300 hover:scale-103 cursor-pointer'>
                                                     Save
                                                 </div>
                                             </div>
@@ -478,6 +649,85 @@
 
                                 </div>    
                             }
+
+                            {confirmAddGps && (
+                                <div className='fixed inset-0 bg-black/60 z-50 flex items-center justify-center'>
+                                    <div className='bg-[#ffffff] p-5 rounded-xl flex flex-col gap-5'>
+
+                                        <div className='flex flex-col gap-4 font-akagi font-bold text-gray items-center'>
+
+                                            <h1 className='text-2xl text-blue'>
+                                                Confirm GPS Add
+                                            </h1>
+
+                                            <div className='flex flex-col gap-1 items-center'>
+                                                <h1 className='text-md font-medium text-gray/70'>
+                                                    Check the details of the GPS before adding.
+                                                </h1>
+
+                                                <h1 className='text-sm font-medium text-gray/70'>
+                                                    Note: You can only archive the GPS after adding.
+                                                </h1>
+                                            </div>
+
+                                            <div className='flex flex-col gap-2 py-5'>
+
+                                                <div className='grid grid-cols-2 gap-2'>
+                                                    <h1 className='font-medium'>
+                                                        GPS Name:
+                                                    </h1>
+
+                                                    <h1>
+                                                        {gpsName}
+                                                    </h1>
+                                                </div>
+
+                                                <div className='grid grid-cols-2 gap-2'>
+                                                    <h1 className='font-medium'>
+                                                        Sim Number:
+                                                    </h1>
+
+                                                    <h1>
+                                                        {simNumber}
+                                                    </h1>
+                                                </div>
+
+                                            </div>
+
+                                            {gpsError && (
+                                                <div className="text-red-500 text-sm font-medium bg-red-50 px-3 py-2 rounded-lg">
+                                                    {gpsError}
+                                                </div>
+                                            )}
+
+                                            <div className='w-full flex flex-row gap-2 justify-end'>
+
+                                                <div
+                                                    onClick={() => setConfirmAddGps(false)}
+                                                    className='bg-red-500 rounded-lg px-2 py-1 text-[#ffffff] hover:bg-red-600 transition-all duration-300 hover:scale-103 cursor-pointer'
+                                                >
+                                                    Cancel
+                                                </div>
+
+                                                <div
+                                                    onClick={gpsLoading ? undefined : handleGpsAdd}
+                                                    className={`rounded-lg px-2 py-1 text-[#ffffff] transition-all duration-300
+                                                        ${
+                                                            gpsLoading
+                                                                ? "bg-gray-400 cursor-not-allowed"
+                                                                : "bg-green-400 hover:bg-green-500 cursor-pointer hover:scale-103"
+                                                        }
+                                                    `}
+                                                >
+                                                    {gpsLoading ? "Saving..." : "Save"}
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
                             {/*Add Bike Type*/}
                             {addType === true && 
@@ -562,6 +812,12 @@
                                                 </div>
                                             </div>
 
+                                            {bikeError && (
+                                                <div className="text-red-500 text-sm font-medium bg-red-50 px-3 py-2 rounded-lg">
+                                                    {bikeError}
+                                                </div>
+                                            )}
+
                                             <div className='w-full flex flex-row gap-2 justify-end'>
                                                 <div 
                                                     onClick={() => {setAddType(false)}}
@@ -592,6 +848,7 @@
                                                     ) : (
                                                         "Save"
                                                     )}
+
                                                 </div>
                                             </div>
 
@@ -599,6 +856,7 @@
                                     </div>
 
                                 </div>    
+                                
                             }
 
                             {bikeEdit &&
