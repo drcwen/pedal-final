@@ -8,6 +8,7 @@ import AccountCard from "./AccountCard"
 import { useNavigate } from "react-router-dom";
 import { IoChevronBack } from "react-icons/io5";
 import { supabase } from "../../../lib/supabase"
+import { RiArrowDropDownLine } from "react-icons/ri";
 
 function ManageAccount() {
 
@@ -19,6 +20,9 @@ function ManageAccount() {
 
     const [adminAccounts, setAdminAccounts] = useState([]);
     const [cashierAccounts, setCashierAccounts] = useState([]);
+
+    const [roleDropDown, setRoleDropDown]= useState(false);
+    const [role, setRole] = useState("Set Role");
 
     useEffect(() => {
         const fetchAdminAccounts = async () => {
@@ -187,27 +191,36 @@ function ManageAccount() {
                         <>
                             <div className='fixed inset-0 bg-black/60 flex flex-col items-center justify-center p-10 xl:p-30'>
 
-                                <div className='w-fit rounded-xl p-5 md:p-13 bg-[#ffffff] pt-7 flex flex-col gap-7'>
+                                <div className='w-fit rounded-xl p-5 md:p-10 bg-[#ffffff] pt-7 flex flex-col gap-7'>
                                     <div className='flex flex-row gap-1'>
-                                        <IoChevronBack 
-                                            onClick={() => setAddAccount(false)}
-                                            className='text-3xl text-gray cursor-pointer'
-                                        />
+
                                         <h1 className='md:text-4xl text-2xl font-akagi font-bold tracking-wide text-blue'>Add Account</h1>
                                     </div>
 
                                     <div className='grid grid-cols-2 gap-3 font-akagi font-medium text-md md:text-lg text-gray items-center'>
-                                        <h1>Position</h1>
-                                        <select className='md:w-64 rounded-lg border border-gray px-3 py-1 focus:outline-none'>
-                                            <option value='Admin'>Admin</option>
-                                            <option value='Cashier'>Cashier</option>
-                                        </select>
 
                                         <h1>Role</h1>
-                                        <select className='md:w-64 rounded-lg border border-gray px-3 py-1 focus:outline-none'>
-                                            <option value='Admin'>Admin</option>
-                                            <option value='Cashier'>Cashier</option>
-                                        </select>
+                                        <div 
+                                            onClick={() => {setRoleDropDown(!roleDropDown)}}
+                                            className='relative rounded-lg border border-gray px-3 py-1 flex flex-row justify-between items-center'>
+                                            {role}
+                                            <RiArrowDropDownLine className='text-xl'/>
+
+                                            {roleDropDown ? 
+                                                <div className='absolute top-full left-0 w-full bg-white rounded-lg border border-[#9E9E9E] z-50 mt-1 '>
+                                                    <div 
+                                                        onClick={() => {setRole("Cashier")}}
+                                                        className='px-3 py-1 hover:bg-gray/70 hover:text-[#ffffff] rounded-md'>
+                                                        Cashier
+                                                    </div>
+
+                                                    <div 
+                                                        onClick={() => {setRole("Admin")}}
+                                                        className='px-3 py-1 hover:bg-gray/70 hover:text-[#ffffff] rounded-md'>
+                                                        Admin
+                                                    </div>
+                                                </div> : undefined}
+                                        </div>
 
                                         <h1>Employee ID</h1>
                                         <input className='rounded-lg border border-gray px-3 py-1 focus:outline-none'/>
@@ -231,12 +244,14 @@ function ManageAccount() {
                                         <input className='rounded-lg border border-gray px-3 py-1 focus:outline-none'/>
                                     </div>
 
-                                    <div className='flex flex-row gap-3 font-akagi font-bold text-[#ffffff]'>
-                                        <div className='bg-red-500 rounded-lg px-3 py-1'>
+                                    <div className='flex flex-row justify-between gap-3 font-akagi font-bold text-[#ffffff]'>
+                                        <div 
+                                            onClick={() => {setAddAccount(!addAccount)}}
+                                            className='border border-gray text-gray cursor-pointer font-bold rounded-lg px-3 py-1'>
                                             Cancel
                                         </div>
 
-                                        <div className='bg-yellow-500 rounded-lg px-3 py-1 text-navyblue'>
+                                        <div className='bg-yellow cursor-pointer rounded-lg px-3 py-1 text-navyblue'>
                                             Add Account
                                         </div>
                                     </div>

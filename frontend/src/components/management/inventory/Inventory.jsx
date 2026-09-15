@@ -38,6 +38,7 @@
 
         const [bikeError, setBikeError] = useState("");
         const [gpsError, setGpsError] = useState("");
+        
 
         //Adding new GPS
         const [gpsName, setGpsName] = useState("");
@@ -214,31 +215,28 @@
             console.log(data);
         }
 
-        const handleGpsAdd = async () => {
-
-            setGpsLoading(true);
+        const handleGpsConfirmation = async () => {
             setGpsError("");
+            setGpsLoading(true);
 
-            // Basic validation
-            if (!gpsName.trim()) {
-                setGpsError("Please enter a GPS name.");
-                setGpsLoading(false);
-                return;
-            }
-
-            if (!simNumber.trim()) {
-                setGpsError("Please enter a SIM number.");
-                setGpsLoading(false);
-                return;
-            }
+            const trimmedGpsName = gpsName.trim();
+            const trimmedSimNumber = simNumber.trim();
 
             try {
+                if (!trimmedGpsName) {
+                    setGpsError("Please enter a GPS name.");
+                    return;
+                }
 
-                // Check GPS name
+                if (!/^09\d{9}$/.test(trimmedSimNumber)) {
+                    setGpsError("SIM number must be exactly 11 digits and start with 09.");
+                    return;
+                }
+
                 const { data: existingGpsName, error: gpsNameError } = await supabase
                     .from("gps_mod")
-                    .select("id, code")
-                    .ilike("code", gpsName.trim());
+                    .select("id")
+                    .ilike("code", trimmedGpsName);
 
                 if (gpsNameError) {
                     console.error("Error checking GPS name:", gpsNameError);
@@ -246,17 +244,15 @@
                     return;
                 }
 
-                if (existingGpsName && existingGpsName.length > 0) {
+                if (existingGpsName?.length > 0) {
                     setGpsError("This GPS name already exists.");
                     return;
                 }
 
-
-                // Check SIM number
                 const { data: existingSim, error: simError } = await supabase
                     .from("gps_mod")
-                    .select("id, sim_number")
-                    .eq("sim_number", simNumber.trim());
+                    .select("id")
+                    .eq("sim_number", trimmedSimNumber);
 
                 if (simError) {
                     console.error("Error checking SIM number:", simError);
@@ -264,18 +260,37 @@
                     return;
                 }
 
-                if (existingSim && existingSim.length > 0) {
+                if (existingSim?.length > 0) {
                     setGpsError("This SIM number is already registered.");
                     return;
                 }
 
+                setAddGPS(false);
+                setConfirmAddGps(true);
 
-                // Insert GPS
+            } catch (error) {
+                console.error("GPS validation error:", error);
+                setGpsError("Something went wrong. Please try again.");
+
+            } finally {
+                setGpsLoading(false);
+            }
+        };
+
+
+        const handleGpsAdd = async () => {
+            setGpsLoading(true);
+            setGpsError("");
+
+            const trimmedGpsName = gpsName.trim();
+            const trimmedSimNumber = simNumber.trim();
+
+            try {
                 const { data, error } = await supabase
                     .from("gps_mod")
                     .insert({
-                        code: gpsName.trim(),
-                        sim_number: simNumber.trim(),
+                        code: trimmedGpsName,
+                        sim_number: trimmedSimNumber,
                         status: "Available",
                         battery_life: "0"
                     })
@@ -297,39 +312,17 @@
 
                 await fetchGPS();
 
-                // Close confirmation modal
                 setConfirmAddGps(false);
-
-                // Reset values
                 setGpsName("");
                 setSimNumber("");
 
             } catch (error) {
-
                 console.error("Submit error:", error);
                 setGpsError("Something went wrong. Please try again.");
 
             } finally {
                 setGpsLoading(false);
             }
-        };
-
-        const handleGpsConfirmation = () => {
-
-            setGpsError("");
-
-            if (!gpsName.trim()) {
-                setGpsError("Please enter a GPS name.");
-                return;
-            }
-
-            if (!simNumber.trim()) {
-                setGpsError("Please enter a SIM number.");
-                return;
-            }
-
-            setAddGPS(false);
-            setConfirmAddGps(true);
         };
 
         const handleSubmit = async () => {
@@ -355,7 +348,6 @@
 
             try {
 
-                // Check if bike type already exists
                 const { data: existingBike, error: checkError } = await supabase
                     .from("bike_types_mod")
                     .select("id, name")
@@ -534,7 +526,7 @@
                                 {activeTab === "gps" &&
 
                                     <div className='flex flex-col gap-3'>
-                                        <div className='hidden w-full md:grid md:grid-cols-[1fr_1fr_1fr_100px_50px] gap-2 text-center items-center font-akagi font-bold text-[#9E9E9E]'>
+                                        <div className='hidden w-full md:grid md:grid-cols-[1fr_1fr_1fr_50px] gap-2 text-center items-center font-akagi font-bold text-[#9E9E9E]'>
                                             <div className=''>GPS Name</div>
                                             <div className=''>Battery Life</div>
                                             <div className=''>Status</div>
@@ -553,6 +545,8 @@
                                                     name={jipies.code}
                                                     status={jipies.status}
                                                     battery={jipies.battery_life + `%`}
+                                                    simNumber={jipies.sim_number}
+                                                    availableData={jipies.available_data}
                                                 />
                                             ))
                                             }
@@ -617,22 +611,40 @@
                                                 <input 
                                                     value={gpsName}
                                                     onChange={(e) => setGpsName(e.target.value)}
+                                                    type='text'
                                                     className='focus:outline-none font-medium bg-[#EBEBEB] text-[#505050]/50 rounded-lg py-1 px-2'
-                                                    placeholder='Enter bike type name'/>
+                                                    placeholder='Enter GPS name'
+                                                />
                                             </div>
 
                                             <div className='flex flex-col gap-1'>
                                                 <h1>New SIM Number</h1>
-                                                <input 
+                                                <input
                                                     value={simNumber}
-                                                    onChange={(e) => setSimNumber(e.target.value)}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value.replace(/\D/g, "");
+
+                                                        if (value.length <= 11) {
+                                                            setSimNumber(value);
+                                                        }
+                                                    }}
+                                                    type='text'
+                                                    inputMode='numeric'
+                                                    maxLength={11}
                                                     className='focus:outline-none font-medium bg-[#EBEBEB] text-[#505050]/50 rounded-lg py-1 px-2'
-                                                    placeholder='Enter bike type name'/>
+                                                    placeholder='Enter 11-digit SIM number'
+                                                />
                                             </div>
+
+                                            {gpsError && (
+                                                <div className="text-red-500 text-sm font-medium bg-red-50 px-3 py-2 rounded-lg">
+                                                    {gpsError}
+                                                </div>
+                                            )}
 
                                             <div className='w-full flex flex-row gap-2 justify-end'>
                                                 <div 
-                                                    onClick={() => {setAddGPS(false)}}
+                                                    onClick={() => {setAddGPS(false), setSimNumber(""), setGpsName(""), setGpsError("")}}
                                                     className='bg-red-500 rounded-lg px-2 py-1 text-[#ffffff] hover:bg-red-500 transition-all duration-300 hover:scale-103 cursor-pointer'>
                                                     Cancel
                                                 </div>
@@ -651,7 +663,7 @@
                             }
 
                             {confirmAddGps && (
-                                <div className='fixed inset-0 bg-black/60 z-50 flex items-center justify-center'>
+                                <div className='fixed inset-0 bg-black/60 z-100 flex items-center justify-center'>
                                     <div className='bg-[#ffffff] p-5 rounded-xl flex flex-col gap-5'>
 
                                         <div className='flex flex-col gap-4 font-akagi font-bold text-gray items-center'>
@@ -703,7 +715,7 @@
                                             <div className='w-full flex flex-row gap-2 justify-end'>
 
                                                 <div
-                                                    onClick={() => setConfirmAddGps(false)}
+                                                    onClick={() => {setConfirmAddGps(false), setSimNumber(""), setGpsName(""), setGpsError("")}}
                                                     className='bg-red-500 rounded-lg px-2 py-1 text-[#ffffff] hover:bg-red-600 transition-all duration-300 hover:scale-103 cursor-pointer'
                                                 >
                                                     Cancel

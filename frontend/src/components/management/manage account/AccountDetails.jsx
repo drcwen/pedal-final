@@ -9,6 +9,7 @@ import { RiEdit2Line } from "react-icons/ri";
 import { IoPersonSharp } from "react-icons/io5";
 import { MdWork } from "react-icons/md";
 import { RiArrowDropDownLine } from "react-icons/ri";
+import { IoCloseSharp } from "react-icons/io5";
 
 function AccountDetails({ fullName, role, email, contact, id, branch, firstName, lastName, username }) {
 
@@ -51,47 +52,54 @@ function AccountDetails({ fullName, role, email, contact, id, branch, firstName,
                         <IoChevronBack className="text-3xl text-gray hover:text-[#148BB8] transition-colors" />
                     </div>
 
-                    <div className='hidden md:flex md:flex-row md:justify-between md:items-center'>
-                        <div className='flex flex-row gap-5 items-center'>
-                            <MdOutlineAccountCircle className='lg:text-8xl xl:text-9xl text-[#148BB8] '/>
-                            
-                            <div className='flex flex-col gap-1'>
-                                {/*Name and Account Type*/}
-                                <div className='flex flex-row gap-3 font-akagi font-bold text-[#505050] items-center'>
-                                    <h1 className='md:text-3xl text-lg'>{fullName}</h1>
-                                    <div className='px-3 py-1 bg-[#148BB8] rounded-lg'>
-                                        <h1 className='text-lg text-[#ffffff] uppercase tracking-wide'>{role}</h1>
-                                    </div>
-                                </div>
+                    <div className='flex flex-row justify-between md:items-center'>
+                        <div className='w-full flex flex-row justify-between gap-5 items-center'>
+
+                            <div className='flex flex-row gap-2 items-center'>
+                                <MdOutlineAccountCircle className='lg:text-8xl xl:text-9xl text-7xl text-[#148BB8] '/>
                                 
-                                {/*Details and Branch*/}
-                                <div className='hidden md:flex md:flex-row gap-3 font-akagi font-bold tracking-wide text-[#505050] items-center'>
-                                    <h1 className='text-xl font-medium first-letter:uppercase'>{role} Account</h1>
-                                    <h1 className='text-xl font-medium'>•</h1>
-                                    <h1 className='text-xl font-medium'>Main Branch</h1>
+                                <div className='flex flex-col gap-1'>
+                                    {/*Name and Account Type*/}
+                                    <div className='flex flex-row gap-3 font-akagi font-bold text-[#505050] items-center'>
+                                        <h1 className='md:text-2xl text-lg'>{fullName}</h1>
+                                        <div className='px-2 py-0.5 bg-[#148BB8] rounded-lg'>
+                                            <h1 className='text-md text-[#ffffff] uppercase tracking-wide'>{role}</h1>
+                                        </div>
+                                    </div>
+                                    
+                                    {/*Details and Branch*/}
+                                    <div className='flex flex-row gap-1 md:gap-3 font-akagi font-bold text-[#505050] items-center'>
+                                        <h1 className='md:text-lg text-sm font-medium first-letter:uppercase'>{role} Account</h1>
+                                        <h1 className='md:text-lg text-sm font-medium'>•</h1>
+                                        <h1 className='md:text-lg text-sm font-medium'>Main Branch</h1>
+                                    </div>
+
+                                    
                                 </div>
+
+                            </div>
+
+                            <div 
+                                onClick={() => {
+                                    if (edit) {
+                                        setEditFirstName(firstName);
+                                        setEditLastName(lastName);
+                                        setEditRole(role);
+                                        setEditEmail(email);
+                                        setEditContact(contact);
+                                        setEditUsername(username);
+
+                                        setEdit(false);
+                                    } else {
+                                        setEdit(true);
+                                    }
+                                }}
+                                className={`w-fit h-fit flex cursor-pointer gap-3 px-3 py-2 border-2 ${edit ? "border-red-500 text-red-500" : "border-blue text-[#148BB8]"} items-center font-akagi font-bold md:text-xl rounded-xl`}>
+                                {!edit ? <RiEdit2Line className='md:text-xl text-lg'/> : <IoCloseSharp className='md:text-xl text-lg'/>}
+                                    {!edit ? <h1 className='text-md md:flex md:flex-row hidden'>Edit Profile</h1> : <h1 className='text-md md:flex md:flex-row hidden'>Cancel</h1>}
                             </div>
                         </div>
 
-                        <div 
-                            onClick={() => {
-                                if (edit) {
-                                    setEditFirstName(firstName);
-                                    setEditLastName(lastName);
-                                    setEditRole(role);
-                                    setEditEmail(email);
-                                    setEditContact(contact);
-                                    setEditUsername(username);
-
-                                    setEdit(false);
-                                } else {
-                                    setEdit(true);
-                                }
-                            }}
-                            className='cursor-pointer flex flex-row gap-3 px-3 py-2 border-2 border-blue font-akagi font-bold text-[#148BB8] md:text-xl text-lg rounded-xl'>
-                            <RiEdit2Line className='md:text-2xl text-lg'/>
-                                {!edit ? <h1>Edit Profile</h1> : <h1>Cancel</h1>}
-                        </div>
                     </div>
 
                     <div className='w-full h-0.5 bg-gray/50 rounded-full'/>
@@ -225,6 +233,12 @@ function AccountDetails({ fullName, role, email, contact, id, branch, firstName,
 
                         </div>
                     </div>
+                    
+                    {edit ? 
+                        <div className='w-fit rounded-lg bg-yellow font-akagi font-bold text-lg text-navyblue px-3 py-1'>
+                            Submit
+                        </div> : undefined
+                    }
                 </div>
 
             </motion.div>
