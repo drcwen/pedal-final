@@ -5,14 +5,109 @@ import { MdModeEditOutline } from "react-icons/md";
 import { RiArrowDropDownLine, RiArrowDropUpLine } from "react-icons/ri";
 import { IoCloseSharp } from "react-icons/io5";
 import { FaCheck } from "react-icons/fa";
+import { supabase } from "../../../../lib/supabase";
 
-function GPSRow({name, battery, status, simNumber, availableData}) {
+function GPSRow({name, battery, status, simNumber, availableData, gpsId, fetchGPS}) {
 
     const [dropDown, setDropDown] = useState(false);
     const [edit, setEdit] = useState(false);
 
     const [editName, setEditName] = useState(name);
     const [editSimNumber, setEditSimNumber] = useState(simNumber);
+
+    const [editError, setEditError] = useState("");
+    const [editLoading, setEditLoading] = useState(false);
+
+    const handleEditGPS = async () => {
+        setEditError("");
+
+        const trimmedName = editName.trim();
+        const trimmedSimNumber = editSimNumber.trim();
+
+        // Basic validation
+        if (!trimmedName) {
+            setEditError("Please enter a GPS name.");
+            return;
+        }
+
+        if (!/^09\d{9}$/.test(trimmedSimNumber)) {
+            setEditError("SIM number must be exactly 11 digits and start with 09.");
+            return;
+        }
+
+        setEditLoading(true);
+
+        try {
+            const { data: existingName, error: nameError } = await supabase
+                .from("gps_mod")
+                .select("id")
+                .ilike("code", trimmedName)
+                .neq("id", gpsId);
+
+            if (nameError) {
+                console.error("ERROR CHECKING GPS NAME:", nameError);
+                setEditError("Unable to check GPS name.");
+                return;
+            }
+
+            if (existingName && existingName.length > 0) {
+                setEditError("This GPS name already exists.");
+                return;
+            }
+
+            const { data: existingSim, error: simError } = await supabase
+                .from("gps_mod")
+                .select("id")
+                .eq("sim_number", trimmedSimNumber)
+                .neq("id", gpsId);
+
+            if (simError) {
+                console.error("ERROR CHECKING SIM NUMBER:", simError);
+                setEditError("Unable to check SIM number.");
+                return;
+            }
+
+            if (existingSim && existingSim.length > 0) {
+                setEditError("This SIM number is already registered.");
+                return;
+            }
+
+            const { data, error } = await supabase
+                .from("gps_mod")
+                .update({
+                    code: trimmedName,
+                    sim_number: trimmedSimNumber
+                })
+                .eq("id", gpsId)
+                .select();
+
+            if (error) {
+                console.error("ERROR UPDATING GPS:", error);
+
+                if (error.code === "23505") {
+                    setEditError("GPS name or SIM number already exists.");
+                } else {
+                    setEditError("Failed to update GPS.");
+                }
+
+                return;
+            }
+
+            await fetchGPS();
+
+            setEditName(trimmedName);
+            setEditSimNumber(trimmedSimNumber);
+
+            setEdit(false);
+
+        } catch (error) {
+            console.error("EDIT GPS ERROR:", error);
+            setEditError("Something went wrong. Please try again.");
+
+        } finally {
+            setEditLoading(false);
+        }
+    };
 
   return (
     <>
@@ -79,9 +174,13 @@ function GPSRow({name, battery, status, simNumber, availableData}) {
                                 </div>
                             </div>
 
-                            {/*Submit Button for PC*/}
-                            <div className=''></div>
-
+                            {editError && (
+                                <div className="px-3 mt-2">
+                                    <p className="text-red-500 font-akagi font-medium text-sm">
+                                        {editError}
+                                    </p>
+                                </div>
+                            )}
 
                             {/*Mobile Edit, Cancel, and Submit button*/}
                             <div className='flex justify-end'>
@@ -92,7 +191,14 @@ function GPSRow({name, battery, status, simNumber, availableData}) {
                                         {edit ? <IoCloseSharp className='text-md'/> : <MdModeEditOutline className='text-md'/>}
                                     </div>
                                     { edit ?
-                                    <div className='px-2 py-2 rounded-lg text-[#ffffff] py-0.5 bg-blue font-akagi font-bold text-md'>
+                                    <div
+                                        onClick={!editLoading ? handleEditGPS : undefined}
+                                        className={`px-2 py-2 rounded-lg text-[#ffffff] py-0.5 bg-blue font-akagi font-bold text-md ${
+                                            editLoading
+                                                ? "opacity-50 cursor-not-allowed"
+                                                : "cursor-pointer"
+                                        }`}
+                                    >
                                         <FaCheck />
                                     </div>
                                     : undefined

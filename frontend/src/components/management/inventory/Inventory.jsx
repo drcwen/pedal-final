@@ -60,6 +60,49 @@
 
         const [editBikeTypeError, setEditBikeTypeError] = useState("");
 
+        const statuses = [
+            "Available",
+            "Under Maintenance",
+            "Lost",
+            "Disposed"
+        ]
+
+        const handleBikeStatusUpdate = async () => {
+            if (!fetchBikeCode) {
+                console.error("NO BIKE CODE");
+                return;
+            }
+
+            try {
+                const { data, error } = await supabase
+                    .from("bikes_mod")
+                    .update({
+                        status: fetchBikeStatus
+                    })
+                    .eq("code", fetchBikeCode)
+                    .select();
+
+                if (error) {
+                    console.error("ERROR UPDATING BIKE STATUS:", error);
+                    return;
+                }
+
+                console.log("BIKE STATUS UPDATED:", data);
+
+                // Refresh the bike list
+                await fetchBikes();
+
+                // Close modal
+                setBikeEdit(false);
+
+                // Close dropdown
+                setDropDown(false);
+
+            } catch (error) {
+                console.error("BIKE STATUS UPDATE ERROR:", error);
+            }
+        };
+
         const handleEditBikeImage = (e) => {
             const file = e.target.files[0];
 
@@ -585,6 +628,8 @@
                                                     battery={jipies.battery_life + `%`}
                                                     simNumber={jipies.sim_number}
                                                     availableData={jipies.available_data}
+                                                    gpsId={jipies.id}
+                                                    fetchGPS={fetchGPS}
                                                 />
                                             ))
                                             }
@@ -931,33 +976,19 @@
                                                     </div>
 
                                                     {fetchBikeStatus !== "Rented" && dropDown && (
-                                                        <div className='absolute top-full left-0 w-full bg-gray/20 rounded-lg border border-gray/40 z-50 mt-1 shadow-lg'>
-                                                            <div
-                                                                onClick={() => {setFetchBikeStatus("Under Maintenance")
-                                                                    setDropDown(!dropDown)
-                                                                }}
-                                                                className="text-md font-akagi font-medium text-[#6D7172] bg-[#e2e3e4] rounded-tl-md rounded-tr-md hover:bg-gray hover:text-white px-2 py-0.5 cursor-pointer"
-                                                            >
-                                                                Under Maintenance
-                                                            </div>
+                                                        <div className='absolute top-full left-0 w-full bg-[#e2e3e4] rounded-lg border border-gray/40 z-50 mt-1 shadow-lg'>
 
-                                                            <div
-                                                                onClick={() => {setFetchBikeStatus("Lost")
-                                                                    setDropDown(!dropDown)
-                                                                }}
-                                                                className="text-md font-akagi font-medium text-[#6D7172] bg-[#e2e3e4] rounded-tl-md rounded-tr-md hover:bg-gray hover:text-white px-2 py-0.5 cursor-pointer"
-                                                            >
-                                                                Lost
-                                                            </div>
-
-                                                            <div
-                                                                onClick={() => {setFetchBikeStatus("Disposed")
-                                                                    setDropDown(!dropDown)
-                                                                }}
-                                                                className="text-md font-akagi font-medium text-[#6D7172] bg-[#e2e3e4] rounded-tl-md rounded-tr-md hover:bg-gray hover:text-white px-2 py-0.5 cursor-pointer"
-                                                            >
-                                                                Disposed
-                                                            </div>
+                                                            {statuses.map((stat) => (
+                                                                <div
+                                                                    onClick={() => {setFetchBikeStatus(stat)
+                                                                        setDropDown(!dropDown)
+                                                                    }}
+                                                                    className="text-md font-akagi font-medium text-[#6D7172] bg-[#e2e3e4] rounded-lg hover:bg-gray hover:text-white px-2 py-0.5 cursor-pointer"
+                                                                >
+                                                                    {stat}
+                                                                </div>
+                                                            ))}
+                                                            
                                                         </div>
                                                     )}
                                                 </div>
@@ -973,7 +1004,9 @@
                                                 Back
                                             </div>
 
-                                            <div className='rounded-lg bg-green-400 text-[#ffffff] px-2 py-0.5 cursor-pointer'>
+                                            <div 
+                                                onClick={handleBikeStatusUpdate}
+                                                className='rounded-lg bg-green-400 text-[#ffffff] px-2 py-0.5 cursor-pointer'>
                                                 Submit
                                             </div>
                                         </div>
