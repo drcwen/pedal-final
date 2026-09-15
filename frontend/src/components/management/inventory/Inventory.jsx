@@ -58,6 +58,8 @@
 
         const [editLoading, setEditLoading] = useState(false);
 
+        const [editBikeTypeError, setEditBikeTypeError] = useState("");
+
         const handleEditBikeImage = (e) => {
             const file = e.target.files[0];
 
@@ -84,8 +86,35 @@
             }
 
             setEditLoading(true);
+            setEditBikeTypeError("");
 
             try {
+
+                const trimmedBikeType = bikeType.trim();
+
+                // Validate bike type name
+                if (!trimmedBikeType) {
+                    setEditBikeTypeError("Please enter a bike type name.");
+                    return;
+                }
+
+                // Check if another bike type already has this name
+                const { data: existingBikeType, error: nameError } = await supabase
+                    .from("bike_types_mod")
+                    .select("id, name")
+                    .ilike("name", trimmedBikeType)
+                    .neq("id", editBikeTypeId);
+
+                if (nameError) {
+                    console.error("ERROR CHECKING BIKE TYPE NAME:", nameError);
+                    setEditBikeTypeError("Unable to check bike type name.");
+                    return;
+                }
+
+                if (existingBikeType && existingBikeType.length > 0) {
+                    setEditBikeTypeError("This bike type name already exists.");
+                    return;
+                }
 
                 let imageUrl = editBikeImage;
 
@@ -100,6 +129,7 @@
 
                     if (!imageUrl) {
                         console.error("IMAGE UPLOAD FAILED");
+                        setEditBikeTypeError("Failed to upload image.");
                         return;
                     }
                 }
@@ -109,7 +139,7 @@
                 const { data, error } = await supabase
                     .from("bike_types_mod")
                     .update({
-                        name: bikeType,
+                        name: trimmedBikeType,
                         capacity: Number(bikeCapacity),
                         price: Number(price),
                         image_url: imageUrl
@@ -119,6 +149,13 @@
 
                 if (error) {
                     console.error("SUPABASE UPDATE ERROR:", error);
+
+                    if (error.code === "23505") {
+                        setEditBikeTypeError("This bike type name already exists.");
+                    } else {
+                        setEditBikeTypeError("Failed to update bike type.");
+                    }
+
                     return;
                 }
 
@@ -139,6 +176,7 @@
             } catch (error) {
 
                 console.error("EDIT BIKE TYPE ERROR:", error);
+                setEditBikeTypeError("Something went wrong. Please try again.");
 
             } finally {
 
@@ -984,18 +1022,40 @@
 
                                                 <div className='flex flex-col gap-1'>
                                                     <h1 className='text-black/60'>Edit Bike Type</h1>
-                                                    <input value={bikeType} onChange={(e) => setBikeType(e.target.value)} className='focus:outline-none bg-gray/20 rounded-md px-2 py-1 text-black/60 font-medium'/>
+                                                    <input
+                                                        value={bikeType}
+                                                        onChange={(e) => {
+                                                            setBikeType(e.target.value);
+                                                            setEditBikeTypeError("");
+                                                        }}
+                                                        className='focus:outline-none bg-gray/20 rounded-md px-2 py-1 text-black/60 font-medium'
+                                                    />
                                                 </div>
 
                                                 <div className='flex flex-col gap-1'>
                                                     <h1 className='text-black/60'>Edit Capacity</h1>
-                                                    <input value={bikeCapacity} onChange={(e) => setBikeCapacity(e.target.value)} className='focus:outline-none bg-gray/20 rounded-md px-2 py-1 text-black/60 font-medium'/>
+                                                    <input
+                                                        value={bikeCapacity}
+                                                        onChange={(e) => setBikeCapacity(e.target.value)}
+                                                        className='focus:outline-none bg-gray/20 rounded-md px-2 py-1 text-black/60 font-medium'
+                                                    />
                                                 </div>
 
                                                 <div className='flex flex-col gap-1'>
                                                     <h1 className='text-black/60'>Edit Rent Price per Hour</h1>
-                                                    <input type='number' value={price} onChange={(e) => setPrice(e.target.value)} className='focus:outline-none bg-gray/20 rounded-md px-2 py-1 text-black/60 font-medium'/>
+                                                    <input
+                                                        type='number'
+                                                        value={price}
+                                                        onChange={(e) => setPrice(e.target.value)}
+                                                        className='focus:outline-none bg-gray/20 rounded-md px-2 py-1 text-black/60 font-medium'
+                                                    />
                                                 </div>
+
+                                                {editBikeTypeError && (
+                                                    <p className="text-red-500 text-sm font-medium">
+                                                        {editBikeTypeError}
+                                                    </p>
+                                                )}
 
                                             </div>
                                         </div>

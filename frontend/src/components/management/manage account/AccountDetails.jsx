@@ -55,7 +55,7 @@ function AccountDetails({ fullName, role, email, contact, id, branch, firstName,
                     <div className='flex flex-row justify-between md:items-center'>
                         <div className='w-full flex flex-row justify-between gap-5 items-center'>
 
-                            <div className='flex flex-row gap-2 items-center'>
+                            <div className='flex flex-row gap-1 items-center'>
                                 <MdOutlineAccountCircle className='lg:text-8xl xl:text-9xl text-7xl text-[#148BB8] '/>
                                 
                                 <div className='flex flex-col gap-1'>
