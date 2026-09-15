@@ -55,23 +55,23 @@ function AccountDetails({ fullName, role, email, contact, id, branch, firstName,
                     <div className='flex flex-row justify-between md:items-center'>
                         <div className='w-full flex flex-row justify-between gap-5 items-center'>
 
-                            <div className='flex flex-row gap-1 items-center'>
+                            <div className='flex flex-row gap-2 items-center'>
                                 <MdOutlineAccountCircle className='lg:text-8xl xl:text-9xl text-7xl text-[#148BB8] '/>
                                 
                                 <div className='flex flex-col gap-1'>
                                     {/*Name and Account Type*/}
                                     <div className='flex flex-row gap-3 font-akagi font-bold text-[#505050] items-center'>
-                                        <h1 className='md:text-2xl text-lg'>{fullName}</h1>
-                                        <div className='px-2 py-0.5 bg-[#148BB8] rounded-lg'>
-                                            <h1 className='text-md text-[#ffffff] uppercase tracking-wide'>{role}</h1>
+                                        <h1 className='md:text-2xl text-md md:text-lg'>{fullName}</h1>
+                                        <div className='px-2 py-0.5 bg-[#148BB8] rounded-md'>
+                                            <h1 className='text-xs md:text-md text-[#ffffff] uppercase tracking-wide'>{role}</h1>
                                         </div>
                                     </div>
                                     
                                     {/*Details and Branch*/}
                                     <div className='flex flex-row gap-1 md:gap-3 font-akagi font-bold text-[#505050] items-center'>
-                                        <h1 className='md:text-lg text-sm font-medium first-letter:uppercase'>{role} Account</h1>
-                                        <h1 className='md:text-lg text-sm font-medium'>•</h1>
-                                        <h1 className='md:text-lg text-sm font-medium'>Main Branch</h1>
+                                        <h1 className='md:text-lg text-xs font-medium first-letter:uppercase'>{role} Account</h1>
+                                        <h1 className='md:text-lg text-xs font-medium'>•</h1>
+                                        <h1 className='md:text-lg text-xs font-medium'>Main Branch</h1>
                                     </div>
 
                                     
