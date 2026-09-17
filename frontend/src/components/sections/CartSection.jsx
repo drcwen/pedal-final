@@ -36,6 +36,7 @@ function CartSection() {
             }
         })
     }
+    
 
     function handleCheckbox(id) {
         setCheckedItems((prev) => {
@@ -158,10 +159,10 @@ function CartSection() {
   }, []);
 
   return (
-    <div className='w-full min-h-screen lg:px-20 px-10 py-30 flex flex-col gap-5 flex flex-col'>
+    <div className='w-full min-h-screen gap-5 flex flex-col'>
 
-        <div className='w-full flex flex-col gap-10'>
-            <h1 className="text-4xl font-akagi font-black text-blue">
+        <div className='w-full flex flex-col gap-10 xl:px-50 md:px-10 px-5 py-30'>
+            <h1 className="md:text-4xl text-2xl font-akagi font-black text-blue">
                 Cart
             </h1>
 
@@ -177,7 +178,7 @@ function CartSection() {
                 initial={fade.initial}
                 animate={fade.animate}
                 transition={fade.transition}
-                className='lg:h-70 h-80 overflow-y-auto flex flex-col gap-7 lg:px-10 px-2'>
+                className='flex flex-col gap-5 lg:px-10 px-2'>
                 
                 {
                     loading ? (
@@ -213,19 +214,38 @@ function CartSection() {
                 
             </motion.div>
 
-            <div className='h-1 bg-black/20 rounded-lg'></div>
+            
+            <div className="fixed bottom-0 left-0 w-full z-50">
+                
+                <div className="xl:px-50 px-2">
+                    <div className="bg-blue text-[#ffffff] py-5 lg:px-20 px-10 shadow-lg rounded-t-xl flex flex-col gap-5">
 
-            <div className='flex flex-row justify-between lg:px-20 px-5'>
-                <h1 className='text-2xl font-akagi font-bold text-[#6D7172]'>Total</h1>
-                <h1 className='text-2xl font-akagi font-bold text-[#6D7172]'>P{total}</h1>
-            </div>
+                        <div className="flex flex-row justify-between lg:justify-end lg:gap-5">
+                            <h1 className="md:text-2xl font-akagi font-medium">
+                                Total:
+                            </h1>
 
-            <div className='w-full flex flex-row justify-end'>
-                <div 
-                    onClick={total !== 0 ? handleCheckout : undefined}
-                    className={`lg:w-fit w-full justify-end px-5 rounded-lg py-2 flex items-center justify-center ${total === 0 ? "bg-gray-400 cursor-not-allowed" : "bg-blue cursor-pointer"}`}
-                >
-                    <h1 className='text-[#ffffff] font-akagi font-bold'>Checkout</h1>
+                            <h1 className="md:text-2xl font-akagi font-bold">
+                                P{total}
+                            </h1>
+                        </div>
+
+                        <div className="w-full flex flex-row justify-end">
+                            <div 
+                                onClick={total !== 0 ? handleCheckout : undefined}
+                                className={`w-fit text-center justify-end px-5 rounded-lg py-2 flex items-center ${
+                                    total === 0
+                                        ? "bg-gray-400 cursor-not-allowed"
+                                        : "bg-yellow text-navyblue cursor-pointer"
+                                }`}
+                            >
+                                <h1 className="font-akagi font-bold">
+                                    Checkout
+                                </h1>
+                            </div>
+                        </div>
+
+                    </div>
                 </div>
             </div>
         </div>
