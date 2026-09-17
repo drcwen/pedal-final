@@ -158,7 +158,7 @@ function CartSection() {
   }, []);
 
   return (
-    <div className='box-model flex flex-col gap-5 flex flex-col'>
+    <div className='w-full min-h-screen lg:px-20 px-10 py-30 flex flex-col gap-5 flex flex-col'>
 
         <div className='w-full flex flex-col gap-10'>
             <h1 className="text-4xl font-akagi font-black text-blue">
@@ -220,11 +220,13 @@ function CartSection() {
                 <h1 className='text-2xl font-akagi font-bold text-[#6D7172]'>P{total}</h1>
             </div>
 
-            <div 
-                onClick={total !== 0 ? handleCheckout : undefined}
-                className={`w-full rounded-lg py-2 flex items-center justify-center ${total === 0 ? "bg-gray-400 cursor-not-allowed" : "bg-blue cursor-pointer"}`}
-            >
-                <h1 className='text-[#ffffff] font-akagi font-bold'>Checkout</h1>
+            <div className='w-full flex flex-row justify-end'>
+                <div 
+                    onClick={total !== 0 ? handleCheckout : undefined}
+                    className={`lg:w-fit w-full justify-end px-5 rounded-lg py-2 flex items-center justify-center ${total === 0 ? "bg-gray-400 cursor-not-allowed" : "bg-blue cursor-pointer"}`}
+                >
+                    <h1 className='text-[#ffffff] font-akagi font-bold'>Checkout</h1>
+                </div>
             </div>
         </div>
         

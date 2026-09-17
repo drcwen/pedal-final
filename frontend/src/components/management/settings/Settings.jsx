@@ -84,6 +84,7 @@ function Settings() {
         setPercentage(null);
         setDateOccurence(null);
         setPercent("%");
+        setPercentage(0);
     }
 
     const deleteRevenueDeduction = async (id) => {
@@ -573,31 +574,70 @@ function Settings() {
                                                 <h1>Due Date</h1>
 
                                             </div>
-                                        <div className='w-full rounded-xl md:p-2 py-2 font-akagi font-medium text-gray text-center flex flex-col gap-2'>
+                                        <div className='w-full rounded-xl md:p-2 py-2 font-akagi font-medium text-gray md:text-center flex flex-col gap-2'>
                                             
                                             {deductions.map((deduction) => (
                                                 <div 
                                                     key={deduction.id}
                                                     onClick={() => {setDropDown(!dropDown)}}
-                                                    className='items-center w-full md:grid md:grid-cols-[1fr_50px_1fr_1fr_1fr_20px] flex justify-between bg-[#ffffff] border border-gray/40 py-2 px-2 rounded-xl text-center'
-                                                >
-                                                    <h1>{deduction.type}</h1>
-                                                    <h1 className='hidden md:block'>{deduction.calculation === "Percentage" ? deduction.value : "-"}</h1>
-                                                    <h1 className='hidden md:block'>{deduction.calculation === "Fixed Amount" ? "P"+deduction.value : "-"}</h1>
-                                                    <h1 className='hidden md:block'>
-                                                        {deduction.occurence || "-"}
-                                                    </h1>
+                                                    className='w-full flex flex-col bg-[#ffffff] border border-gray/40 py-2 px-2 rounded-xl'>
 
-                                                    <h1 className='hidden md:block'>
-                                                        {deduction.deadline || "-"}
-                                                    </h1>
-                                                    <IoMdRemove  
-                                                        onClick={() => deleteRevenueDeduction(deduction.id)}
-                                                        className='hidden md:block text-xl cursor-pointer'
-                                                    />
-                                                    <RiArrowDropDownLine 
-                                                        className='text-xl md:hidden'/>
+                                                    <div 
                                                         
+                                                        className='items-center w-full md:grid md:grid-cols-[1fr_50px_1fr_1fr_1fr_20px] flex justify-between text-center'
+                                                    >
+                                                        <h1>{deduction.type}</h1>
+                                                        <h1 className='hidden md:block'>{deduction.calculation === "Percentage" ? deduction.value : "-"}</h1>
+                                                        <h1 className='hidden md:block'>{deduction.calculation === "Fixed Amount" ? "P"+deduction.value : "-"}</h1>
+                                                        <h1 className='hidden md:block'>
+                                                            {deduction.occurence || "-"}
+                                                        </h1>
+
+                                                        <h1 className='hidden md:block'>
+                                                            {deduction.deadline || "-"}
+                                                        </h1>
+                                                        <IoMdRemove  
+                                                            onClick={() => deleteRevenueDeduction(deduction.id)}
+                                                            className='text-red-500 hidden md:block text-xl cursor-pointer'
+                                                        />
+                                                        <RiArrowDropDownLine 
+                                                            onClick={() => {dropDown(!dropDown)}}
+                                                            className='text-xl md:hidden'/>
+                                                            
+                                                    </div>
+
+                                                    {dropDown &&
+                                                        <div className='pt-2 md:hidden block items-start'>
+                                                            <div className='grid grid-cols-[80px_1fr] gap-2'>
+                                                                <h1 className='font-bold'>Percent:</h1>
+                                                                <h1>{deduction.calculation === "Percentage" ? deduction.value + "%" : "-"}</h1>
+                                                            </div>
+
+                                                            <div className='grid grid-cols-[80px_1fr] gap-2'>
+                                                                <h1 className='font-bold'>Amount:</h1>
+                                                                <h1>{deduction.calculation === "Fixed Amount" ? "P"+deduction.value : "-"}</h1>
+                                                            </div>
+
+                                                            <div className='grid grid-cols-[80px_1fr] gap-2'>
+                                                                <h1 className='font-bold'>Occurence:</h1>
+                                                                <h1>{deduction.occurence || "-"}</h1>
+                                                            </div>
+
+                                                            <div className='grid grid-cols-[80px_1fr] gap-2'>
+                                                                <h1 className='font-bold'>Deadline:</h1>
+                                                                <h1>{deduction.deadline || "-"}</h1>
+                                                            </div>
+
+                                                            <div className='flex justify-end text-red-500'>
+                                                                <IoMdRemove
+                                                                    onClick={() => deleteRevenueDeduction(deduction.id)}
+                                                                />
+                                                            </div>
+                                                            
+                                                        </div>
+                                                    }
+                                                    
+                                                
                                                 </div>
                                             ))}
                                             

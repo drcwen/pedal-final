@@ -7,13 +7,29 @@ import "../css/boxModel.css"
 import AdjustHours from "../ui/AdjustHours"
 import { useNavigate } from "react-router-dom";
 
-function SetTimeAndDate({ setReservationData, onClose }) {
+function SetTimeAndDate({ setReservationData, onClose, reservationData }) {
 
-    const [selectedDate, setSelectedDate] = useState(null);
+    const [selectedDate, setSelectedDate] = useState(
+        reservationData?.date
+            ? new Date(`${reservationData.date}T00:00:00`)
+            : null
+    );
 
-    const [selectedStart, setSelectedStart] = useState(null);
+    const [selectedStart, setSelectedStart] = useState(() => {
+        if (!reservationData?.startTime) return null;
+
+        const [hours, minutes] = reservationData.startTime.split(":");
+
+        const date = new Date();
+        date.setHours(Number(hours), Number(minutes), 0, 0);
+
+        return date;
+    });
     
-    const [selectedHours, setSelectedHours] = useState(1);
+    const [selectedHours, setSelectedHours] = useState(
+        reservationData?.hours ?? 1
+    );
+    
 
     const navigate = useNavigate();
 
@@ -88,7 +104,7 @@ function SetTimeAndDate({ setReservationData, onClose }) {
     console.log("No format", selectedDate, selectedStart, selectedHours)
   return (
     <>
-        <div className="box-model fixed inset-0 bg-black/60 flex items-center justify-center">
+        <div className="box-model fixed inset-0 z-100 bg-black/60 flex items-center justify-center">
     
             <motion.div
                     initial={fade.initial}
@@ -106,28 +122,26 @@ function SetTimeAndDate({ setReservationData, onClose }) {
                         <h1 className='font-akagi font-bold text-white text-xl'>Date</h1>
 
                         <div className='bg-[#f7f7f7] px-5 py-2 rounded-xl flex justify-between'>
-                            <DatePicker 
+                            <DatePicker
                                 selected={selectedDate}
                                 onChange={handleDateChange}
                                 dateFormat="MM  /  dd  /  YYYY"
                                 minDate={minDate}
-                                
                                 filterDate={(date) => date.getDay() !== 1}
-                                className='w-full py-1 text-md lg:text-xl font-akagi font-bold text-center text-navyblue cursor-pointer outline-none'
+                                className="w-full py-1 text-md lg:text-xl font-akagi font-bold text-center text-navyblue cursor-pointer outline-none"
                             />
                         </div>
 
                         <h1 className='font-akagi font-bold text-white text-xl'>Start</h1>
 
                         <div className='bg-[#f7f7f7] px-5 py-2 rounded-xl flex justify-between'>
-                            <DatePicker 
+                            <DatePicker
                                 selected={selectedStart}
                                 onChange={(date) => setSelectedStart(date)}
                                 showTimeSelect
                                 showTimeSelectOnly
                                 timeIntervals={60}
                                 dateFormat="h:mm aa"
-                                
                                 includeTimes={[
                                     createTime(8),
                                     createTime(9),
@@ -138,9 +152,9 @@ function SetTimeAndDate({ setReservationData, onClose }) {
                                     createTime(14),
                                     createTime(15),
                                     createTime(16)
-                                ]} 
-                                className='w-full py-1 text-md lg:text-xl font-akagi font-bold text-center text-navyblue cursor-pointer outline-none'
-                            />
+                                ]}
+                                className="w-full py-1 text-md lg:text-xl font-akagi font-bold text-center text-navyblue cursor-pointer outline-none"
+                            /> 
                         </div>
                         
 
@@ -161,7 +175,7 @@ function SetTimeAndDate({ setReservationData, onClose }) {
                 <div className='w-full flex justify-between'>
 
                     <div className='bg-lightgray rounded-lg px-5 py-1 cursor-pointer'
-                        onClick={() => navigate("/")}
+                        onClick={onClose}
                         >
                         <h1 className='font-akagi text-sm font-semibold text-navyblue'>Back</h1>
                     </div>

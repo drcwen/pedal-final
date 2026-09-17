@@ -3,7 +3,7 @@ import { useEffect } from "react"
 import { supabase } from "../../../lib/supabase"
 import { useNavigate } from "react-router-dom"
 
-function BikeCardDark({ bike, reservationData }) {
+function BikeCardDark({ bike, reservationData, setBike, setAddToRent }) {
 
   const navigate = useNavigate();
 
@@ -39,7 +39,7 @@ function BikeCardDark({ bike, reservationData }) {
         <motion.button
           whileHover={bike.available_count > 0 ? { scale: 1.05 } : {}}
           whileTap={bike.available_count > 0 ? { scale: 0.95 } : {}}
-          onClick={() => navigate("/rent", {state: { bike, reservationData }})}
+          onClick={() => {setAddToRent(reservationData, setBike(bike))}}
           disabled={bike.available_bikes === 0}
           className={`px-4 py-2 rounded-lg font-bold transition-all cursor-pointer
             ${

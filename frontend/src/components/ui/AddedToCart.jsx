@@ -3,7 +3,7 @@ import { fadeScale } from "../../animations/fadeScale"
 import { FaCheckCircle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
-function AddedToCart( ) {
+function AddedToCart({setAddToRent, setConfirm} ) {
 
     const navigate = useNavigate();
 
@@ -13,7 +13,7 @@ function AddedToCart( ) {
 
     return (
         <>
-        <div className='box-model fixed inset-0 bg-black/60 flex items-center justify-center'>
+        <div className='box-model fixed inset-0 z-100 bg-black/60 flex items-center justify-center'>
             <motion.div
                     initial={fadeScale.initial}
                     animate={fadeScale.animate}
@@ -27,10 +27,20 @@ function AddedToCart( ) {
                             </div>
                             <h1 className='text-gray-300 font-akagi font-semibold text-md'>Your bike is added to your rents.</h1>
 
-                            <div 
-                                onClick={handleSubmit}
-                                className='bg-white/20 rounded-lg py-1 cursor-pointer' >
-                                <h1 className='text-sm font-akagi font-semibold text-white'>Continue</h1>
+                            <div className='w-full flex flex-row justify-between'>
+                                <div 
+                                    onClick={() => {
+                                        setAddToRent(null);
+                                        setConfirm(!confirm);
+                                    }}
+                                    className='bg-white/20 rounded-lg px-3 py-1 cursor-pointer'>
+                                    <h1 className='text-sm font-akagi font-semibold text-white'>Order More</h1>
+                                </div>
+                                <div 
+                                    onClick={handleSubmit}
+                                    className='w-fit bg-white/20 rounded-lg px-3 py-1 cursor-pointer' >
+                                    <h1 className='text-sm font-akagi font-semibold text-white'>Go to Cart</h1>
+                                </div>
                             </div>
                         </div>
 
