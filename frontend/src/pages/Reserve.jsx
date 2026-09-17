@@ -3,7 +3,7 @@ import AllBikes from "../components/sections/AllBikes";
 import StaticNavigation from "../components/layout/Navigation/StaticNavigationPC";
 import SetTimeAndDate from "../components/layout/SetTimeAndDate";
 import { IoMdArrowRoundBack } from "react-icons/io";
-import AdjustNumber from "../components/ui/AdjustNumber"
+import AdjustNumberWithLimit from "../components/ui/AdjustNumberWithLimit"
 import { IoMdCart } from "react-icons/io";
 import { motion } from "motion/react"
 import { supabase } from "../lib/supabase"
@@ -46,58 +46,63 @@ function Reserve() {
 
   const handleSubmit = async () => {
 
-        try {
+    try {
 
-          const { data: userData, error: userError } = await supabase.auth.getUser();
+        const { data: userData, error: userError } =
+            await supabase.auth.getUser();
 
-            if(userError || !userData?.user) {
-                console.error("No user found");
-                return
-            }
-
-            const user = userData.user;
-
-            const start = new Date(
-                `${reservationData.date}T${reservationData.startTime}`
-            );
-
-            const end = new Date(start);
-            end.setHours(end.getHours() + Number(reservationData.hours));
-
-            const reservation_range = `[${start.toISOString()},${end.toISOString()})`;
-
-            const { data, error } = await supabase
-            .from("orders_mod")
-            .insert([
-                {
-                user_id: user.id,
-                bike_id: null,
-                bike_type_id: bike.id,
-                reservation_date: reservationData.date,
-                start_time: reservationData.startTime,
-                duration_hours: reservationData.hours,
-                status: "reserved",
-                transaction_id: null,
-                reservation_range,
-                },
-            ])
-            .select();
-
-            if (error) {
-                console.error("Insert error:", error);
-                return;
-            }
-
-            console.log("Order created:", data);
-            
-          setConfirm(!confirm);
-    
-        } catch (err) {
-            console.error("Unexpected error:", err);
+        if (userError || !userData?.user) {
+            console.error("No user found");
+            return;
         }
 
-        console.log("tite")
+        const user = userData.user;
+
+        const start = new Date(
+            `${reservationData.date}T${reservationData.startTime}`
+        );
+
+        const end = new Date(start);
+        end.setHours(
+            end.getHours() + Number(reservationData.hours)
+        );
+
+        const reservation_range =
+            `[${start.toISOString()},${end.toISOString()})`;
+
+        // Create one order for each quantity
+        const orders = Array.from({ length: quantity }, () => ({
+            user_id: user.id,
+            bike_id: null,
+            bike_type_id: bike.id,
+            reservation_date: reservationData.date,
+            start_time: reservationData.startTime,
+            duration_hours: reservationData.hours,
+            status: "reserved",
+            transaction_id: null,
+            reservation_range,
+        }));
+
+        const { data, error } = await supabase
+            .from("orders_mod")
+            .insert(orders)
+            .select();
+
+        if (error) {
+            console.error("Insert error:", error);
+            return;
+        }
+
+        console.log(`${quantity} orders created:`, data);
+
+        setConfirm(!confirm);
+
+    } catch (err) {
+        console.error("Unexpected error:", err);
     }
+
+    console.log("tite");
+};
 
 
   return (
@@ -138,7 +143,7 @@ function Reserve() {
                           Quantity
                       </h1>
                       <div>
-                          <AdjustNumber value={quantity} setValue={setQuantity} />
+                          <AdjustNumberWithLimit value={quantity} setValue={setQuantity} limit={bike.available_bikes}/>
                       </div>
 
                       {/* Hours */}
