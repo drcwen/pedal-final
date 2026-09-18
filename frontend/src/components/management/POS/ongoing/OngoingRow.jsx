@@ -8,8 +8,12 @@ import { supabase } from "../../../../lib/supabase"
 import Payment from "./three dots/Payment"
 import ChangeBike from "./ChangeBike"
 import MaintenancePayment from "./MaintenancePayment"
+import { MdOutlineReceiptLong } from "react-icons/md";
+import Receipt from "../../receipt/Receipt"
 
 function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, transaction }) {
+
+    const [receipt, setReceipt] = useState(false);
 
     const [extendOrder, setExtendOrder] = useState(null);
     const [changeOrder, setChangeOrder] = useState(null);
@@ -187,6 +191,20 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
                             }
 
                         </div>
+
+                        <div className='flex justify-end'>
+                            <div 
+                                onClick={() => setReceipt(!receipt)}
+                                className='flex gap-2 bg-blue px-2 py-1 rounded-lg font-akagi font-semibold cursor-pointer text-[#ffffff] text-sm'>
+                                <MdOutlineReceiptLong className='text-lg'/>Receipt
+                            </div>
+                        </div>
+
+                        {receipt &&
+                            <Receipt 
+                                setReceipt={setReceipt}
+                            />
+                        }
                     </motion.div>
                 )}
             </AnimatePresence>

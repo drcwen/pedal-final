@@ -13,12 +13,37 @@ function Maintenance( {setMaintenance }) {
 
     const [reload, setReload] = useState(false);
 
+    const convertToPhilippineDate = (timestamp) => {
+        return new Date(timestamp).toLocaleDateString("en-PH", {
+            timeZone: "Asia/Manila",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit"
+        });
+    };
+
+    const convertToPhilippineTime = (timestamp) => {
+        return new Date(timestamp).toLocaleTimeString("en-PH", {
+            timeZone: "Asia/Manila",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: true
+        });
+    };
+
     useEffect(() => {
         const fetchMaintenanceBikes = async () => {
             const { data, error } = await supabase
                 .from("maintenance_mod")
                 .select(`
                     *,
+                    bikes_mod (
+                        *,
+                        bike_types_mod (
+                            *
+                        )
+                    ),
                     orders_mod (
                         *,
                         transactions_mod(*),
@@ -144,6 +169,11 @@ function Maintenance( {setMaintenance }) {
                                     bikeId={info.orders_mod?.bikes_mod?.code}
                                     bikeCode={info.orders_mod?.bikes_mod?.id}
                                     bikeTypeId={info.orders_mod?.bikes_mod?.bike_types_mod?.name}
+
+                                    inventoryBikeCode={info.bikes_mod?.bike_types_mod?.name}
+                                    inventoryBikeId={info.bikes_mod?.code}
+                                    date={convertToPhilippineDate(info.created_at)}
+                                    time={convertToPhilippineTime(info.created_at)}
                                     reason={info.reason}
                                     status={info.status}
                                     price={info.price}

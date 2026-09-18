@@ -16,10 +16,16 @@ function MaintenanceRow({
     settle,
     bikeCode,
     maintenanceId,
-    assistedBy
+    assistedBy,
+    date,
+    time,
+
+    inventoryBikeCode,
+    inventoryBikeId
 }) {
 
-    console.log(bikeCode)
+    console.log("bikeCode",bikeCode)
+    console.log("inventoryBikeCode",inventoryBikeCode)
     console.log(assistedBy)
 
     const [dropDown, setDropDown] = useState(false);
@@ -31,14 +37,14 @@ function MaintenanceRow({
             <div className='flex flex-row justify-between font-akagi font-bold text-gray items-center'>
 
                 <div className='bg-blue py-0.5 px-2 rounded-lg text-[#ffffff] flex items-center'>
-                    {bikeId}
+                    {bikeId === undefined ? inventoryBikeId : bikeId}
                 </div>
 
                 <div className='w-full grid md:grid-cols-[1fr_1fr_1fr] grid-cols-[1fr_1fr] items-center'>
 
                     <div className='w-full justify-center text-center'>
                         <div>
-                            {bikeTypeId}
+                            {bikeTypeId === undefined ? inventoryBikeCode : bikeTypeId}
                         </div>
                     </div>
 
@@ -138,13 +144,13 @@ function MaintenanceRow({
 
                         <div className='md:grid xl:grid-cols-3 mt-5 md:grid-cols-2 flex flex-col gap-3'>
 
-                            <div className='flex flex-col gap-3 bg-[#ffffff]  p-4 rounded-lg border border-[#c9c9c9] font-akagi font-bold text-md text-black/50'>
+                            <div className={`${bikeId === undefined ? "hidden" : "block"} flex flex-col gap-3 bg-[#ffffff]  p-4 rounded-lg border border-[#c9c9c9] font-akagi font-bold text-md text-black/50`}>
 
                                 <h1 className='text-gray text-lg'>
                                     Customer Details
                                 </h1>
 
-                                <div className='flex flex-col gap-1 px-5'>
+                                <div className={` flex flex-col gap-1 px-5`}>
 
                                     <div className='grid grid-cols-[100px_1fr]'>
                                         <h1>Name:</h1>
@@ -220,6 +226,15 @@ function MaintenanceRow({
                                         <h1>{method}</h1>
                                     </div>
 
+                                    <div className='grid grid-cols-[100px_1fr]'>
+                                        <h1>Date:</h1>
+                                        <h1>{date}</h1>
+                                    </div>
+
+                                    <div className='grid grid-cols-[100px_1fr]'>
+                                        <h1>Time:</h1>
+                                        <h1>{time}</h1>
+                                    </div>
                                 </div>
                             </div>
 
