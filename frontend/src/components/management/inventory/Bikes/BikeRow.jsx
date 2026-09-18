@@ -7,7 +7,7 @@ import { FaPlus } from "react-icons/fa";
 import { RiImageAddFill } from "react-icons/ri";
 import { supabase } from "../../../../lib/supabase"
 
-function BikeRow({bikeType, capacity, price, image, bikes, bikeTypeId, setBikeEdit, setBikeTypes, setFetchBikeCode, setFetchBikeStatus, setEditBikeType, setEditBikeImage, setBikeType, setPrice, setEditBikeTypeId, setBikeCapacity}) {
+function BikeRow({bikeType, capacity, price, image, bikes, bikeTypeId, setBikeEdit, setBikeTypes, setFetchBikeCode, setFetchBikeId, setFetchType, setFetchImage, setFetchBikeStatus, setEditBikeType, setEditBikeImage, setBikeType, setPrice, setEditBikeTypeId, setBikeCapacity}) {
 
     const [dropDown, setDropDown] = useState(false);
     const [addBike, setAddBike] = useState(false);
@@ -218,11 +218,17 @@ function BikeRow({bikeType, capacity, price, image, bikes, bikeTypeId, setBikeEd
                                             bikes.map((bike) => (
                                                 <BikeInventoryInfo 
                                                     key={bike.id}
+                                                    bikeId={bike.id}
                                                     bikeCode={bike.code}
+                                                    image={image}
+                                                    type={bikeType}
                                                     status={bike.status}
                                                     setBikeEdit={setBikeEdit}
                                                     setFetchBikeCode={setFetchBikeCode}
                                                     setFetchBikeStatus={setFetchBikeStatus}
+                                                    setFetchBikeId={setFetchBikeId}
+                                                    setFetchType={setFetchType}
+                                                    setFetchImage={setFetchImage}
                                                 />
                                             ))
                                         }

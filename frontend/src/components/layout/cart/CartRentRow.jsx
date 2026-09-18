@@ -126,8 +126,7 @@ function CartRentRow({
                             <div className='flex flex-col justify-center font-akagi font-medium text-gray'>
                                 <h1 className='font-bold text-blue'>{name}</h1>
                                 <div className='flex flex-row gap-1'>
-                                    <h1>{hour} hour</h1>
-                                    <h1 className='font-md'>x1</h1>
+                                    <h1>{hour === 1 ? hour + " hour" : hour + " hours"}</h1>
                                 </div>
                             </div>
                         </div>
@@ -153,7 +152,7 @@ function CartRentRow({
                                 <h1>Date:</h1>
                                 <h1 className='font-medium'>{formatDisplayDate(reservationdate)}</h1>
                                 <h1>Duration:</h1>
-                                <h1 className='font-medium'>{hour} hour</h1>
+                                <h1 className='font-medium'>{hour === 1 ? hour + " hour" : hour + " hours"}</h1>
 
                                 <h1>Start Time:</h1>
                                 <h1 className='font-medium'>{formatTime(starttime)}</h1>

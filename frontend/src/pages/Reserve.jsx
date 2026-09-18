@@ -44,6 +44,20 @@ function Reserve() {
     return `${months[month]} ${Number(day)}, ${year}`;
   };
 
+  function formatTime(time) {
+    if (!time) return "";
+
+    const [hours, minutes] = time.split(":");
+
+    const hour = Number(hours);
+
+    const period = hour >= 12 ? "PM" : "AM";
+
+    const formattedHour = hour % 12 || 12;
+
+    return `${formattedHour}:${minutes} ${period}`;
+}
+
   const handleSubmit = async () => {
 
     try {
@@ -135,7 +149,7 @@ function Reserve() {
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-10 items-center lg:items-start">
+                <div className="pb-20 flex flex-col gap-10 items-center lg:items-start">
                   <div className="grid grid-cols-2 lg:gap-x-6 gap-y-4 items-center w-full">
 
                       {/* Quantity */}
@@ -153,7 +167,7 @@ function Reserve() {
 
                       <div className="border-2 border-[#979B9D] rounded-lg flex items-center justify-center lg:py-1 px-4">
                           <h1 className="text-lg font-bold font-akagi text-[#979B9D]">
-                              {reservationData.hours}
+                              {reservationData.hours === 1 ? reservationData.hours + " hour" : reservationData.hours + " hours"}
                           </h1>
                       </div>
 
@@ -173,7 +187,7 @@ function Reserve() {
                       </h1>
                       <div className="border-2 border-[#979B9D] rounded-lg flex items-center justify-center lg:py-1 px-4">
                           <h1 className="text-lg font-bold font-akagi text-[#979B9D]">
-                              {reservationData.startTime}
+                              {formatTime(reservationData.startTime)}
                           </h1>
                       </div>
 

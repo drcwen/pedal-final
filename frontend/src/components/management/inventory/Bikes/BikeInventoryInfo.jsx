@@ -1,7 +1,7 @@
 import { MdModeEditOutline } from "react-icons/md";
 import { useState, useEffect } from "react";
 
-function BikeInventoryInfo({ bikeCode, status, setBikeEdit, setFetchBikeCode, setFetchBikeStatus }) {
+function BikeInventoryInfo({ bikeCode, bikeId, status, image, type, setBikeEdit, setFetchBikeCode, setFetchBikeId, setFetchBikeStatus, setFetchType, setFetchImage }) {
 
   return (
     <>
@@ -29,12 +29,19 @@ function BikeInventoryInfo({ bikeCode, status, setBikeEdit, setFetchBikeCode, se
 
               <div className='flex items-center justify-center'>
                   <div 
-                    onClick={() => {
-                        setBikeEdit(true)
-                        setFetchBikeCode(bikeCode)
-                        setFetchBikeStatus(status)
-                    }}
-                    className='bg-blue rounded-lg p-1'>
+                    onClick={
+                        status === "Under Maintenance" || status === "Rented"
+                            ? undefined
+                            : () => {
+                                setBikeEdit(true)
+                                setFetchBikeCode(bikeCode)
+                                setFetchBikeStatus(status)
+                                setFetchBikeId(bikeId)
+                                setFetchType(type)
+                                setFetchImage(image)
+                            }
+                    }
+                    className={`${status === "Under Maintenance" || status === "Rented" ? "opacity-50 bg-gray cursor-not-allowed" : "bg-blue"} rounded-lg p-1`}>
                       <MdModeEditOutline 
                         className='text-[#ffffff] text-lg'/>
                   </div>
