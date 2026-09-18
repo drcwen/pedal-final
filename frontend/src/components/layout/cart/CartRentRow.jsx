@@ -3,9 +3,55 @@ import { motion } from "framer-motion";
 import AdjustQuantity from "../../ui/AdjustQuantity"
 import { useState } from "react";
 
-function CartRentRow({image, name, hour, reservationdate, starttime, checked, onCheck, price }) {
+function CartRentRow({
+    image,
+    name,
+    hour,
+    reservationdate,
+    starttime,
+    checked,
+    onCheck,
+    price,
+    quantity,
+    onQuantityChange
+}) {
 
-    const [quantity, setQuantity] = useState(1);
+    function formatTime(time) {
+        if (!time) return "";
+
+        const [hours, minutes] = time.split(":");
+
+        const hour = Number(hours);
+
+        const period = hour >= 12 ? "PM" : "AM";
+
+        const formattedHour = hour % 12 || 12;
+
+        return `${formattedHour}:${minutes} ${period}`;
+    }
+
+    const formatDisplayDate = (dateString) => {
+        if (!dateString) return "";
+
+        const [year, month, day] = dateString.split("-");
+
+        const months = {
+            "01": "Jan",
+            "02": "Feb",
+            "03": "Mar",
+            "04": "Apr",
+            "05": "May",
+            "06": "Jun",
+            "07": "Jul",
+            "08": "Aug",
+            "09": "Sep",
+            "10": "Oct",
+            "11": "Nov",
+            "12": "Dec"
+        };
+
+        return `${months[month]} ${Number(day)}, ${year}`;
+    };
 
   return (
 
@@ -32,7 +78,17 @@ function CartRentRow({image, name, hour, reservationdate, starttime, checked, on
 
                     </div>
 
-                    <AdjustQuantity value={quantity} limit={10} setValue={setQuantity}/>
+                    <AdjustQuantity
+                                value={quantity}
+                                limit={10}
+                                setValue={(newValue) => {
+                                    if (typeof newValue === "function") {
+                                        onQuantityChange(newValue(quantity));
+                                    } else {
+                                        onQuantityChange(newValue);
+                                    }
+                                }}
+                            />
 
                     <div className='w-full rounded-lgitems-center justify-center text-center'>
                         <h1 className='py-1 text-[#6D7172] font-medium text-md'>{hour} hour</h1>
@@ -40,11 +96,11 @@ function CartRentRow({image, name, hour, reservationdate, starttime, checked, on
 
 
                     <div className='w-full rounded-lg items-center justify-center text-center'>
-                        <h1 className='py-1 text-[#6D7172] font-medium text-md'>{reservationdate}</h1>
+                        <h1 className='py-1 text-[#6D7172] font-medium text-md'>{formatDisplayDate(reservationdate)}</h1>
                     </div>
 
                     <div className='w-full rounded-lg items-center justify-center text-center'>
-                        <h1 className='py-1 text-[#6D7172] font-medium text-md'>{starttime}</h1>
+                        <h1 className='py-1 text-[#6D7172] font-medium text-md'>{formatTime(starttime)}</h1>
                     </div>
 
                     <div className='flex items-center justify-end'>
@@ -77,7 +133,17 @@ function CartRentRow({image, name, hour, reservationdate, starttime, checked, on
                         </div>
 
                         <div className='w-full'>
-                            <AdjustQuantity value={quantity} limit={10} setValue={setQuantity}/>
+                            <AdjustQuantity
+                                value={quantity}
+                                limit={10}
+                                setValue={(newValue) => {
+                                    if (typeof newValue === "function") {
+                                        onQuantityChange(newValue(quantity));
+                                    } else {
+                                        onQuantityChange(newValue);
+                                    }
+                                }}
+                            />
                         </div>
 
                         <div />
@@ -85,13 +151,12 @@ function CartRentRow({image, name, hour, reservationdate, starttime, checked, on
                         <div className='col-span-2 w-full p-2 flex flex-col'>
                             <div className='grid grid-cols-[90px_1fr] font-akagi font-bold text-gray'>
                                 <h1>Date:</h1>
-                                <h1 className='font-medium'>{reservationdate}</h1>
-
+                                <h1 className='font-medium'>{formatDisplayDate(reservationdate)}</h1>
                                 <h1>Duration:</h1>
                                 <h1 className='font-medium'>{hour} hour</h1>
 
                                 <h1>Start Time:</h1>
-                                <h1 className='font-medium'>{starttime}</h1>
+                                <h1 className='font-medium'>{formatTime(starttime)}</h1>
                             </div>
                         </div>
                     </div>

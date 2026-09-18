@@ -103,6 +103,20 @@ function AllBikes({ reservationData, onOpen, setBike, setAddToRent}) {
     return `${months[month]} ${Number(day)}, ${year}`;
   };
 
+  function formatTime(time) {
+      if (!time) return "";
+
+      const [hours, minutes] = time.split(":");
+
+      const hour = Number(hours);
+
+      const period = hour >= 12 ? "PM" : "AM";
+
+      const formattedHour = hour % 12 || 12;
+
+      return `${formattedHour}:${minutes} ${period}`;
+  }
+
   return (
     <div className="w-full py-30 px-10 flex flex-col justify-center gap-10">
       <h1 className="text-4xl font-akagi font-black text-blue">
@@ -124,7 +138,7 @@ function AllBikes({ reservationData, onOpen, setBike, setAddToRent}) {
           className='w-full md:w-fit flex flex-row gap-2 rounded-lg border-2 border-gray px-3 py-2  items-center'
         >
           <IoMdTime className='text-xl text-gray'/>
-          <h1 className='text-gray'>{reservationData?.startTime}</h1>
+          <h1 className='text-gray'>{formatTime(reservationData?.startTime)}</h1>
         </div>
 
         <div 

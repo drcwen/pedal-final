@@ -19,6 +19,35 @@ function CartSection() {
 
     const [total, setTotal] = useState(0);
 
+    const groupedOrders = groupOrders(orders);
+
+    function groupOrders(orders) {
+        const groups = {};
+
+        orders.forEach((order) => {
+            const groupKey = [
+                order.bike_type_id,
+                order.reservation_date,
+                order.start_time,
+                order.duration_hours
+            ].join("-");
+
+            if (!groups[groupKey]) {
+                groups[groupKey] = {
+                    ...order,
+                    groupKey,
+                    quantity: 0,
+                    orderIds: []
+                };
+            }
+
+            groups[groupKey].quantity += 1;
+            groups[groupKey].orderIds.push(order.id);
+        });
+
+        return Object.values(groups);
+    }
+
     function handleCheckout() {
         const selectedOrders = orders.filter(
             (order) => checkedItems[order.id]
@@ -38,14 +67,18 @@ function CartSection() {
     }
     
 
-    function handleCheckbox(id) {
+    function handleCheckbox(orderIds) {
         setCheckedItems((prev) => {
-            const updated = {
-                ...prev,
-                [id]: !prev[id]
-            };
+            const isChecked = orderIds.every((id) => prev[id]);
+
+            const updated = { ...prev };
+
+            orderIds.forEach((id) => {
+                updated[id] = !isChecked;
+            });
 
             sendCheckedToBackend(updated);
+
             return updated;
         });
     }
@@ -111,52 +144,126 @@ function CartSection() {
         setTotal(data);
     }
 
-    useEffect(() => {
+    async function handleQuantityChange(order, newQuantity) {
 
-        setLoading(true);
-    
-        async function fetchOrders() {
+        const currentQuantity = order.quantity;
 
-            const { data: { user } } = await supabase.auth.getUser();
+        // ADD
+        if (newQuantity > currentQuantity) {
 
-            if (!user) return;
+            const { data: userData, error: userError } =
+                await supabase.auth.getUser();
 
-            const { data, error } = await supabase
+            if (userError || !userData?.user) {
+                console.error("No user found");
+                return;
+            }
+
+            const user = userData.user;
+
+            const { error } = await supabase
                 .from("orders_mod")
-                .select(`
+                .insert({
+                    user_id: user.id,
+                    transaction_id: null,
+                    bike_id: null,
+                    reservation_date: order.reservation_date,
+                    start_time: order.start_time,
+                    duration_hours: order.duration_hours,
+                    status: "reserved",
+                    reservation_range: order.reservation_range,
+                    bike_type_id: order.bike_type_id,
+                    type: null,
+                    gps_id: null
+                });
+
+            if (error) {
+                console.error(error);
+                return;
+            }
+
+            // Refresh orders
+            await fetchOrders();
+
+            return;
+        }
+
+        // REMOVE
+        if (newQuantity < currentQuantity) {
+
+            // Remove one of the existing rows
+            const idToDelete = order.orderIds[order.orderIds.length - 1];
+
+            const { error } = await supabase
+                .from("orders_mod")
+                .delete()
+                .eq("id", idToDelete);
+
+            if (error) {
+                console.error(error);
+                return;
+            }
+
+            // Refresh orders
+            await fetchOrders();
+        }
+    }
+
+    async function fetchOrders() {
+        setLoading(true);
+
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user) {
+            setLoading(false);
+            return;
+        }
+
+        const { data, error } = await supabase
+            .from("orders_mod")
+            .select(`
                 id,
                 reservation_date,
                 start_time,
                 duration_hours,
                 status,
+                reservation_range,
+                bike_type_id,
 
                 bike_types_mod (
-                image_url,
-                id,
-                name,
-                price
+                    image_url,
+                    id,
+                    name,
+                    price
                 ),
 
                 transactions_mod (
-                id,
-                total_amount
+                    id,
+                    total_amount
                 )
             `)
             .eq("user_id", user.id)
             .is("transaction_id", null);
 
-            if (error) {
+        if (error) {
             console.log(error);
-            } else {
+        } else {
             setOrders(data);
-            }
-
-            setLoading(false);
         }
+
+        setLoading(false);
+    }
+    
+
+    useEffect(() => {
 
         fetchOrders();
 
   }, []);
+
+    function orderIdsChecked(orderIds) {
+        return orderIds.every((id) => checkedItems[id]);
+    }
 
   return (
     <div className='w-full min-h-screen gap-5 flex flex-col'>
@@ -194,18 +301,24 @@ function CartSection() {
                             </h1>
                         </div> 
                     ) : (
-                        orders.map((order) => {
+                        groupedOrders.map((order) => {
                             return (
                                 <CartRentRow
-                                    key={order.id}
+                                    key={order.groupKey}
                                     image={order.bike_types_mod.image_url}
                                     name={order.bike_types_mod.name}
                                     hour={order.duration_hours}
                                     reservationdate={order.reservation_date}
                                     starttime={order.start_time}
                                     price={order.bike_types_mod.price}
-                                    checked={checkedItems[order.id] || false}
-                                    onCheck={() => handleCheckbox(order.id)}
+                                    quantity={order.quantity}
+                                    orderIds={order.orderIds}
+                                    bikeTypeId={order.bike_type_id}
+                                    checked={orderIdsChecked(order.orderIds)}
+                                    onCheck={() => handleCheckbox(order.orderIds)}
+                                    onQuantityChange={(newQuantity) =>
+                                        handleQuantityChange(order, newQuantity)
+                                    }
                                 />
                             );
                         })

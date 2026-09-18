@@ -7,20 +7,20 @@ function AdjustQuantity({ value, setValue, limit }) {
     const [warning, setWarning] = useState(false);
 
     const addValue = () => {
-        setValue((prev) => {
-            if (prev < limit) {
-                setWarning(false);
-                return prev + 1;
-            }
 
-            setWarning(true);
-            return prev;
-        });
+        if (value < limit) {
+            setWarning(false);
+            setValue(value + 1);
+            return;
+        }
+
+        setWarning(true);
     };
 
     const subtractValue = () => {
+
         if (value > 1) {
-            setValue((prev) => prev - 1);
+            setValue(value - 1);
             setWarning(false);
         }
     };
