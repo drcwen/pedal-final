@@ -90,6 +90,10 @@ function AssignChangeBikes({beforeType, changedType, setConfirmChange, changedIm
         }
     }
 
+    console.log("orderId", orderId)
+    console.log("changedBikeTypeId", changedBikeTypeId)
+    console.log("selectedBike", selectedBike)
+
     async function insertChangeBike(transactionId) {
         try {
             const {
@@ -109,7 +113,10 @@ function AssignChangeBikes({beforeType, changedType, setConfirmChange, changedIm
                     bike_type_id: bikeTypeId,
                     bike_id: bikeId,
                     trans_id: transactionId,
-                    assisted_by: user.id
+                    assisted_by: user.id,
+                    changed_bike_id: selectedBike,  
+                    changed_bike_type_id: changedBikeTypeId
+
                 })
 
             if (error) {

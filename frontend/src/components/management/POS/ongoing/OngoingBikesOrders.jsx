@@ -104,7 +104,6 @@ function OngoingBikesOrders({ bikeTypeId, orderId, bikeCode, bikeId, gpsId, gpsC
 
     }, [start, end]);
 
-
     //Return Bike
     const returnBike = async () => {
         const {data, error} = await supabase
@@ -352,6 +351,7 @@ function OngoingBikesOrders({ bikeTypeId, orderId, bikeCode, bikeId, gpsId, gpsC
                             <div 
                                 onClick={() => {setExtendOrder({
                                     orderId,
+                                    bikeId,
                                     bikeCode,
                                     type,
                                     duration,

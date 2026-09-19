@@ -3,7 +3,7 @@ import {supabase } from "../../../../../lib/supabase"
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { useNavigate } from "react-router-dom";
 
-function Payment({total, setPayment, bikeId, bikeType, orderId, extensionClicked, updatedTime, bikeCode}) {
+function Payment({total, setPayment, bikeId, bikeType, orderId, extensionClicked, updatedTime, bikeCode, bikeTypeId}) {
 
     const [active, setActive] = useState("Cash");
     const [cashAmount, setCashAmount] = useState(null);
@@ -76,7 +76,9 @@ function Payment({total, setPayment, bikeId, bikeType, orderId, extensionClicked
                     order_id: orderId,
                     extension_duration: extensionClicked,
                     transaction_id: transactionId,
-                    new_reservation_range: updatedTime
+                    new_reservation_range: updatedTime,
+                    bikes_id: bikeId,
+                    bikes_type_id: bikeTypeId
                 });
 
             if (orderError) {
@@ -98,10 +100,13 @@ function Payment({total, setPayment, bikeId, bikeType, orderId, extensionClicked
             console.error(error);
         } finally {
             setLoading(false);
-            window.location.reload();
+            //window.location.reload();
         }
 
     }
+
+    console.log(bikeId)
+    console.log(bikeTypeId)
 
     useEffect(() => {
 
@@ -465,6 +470,8 @@ function Payment({total, setPayment, bikeId, bikeType, orderId, extensionClicked
                                 <div className='grid md:grid-cols-[160px_1fr] grid-cols-[120px_1fr] gap-2 items-center'>
                                     <h1>Method:</h1>
                                     <h1>{active}</h1>
+
+                                    
                                 </div>
 
                             </div>

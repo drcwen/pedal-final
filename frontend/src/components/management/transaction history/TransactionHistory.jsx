@@ -24,91 +24,246 @@ function TransactionHistory() {
         }
 
         useEffect(() => {
-            const getTransactions = async () => {
+    const getTransactions = async () => {
 
-                if (!dates || dates.length < 2 || !dates[0] || !dates[1]) {
-                    setTransactionData([]);
-                    return;
-                }
+        if (!dates || dates.length < 2 || !dates[0] || !dates[1]) {
+            setTransactionData([]);
+            setLoading(false);
+            return;
+        }
 
-                setLoading(true);
+        setLoading(true);
 
-                const startDate = dates[0];
-                const endDate = dates[1];
+        const startDate = dates[0];
+        const endDate = dates[1];
 
-                const start = new Date(startDate);
-                start.setHours(0, 0, 0, 0);
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
 
-                const end = new Date(endDate);
-                end.setHours(23, 59, 59, 999);
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
 
-                const { data, error } = await supabase
-                    .from("transactions_mod")
-                    .select(`
+        // =====================================================
+        // 1. GET TRANSACTIONS
+        // =====================================================
+
+        const { data, error } = await supabase
+            .from("transactions_mod")
+            .select(`
+                *,
+                profile:profiles_mod!transactions_mod_user_id_fkey1 (
+                    *
+                ),
+                walk_in:walk_ins_users_mod (
+                    *
+                ),
+                orders_mod (
+                    *,
+                    bike_types_mod (*),
+                    bikes_mod (*),
+                    gps_mod (*)
+                ),
+                extensions_mod (
+                    *,
+                    bikes_mod(
+                    *
+                    ),
+                    bike_types_mod (
+                    *
+                    ),
+                    orders_mod (
                         *,
-                        profile:profiles_mod!transactions_mod_user_id_fkey1 (
-                            *
-                        ),
-                        walk_in:walk_ins_users_mod (
-                            *
-                        ),
-                        orders_mod (
+                        bikes_mod (
                             *,
-                            bike_types_mod (*),
-                            bikes_mod (*),
-                            gps_mod (*)
-                        ),
-                        extensions_mod (
-                            *,
-                            orders_mod (
-                                *,
-                                bikes_mod (
-                                    *,
-                                    bike_types_mod (
-                                        *
-                                    )
-                                ),
-                                transaction:transactions_mod (
-                                    *,
-                                    profile:profiles_mod!transactions_mod_user_id_fkey1 (*),
-                                    walk_in:walk_ins_users_mod (*)
-                                )
+                            bike_types_mod (
+                                *
                             )
                         ),
-                        change_bikes_mod (
+                        transaction:transactions_mod (
                             *,
-                            bikes_mod (*),
-                            bike_types_mod (*),
-                            orders_mod (
-                                *,
-                                bikes_mod (
-                                    *,
-                                    bike_types_mod (*)
-                                ),
-                                transaction:transactions_mod (
-                                    *,
-                                    profile:profiles_mod!transactions_mod_user_id_fkey1 (*),
-                                    walk_in:walk_ins_users_mod (*)
-                                )
-                            )
+                            profile:profiles_mod!transactions_mod_user_id_fkey1 (*),
+                            walk_in:walk_ins_users_mod (*)
                         )
-                    `)
-                    .gte("created_at", start.toISOString())
-                    .lte("created_at", end.toISOString())
-                    .order("created_at", { ascending: false });
+                    )
+                ),
+                change_bikes_mod (
+                    *,
+                    original_bike:bikes_mod!change_bikes_mod_bike_id_fkey (
+                        *,
+                        bike_type:bike_types_mod (*)
+                    ),
 
-                if (error) {
-                    console.error(error);
-                } else {
-                    setTransactionData(data);
-                }
+                    changed_bike:bikes_mod!change_bikes_mod_changed_bike_id_fkey (
+                        *,
+                        bike_type:bike_types_mod (*)
+                    ),
 
-                setLoading(false);
+                    original_bike_type:bike_types_mod!change_bikes_mod_bike_type_id_fkey (*),
+
+                    changed_bike_type:bike_types_mod!change_bikes_mod_changed_bike_type_id_fkey (*),
+
+                    orders_mod (
+                        *,
+                        bikes_mod (
+                            *,
+                            bike_types_mod (*)
+                        ),
+                        transaction:transactions_mod (
+                            *,
+                            profile:profiles_mod!transactions_mod_user_id_fkey1 (*),
+                            walk_in:walk_ins_users_mod (*)
+                        )
+                    )
+                )
+            `)
+            .gte("created_at", start.toISOString())
+            .lte("created_at", end.toISOString())
+            .order("created_at", { ascending: false });
+
+        if (error) {
+            console.error("Transaction error:", error);
+            setLoading(false);
+            return;
+        }
+
+        // =====================================================
+        // 2. GET ALL ORDER IDS
+        // =====================================================
+
+        const orderIds = (data ?? []).flatMap((transaction) =>
+            (transaction.orders_mod ?? []).map((order) => order.id)
+        );
+
+        console.log("ORDER IDS:", orderIds);
+
+        // =====================================================
+        // 3. FIND change_bikes_mod ROWS FOR THOSE ORDER IDS
+        // =====================================================
+
+        let allChangeBikes = [];
+
+        if (orderIds.length > 0) {
+
+            const {
+                data: changeData,
+                error: changeError
+            } = await supabase
+                .from("change_bikes_mod")
+                .select(`
+                    *,
+
+                    original_bike:bikes_mod!change_bikes_mod_bike_id_fkey (
+                        *,
+                        bike_type:bike_types_mod (*)
+                    ),
+
+                    changed_bike:bikes_mod!change_bikes_mod_changed_bike_id_fkey (
+                        *,
+                        bike_type:bike_types_mod (*)
+                    ),
+
+                    original_bike_type:bike_types_mod!change_bikes_mod_bike_type_id_fkey (*),
+
+                    changed_bike_type:bike_types_mod!change_bikes_mod_changed_bike_type_id_fkey (*)
+                `)
+                .in("order_id", orderIds)
+                .order("id", { ascending: true });
+
+            if (changeError) {
+                console.error("Change bike error:", changeError);
+            } else {
+                allChangeBikes = changeData ?? [];
+            }
+        }
+
+        console.log("ALL CHANGE BIKES:", allChangeBikes);
+
+        // =====================================================
+        // 4. MODIFY EACH ORDER
+        // =====================================================
+
+        const finalTransactions = (data ?? []).map((transaction) => {
+
+            const ordersWithOriginalBike =
+                (transaction.orders_mod ?? []).map((order) => {
+
+                    // Find ALL change records for this order
+                    const changesForOrder = allChangeBikes
+                        .filter(
+                            (change) =>
+                                Number(change.order_id) === Number(order.id)
+                        )
+                        .sort(
+                            (a, b) =>
+                                Number(a.id) - Number(b.id)
+                        );
+
+                    console.log(
+                        "ORDER:",
+                        order.id,
+                        "CHANGE ROWS:",
+                        changesForOrder
+                    );
+
+                    // =================================================
+                    // NO CHANGE RECORD
+                    // =================================================
+
+                    if (changesForOrder.length === 0) {
+
+                        return {
+                            ...order,
+
+                            original_bike_id: order.bike_id,
+                            original_bike_type_id: order.bike_type_id,
+
+                            original_bike: order.bikes_mod,
+                            original_bike_type: order.bike_types_mod
+                        };
+                    }
+
+                    // =================================================
+                    // HAS CHANGE RECORD
+                    // USE THE FIRST INSERTED ROW
+                    // =================================================
+
+                    const firstChange = changesForOrder[0];
+
+                    console.log(
+                        "FIRST CHANGE FOR ORDER:",
+                        order.id,
+                        firstChange
+                    );
+
+                    return {
+                        ...order,
+
+                        original_bike_id: firstChange.bike_id,
+                        original_bike_type_id: firstChange.bike_type_id,
+
+                        original_bike: firstChange.original_bike,
+
+                        original_bike_type:
+                            firstChange.original_bike_type ??
+                            firstChange.original_bike?.bike_type
+                    };
+                });
+
+            return {
+                ...transaction,
+                orders_mod: ordersWithOriginalBike
             };
+        });
 
-            getTransactions();
+        console.log("FINAL TRANSACTIONS:", finalTransactions);
 
-        }, [dates]);
+        setTransactionData(finalTransactions);
+        setLoading(false);
+    };
+
+    getTransactions();
+
+}, [dates]);
 
         useEffect(() => {
             console.log("transactionData:", transactionData);
@@ -253,29 +408,29 @@ function TransactionHistory() {
                                         transaction.extensions_mod?.[0];
 
                                     const changedBikesData =
-                                        transaction.change_bikes_mod?.[0];
+                                        transaction.change_bikes_mod ?? [];
 
                                     return (
                                         <TransactionRow
-                                            key={transaction.id}
-                                            totalBikes={
-                                                transaction.type === "walk-in" ||
-                                                transaction.type === "reservation"
-                                                    ? transaction.orders_mod.length
-                                                    : transaction.type === "change"
-                                                        ? "C"
-                                                        : "E"
-                                            }
-                                            transactionId={transaction.id}
-                                            fullName={customerName}
-                                            transactionType={transaction.type}
-                                            timeAdded={formatDate(transaction.created_at)}
-                                            status={transaction.status}
-                                            transactionData={transaction.orders_mod}
-                                            transactionPayment={transaction}
-                                            extensionsData={extensionData}
-                                            changeBikesData={changedBikesData}
-                                        />
+                                        key={transaction.id}
+                                        totalBikes={
+                                            transaction.type === "walk-in" ||
+                                            transaction.type === "reservation"
+                                                ? transaction.orders_mod.length
+                                                : transaction.type === "change"
+                                                    ? "C"
+                                                    : "E"
+                                        }
+                                        transactionId={transaction.id}
+                                        fullName={customerName}
+                                        transactionType={transaction.type}
+                                        timeAdded={formatDate(transaction.created_at)}
+                                        status={transaction.status}
+                                        transactionData={transaction.orders_mod}
+                                        transactionPayment={transaction}
+                                        extensionsData={extensionData}
+                                        changeBikesData={changedBikesData}
+                                    />
                                     );
                                 })
 

@@ -128,37 +128,61 @@ function TransactionRow({totalBikes, transactionId, fullName, transactionType, t
 
                             <div className={`${transactionType === "reservation" || transactionType === "walk-in" ? "md:grid md:grid-cols-2 xl:grid-cols-3" : "hidden"} flex flex-col gap-3 pb-5`}>
                                 
-                                {transactionData.map((orders) => (
+                                {transactionData.map((orders) => {
+
+                                    const originalBike =
+                                        orders.original_bike ?? orders.bikes_mod;
+
+                                    const originalBikeType =
+                                        orders.original_bike_type ?? orders.bike_types_mod;
+
+                                    return (
+                                        <TransactionBikes 
+                                            key={orders.id}
+
+                                            image={originalBikeType?.image_url}
+
+                                            bikeType={originalBikeType?.name}
+
+                                            price={"P" + originalBikeType?.price}
+
+                                            unitId={
+                                                originalBike?.code ?? "NOT STARTED"
+                                            }
+
+                                            gpsId={
+                                                orders.gps_id === null
+                                                    ? "NOT STARTED"
+                                                    : orders.gps_mod?.code
+                                            }
+
+                                            duration={orders.duration_hours + " hour"}
+
+                                            start={orders.start_time}
+
+                                            end={orders.start_time}
+                                        />
+                                    );
+                                })}
+
+                            </div>
+
+                            {transactionType === "extend" && (
+                                <div className="grid md:grid-cols-3 gap-2 pb-5">
+
                                     <TransactionBikes 
-                                        image={orders.bike_types_mod.image_url}
-                                        bikeType={orders.bike_types_mod.name}
-                                        price={"P"+orders.bike_types_mod.price}
-                                        unitId={orders.bike_id === null ? "NOT STARTED" : orders.bikes_mod.code}
-                                        gpsId={orders.gps_id === null ? "NOT STARTED" : orders.gps_mod.code}
-                                        duration={orders.duration_hours + " hour"}
-                                        start={orders.start_time}
-                                        end={orders.start_time}
-                                    />
-                                ))}
-
-                            </div>
-
-                        {transactionType === "extend" && (
-                            <div className="grid md:grid-cols-3 gap-2 pb-5">
-
-                                <TransactionBikes 
-                                    image={extensionsData?.orders_mod.bikes_mod.bike_types_mod.image_url}
-                                    bikeType={extensionsData?.orders_mod.bikes_mod.bike_types_mod.name}
-                                    price={"P"+extensionsData?.orders_mod.bikes_mod.bike_types_mod.price}
-                                    unitId={extensionsData?.orders_mod.bikes_mod.code}
-                                    gpsId={"-"}
-                                    duration={extensionsData?.orders_mod.duration_hours + " hour"}
-                                    start={formatTimeTo12Hour(extensionsData?.orders_mod.start_time)}
-                                    end={getEndTimeOnly(extensionsData?.new_reservation_range)}
-                                    extension={"+" + extensionsData?.extension_duration + " hour"}
-                                    />
-                            </div>
-                        )}
+                                        image={extensionsData?.bike_types_mod.image_url}
+                                        bikeType={extensionsData?.bike_types_mod.name}
+                                        price={""}
+                                        unitId={extensionsData?.bikes_mod.code}
+                                        gpsId={"-"}
+                                        duration={extensionsData?.orders_mod.duration_hours + " hour"}
+                                        start={formatTimeTo12Hour(extensionsData?.orders_mod.start_time)}
+                                        end={getEndTimeOnly(extensionsData?.new_reservation_range)}
+                                        extension={"+" + extensionsData?.extension_duration + " hour"}
+                                        />
+                                </div>
+                            )}
 
                         {transactionType === "change" && (
                             <div className="grid md:grid-cols-3 gap-2 pb-5">
@@ -170,12 +194,31 @@ function TransactionRow({totalBikes, transactionId, fullName, transactionType, t
                                         <div className='flex flex-row gap-3 items-center'>
                                             <div className='items-center bg-yellow p-1 rounded-lg'>
                                                 <img 
-                                                    src={changeBikesData.bike_types_mod.image_url}
+                                                    src={changeBikesData?.[0]?.original_bike_type?.image_url}
                                                     className='w-6'
                                                 />
+
                                             </div>
 
-                                            <h1 className='text-md font-akagi font-bold text-gray'></h1>
+                                            <h1 className='text-md font-akagi font-bold text-gray'>{changeBikesData?.[0]?.original_bike_type?.name}</h1>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className='w-full border shadow-md border-[#DBDBDB] p-3 rounded-lg flex flex-col gap-4 font-akagi font-bold text-gray'>
+                                    <h1>Current Bike</h1>
+
+                                    <div className='flex flex-row justify-between'>
+                                        <div className='flex flex-row gap-3 items-center'>
+                                            <div className='items-center bg-yellow p-1 rounded-lg'>
+                                                <img
+                                                    src={changeBikesData?.[0]?.changed_bike_type?.image_url}
+                                                    className="w-6"
+                                                />
+
+                                            </div>
+
+                                            <h1 className='text-md font-akagi font-bold text-gray'>{changeBikesData?.[0]?.changed_bike_type?.name}</h1>
                                         </div>
                                     </div>
                                 </div>

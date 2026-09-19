@@ -311,6 +311,7 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
                                 extensionClicked={extensionClicked}
                                 updatedTime={updatedTime}
                                 bikeCode={extendOrder.bikeCode}
+                                bikeTypeId={extendOrder.bikeTypeId}
                             />
                         }
                     </div>
