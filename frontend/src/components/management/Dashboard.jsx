@@ -70,7 +70,7 @@ function Dashboard() {
         fetchData();
     }, [dates]);
     
-
+    console.log(dashboardData)
   return (
     <>
 
@@ -126,7 +126,7 @@ function Dashboard() {
                 {/*Graph*/}
                 <div className='w-full h-full flex flex-col lg:grid lg:grid-cols-3 gap-5'>
                     <div className="lg:col-span-2 w-full h-full bg-[#ffffff] p-5 shadow-lg rounded-xl font-akagi font-medium text-sm flex flex-col gap-4">
-                        <h1 className='font-akagi font-medium text-gray text-xl lg:text-xl'>Income this month</h1>
+                        <h1 className='font-akagi font-medium text-gray text-xl lg:text-xl'>This month</h1>
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart
                                 data={dashboardData}
