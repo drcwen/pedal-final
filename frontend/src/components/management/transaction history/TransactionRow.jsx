@@ -4,8 +4,9 @@ import { RiArrowDropDownLine, RiArrowDropUpLine } from "react-icons/ri";
 import { motion, AnimatePresence } from "motion/react"
 import TransactionBikes from "./TransactionBikes"
 import { MdOutlineKeyboardArrowRight } from "react-icons/md";
+import { supabase } from "../../../lib/supabase"
 
-function TransactionRow({totalBikes, transactionId, fullName, transactionType, timeAdded, status, transactionData, transactionPayment, extensionsData, changeBikesData, maintenanceData}) {
+function TransactionRow({totalBikes, transactionId, fullName, transactionType, timeAdded, assistedBy, status, transactionData, transactionPayment, extensionsData, changeBikesData, maintenanceData}) {
 
     const [dropDown, setDropDown] = useState(false);
 
@@ -21,7 +22,7 @@ function TransactionRow({totalBikes, transactionId, fullName, transactionType, t
             hour12: true,
         });
     }
-
+    
     function getEndTimeOnly(tstzrange) {
         const match = tstzrange.match(/\["[^"]+","([^"]+)"\)/);
 
@@ -112,6 +113,11 @@ function TransactionRow({totalBikes, transactionId, fullName, transactionType, t
                             <div className={`${transactionPayment.payment_method === "GCash" ? "block" : "hidden"} grid grid-cols-[100px_1fr] gap-2`}>
                                 <h1>Reference:</h1>
                                 <h1 className='font-medium'>{transactionPayment.reference_number}</h1>
+                            </div>
+
+                            <div className='grid grid-cols-[100px_1fr] gap-2'>
+                                <h1>Assisted by:</h1>
+                                <h1 className='font-medium'>{assistedBy}</h1>
                             </div>
                         </div>
 

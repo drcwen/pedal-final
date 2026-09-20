@@ -13,6 +13,23 @@ function TransactionHistory() {
 
     const [transactionData, setTransactionData] = useState([]);
     const [loading, setLoading] = useState(true);
+    
+    const getAssistedByFullName = async (userId) => {
+        if (!userId) return "Unknown";
+
+        const { data, error } = await supabase
+            .from("profiles_mod")
+            .select("full_name")
+            .eq("id", userId)
+            .single();
+
+        if (error) {
+            console.error("Error getting user full name:", error);
+            return "Unknown";
+        }
+
+        return data?.full_name ?? "Unknown";
+    };
 
     function formatDate(timestamp) {
         return new Intl.DateTimeFormat("en-PH", {
@@ -51,6 +68,9 @@ function TransactionHistory() {
                             *
                         ),
                         walk_in:walk_ins_users_mod (
+                            *
+                        ),
+                        assisted_by_profile:profiles_mod!transactions_mod_assisted_by_fkey (
                             *
                         ),
                         orders_mod (
@@ -422,6 +442,7 @@ function TransactionHistory() {
                                         extensionsData={extensionData}
                                         changeBikesData={changedBikesData}
                                         maintenanceData={maintenanceData}
+                                        assistedBy={transaction?.assisted_by_profile?.full_name ?? "Unknown"}
                                     />
                                     );
                                 })
