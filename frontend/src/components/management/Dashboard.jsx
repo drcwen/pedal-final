@@ -65,6 +65,7 @@ function Dashboard() {
 
         setDashboardData(data);
     };
+    console.log(dashboardData)
 
     useEffect(() => {
         fetchData();
@@ -82,7 +83,7 @@ function Dashboard() {
                 animate={{ height: "auto", opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
                 transition={{ duration: 0.25, ease: "easeInOut" }} 
-                className='flex flex-col flex-1 lg:py-15 lg:px-10 p-7 gap-5 overflow-y-auto'>
+                className='flex flex-col flex-1 min-w-0 lg:h-screen lg:py-15 lg:px-10 p-5 md:p-7 gap-5'>
 
                 <SidebarMobile active={'dashboard'}/>
 
@@ -91,13 +92,13 @@ function Dashboard() {
                 {/*Upper Boards*/}
                 <div className='xl:grid-cols-3 grid grid-cols-2 gap-5'>
                     <div className='bg-gradient-to-t from-blue to-blue/65 shadow-md rounded-xl px-4 py-4 flex flex-col gap-2 font-akagi font-bold text-[#ffffff]'>
-                        <div className='w-full h-full lg:h-27 h-20 flex flex-col justify-between'>
+                        <div className='w-full h-full lg:h-27 flex flex-col justify-between'>
                             <div className='flex flex-row justify-between'>
-                                <h1 className='font-medium text-sm md:text-lg'>Income</h1>
+                                <h1 className='font-medium text-sm md:text-lg'>Total Walk-ins Today</h1>
                             </div>
 
                             <div className='flex flex-col'>
-                                <h1 className='text-xl lg:text-2xl'>P20,000</h1>
+                                <h1 className='text-xl lg:text-3xl'>10</h1>
                                 <h1 className='text-xs lg:text-sm font-medium'>From reservation and </h1>
                             </div>
                         </div>
@@ -106,11 +107,11 @@ function Dashboard() {
                     <div className='bg-[#ffffff] shadow-md rounded-xl px-4 py-4 flex flex-col gap-2 font-akagi font-bold text-gray'>
                         <div className='w-full h-full flex flex-col justify-between'>
                             <div className='flex flex-row justify-between'>
-                                <h1 className='font-medium text-sm md:text-lg'>Income</h1>
+                                <h1 className='font-medium text-sm md:text-lg'>Total Reservations Today</h1>
                             </div>
 
                             <div className='flex flex-col'>
-                                <h1 className='text-xl lg:text-2xl'>P20,000</h1>
+                                <h1 className='text-xl lg:text-3xl'>10</h1>
                                 <h1 className='text-xs lg:text-sm font-medium'>From reservation and </h1>
                             </div>
                         </div>
@@ -124,8 +125,8 @@ function Dashboard() {
                 </div>
 
                 {/*Graph*/}
-                <div className='w-full h-full flex flex-col lg:grid lg:grid-cols-3 gap-5'>
-                    <div className="lg:col-span-2 w-full h-full bg-[#ffffff] p-5 shadow-lg rounded-xl font-akagi font-medium text-sm flex flex-col gap-4">
+                <div className='w-full lg:h-full flex flex-col lg:grid lg:grid-cols-3 gap-5'>
+                    <div className="lg:col-span-2 w-full h-[350px] lg:h-full min-h-0 bg-[#ffffff] p-5 shadow-lg rounded-xl font-akagi font-medium text-sm flex flex-col gap-4">
                         <h1 className='font-akagi font-medium text-gray text-xl lg:text-xl'>This month</h1>
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart
@@ -209,31 +210,57 @@ function Dashboard() {
                         </ResponsiveContainer>
                     </div>
 
-                    <div className='flex flex-col bg-[#ffffff] p-5 overflow-y-auto rounded-xl shadow-lg flex flex-col gap-4'>
-                        <h1 className='font-akagi font-medium text-gray text-xl lg:text-xl'>Available Bikes</h1>
-                        <div className='flex flex-col gap-2'>
-                            <div className='w-full flex flex-row justify-between'>
-                                <div className='rounded-lg bg-yellow p-2'>
-                                    <img src='https://res.cloudinary.com/dp3vkgxtb/image/upload/v1775884918/solo_bike_mhxxvb.png' className='w-10'/>
+                    <div className='flex flex-col bg-[#ffffff] p-5 rounded-xl shadow-lg gap-4 font-akagi font-medium text-gray'>
+                        <h1 className='text-gray text-xl lg:text-xl'>
+                            Available Bikes
+                        </h1>
+                        <div className='flex flex-col gap-4'>
+                            <div className='w-full flex flex-row justify-between items-center'>
+                                <div className='flex flex-row gap-3 items-center'>
+                                    <div className='rounded-lg bg-yellow p-2'>
+                                        <img src='https://res.cloudinary.com/dp3vkgxtb/image/upload/v1775884918/solo_bike_mhxxvb.png' className='w-10'/>
+                                    </div>
+                                    <h1 className='font-bold text-gray text-lg'>Mountain Bike</h1>
                                 </div>
+
+                                <h1 className='text-lg text-blue'>31 bikes</h1>
+
                             </div>
 
-                            <div className='w-full flex flex-row justify-between'>
-                                <div className='rounded-lg bg-yellow p-2'>
-                                    <img src='https://res.cloudinary.com/dp3vkgxtb/image/upload/v1775884918/solo_bike_mhxxvb.png' className='w-10'/>
+                            <div className='w-full flex flex-row justify-between items-center'>
+                                <div className='flex flex-row gap-3 items-center'>
+                                    <div className='rounded-lg bg-yellow p-2'>
+                                        <img src='https://res.cloudinary.com/dp3vkgxtb/image/upload/v1775884918/solo_bike_mhxxvb.png' className='w-10'/>
+                                    </div>
+                                    <h1 className='font-bold text-gray text-lg'>Mountain Bike</h1>
                                 </div>
+
+                                <h1 className='text-lg text-blue'>31 bikes</h1>
+
                             </div>
 
-                            <div className='w-full flex flex-row justify-between'>
-                                <div className='rounded-lg bg-yellow p-2'>
-                                    <img src='https://res.cloudinary.com/dp3vkgxtb/image/upload/v1775884918/solo_bike_mhxxvb.png' className='w-10'/>
+                            <div className='w-full flex flex-row justify-between items-center'>
+                                <div className='flex flex-row gap-3 items-center'>
+                                    <div className='rounded-lg bg-yellow p-2'>
+                                        <img src='https://res.cloudinary.com/dp3vkgxtb/image/upload/v1775884918/solo_bike_mhxxvb.png' className='w-10'/>
+                                    </div>
+                                    <h1 className='font-bold text-gray text-lg'>Mountain Bike</h1>
                                 </div>
+
+                                <h1 className='text-lg text-blue'>31 bikes</h1>
+
                             </div>
 
-                            <div className='w-full flex flex-row justify-between'>
-                                <div className='rounded-lg bg-yellow p-2'>
-                                    <img src='https://res.cloudinary.com/dp3vkgxtb/image/upload/v1775884918/solo_bike_mhxxvb.png' className='w-10'/>
+                            <div className='w-full flex flex-row justify-between items-center'>
+                                <div className='flex flex-row gap-3 items-center'>
+                                    <div className='rounded-lg bg-yellow p-2'>
+                                        <img src='https://res.cloudinary.com/dp3vkgxtb/image/upload/v1775884918/solo_bike_mhxxvb.png' className='w-10'/>
+                                    </div>
+                                    <h1 className='font-bold text-gray text-lg'>Mountain Bike</h1>
                                 </div>
+
+                                <h1 className='text-lg text-blue'>31 bikes</h1>
+
                             </div>
                         </div>
                     </div>

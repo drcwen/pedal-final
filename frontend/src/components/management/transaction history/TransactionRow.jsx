@@ -198,10 +198,27 @@ function TransactionRow({totalBikes, transactionId, fullName, transactionType, t
                                             <h1 className='text-md font-akagi font-bold text-gray'>{changeBikesData?.[0]?.original_bike_type?.name}</h1>
                                         </div>
                                     </div>
+
+                                    <div className='w-full grid grid-cols-3 gap-2'>
+                                        <div className='flex flex-col'>
+                                            <h1 className='text-sm font-akagi font-bold text-gray'>UNIT ID</h1>
+                                            <h1 className='text-sm font-akagi font-medium text-gray'>{changeBikesData?.[0]?.original_bike?.code}</h1>
+                                        </div>
+
+                                        <div className='flex flex-col'>
+                                            <h1 className='text-sm font-akagi font-bold text-gray'>START</h1>
+                                            <h1 className='text-sm font-akagi font-medium text-gray'>{formatTimeTo12Hour(changeBikesData?.[0]?.orders_mod?.start_time)}</h1>
+                                        </div>
+
+                                        <div className='flex flex-col'>
+                                            <h1 className='text-sm font-akagi font-bold text-gray'>END</h1>
+                                            <h1 className='text-sm font-akagi font-medium text-gray'>{getEndTimeOnly(changeBikesData?.[0]?.orders_mod?.reservation_range)}</h1>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div className='w-full border shadow-md border-[#DBDBDB] p-3 rounded-lg flex flex-col gap-4 font-akagi font-bold text-gray'>
-                                    <h1>Current Bike</h1>
+                                    <h1>Changed Bike</h1>
 
                                     <div className='flex flex-row justify-between'>
                                         <div className='flex flex-row gap-3 items-center'>
@@ -216,6 +233,23 @@ function TransactionRow({totalBikes, transactionId, fullName, transactionType, t
                                             <h1 className='text-md font-akagi font-bold text-gray'>{changeBikesData?.[0]?.changed_bike_type?.name}</h1>
                                         </div>
                                     </div>
+
+                                    <div className='w-full grid grid-cols-3 gap-2'>
+                                        <div className='flex flex-col'>
+                                            <h1 className='text-sm font-akagi font-bold text-gray'>UNIT ID</h1>
+                                            <h1 className='text-sm font-akagi font-medium text-gray'>{changeBikesData?.[0]?.changed_bike?.code}</h1>
+                                        </div>
+
+                                        <div className='flex flex-col'>
+                                            <h1 className='text-sm font-akagi font-bold text-gray'>START</h1>
+                                            <h1 className='text-sm font-akagi font-medium text-gray'>{formatTimeTo12Hour(changeBikesData?.[0]?.orders_mod?.start_time)}</h1>
+                                        </div>
+
+                                        <div className='flex flex-col'>
+                                            <h1 className='text-sm font-akagi font-bold text-gray'>END</h1>
+                                            <h1 className='text-sm font-akagi font-medium text-gray'>{getEndTimeOnly(changeBikesData?.[0]?.orders_mod?.reservation_range)}</h1>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -223,7 +257,44 @@ function TransactionRow({totalBikes, transactionId, fullName, transactionType, t
                         {transactionType === "maintenance" && (
                             <div className="grid md:grid-cols-3 gap-2 pb-5">
 
-                                
+                                <div className='w-full border shadow-md border-[#DBDBDB] p-3 rounded-lg flex flex-col gap-4 font-akagi font-bold text-gray'>
+
+                                    <div className='flex flex-row justify-between'>
+                                        <div className='flex flex-row gap-3 items-center'>
+                                            <div className='items-center bg-yellow p-1 rounded-lg'>
+                                                <img
+                                                    src={maintenanceData?.orders_mod?.bikes_mod?.bike_types_mod?.image_url}
+                                                    className="w-6"
+                                                />
+
+                                            </div>
+
+                                            <h1 className='text-md font-akagi font-bold text-gray'>{maintenanceData?.orders_mod?.bikes_mod?.bike_types_mod?.name}</h1>
+                                        </div>
+                                    </div>
+
+                                    <div className='w-full grid grid-cols-3 gap-2'>
+                                        <div className='flex flex-col'>
+                                            <h1 className='text-sm font-akagi font-bold text-gray'>UNIT ID</h1>
+                                            <h1 className='text-sm font-akagi font-medium text-gray'>{maintenanceData?.orders_mod?.bikes_mod?.code}</h1>
+                                        </div>
+
+                                        <div className='flex flex-col'>
+                                            <h1 className='text-sm font-akagi font-bold text-gray'>GPS ID</h1>
+                                            <h1 className='text-sm font-akagi font-medium text-gray'>{maintenanceData?.orders_mod?.gps_mod?.code}</h1>
+                                        </div>
+
+                                        <div className='flex flex-col'>
+                                            <h1 className='text-sm font-akagi font-bold text-gray'>START</h1>
+                                            <h1 className='text-sm font-akagi font-medium text-gray'>{formatTimeTo12Hour(maintenanceData?.orders_mod?.start_time)}</h1>
+                                        </div>
+
+                                        <div className='flex flex-col'>
+                                            <h1 className='text-sm font-akagi font-bold text-gray'>END</h1>
+                                            <h1 className='text-sm font-akagi font-medium text-gray'>{getEndTimeOnly(maintenanceData?.orders_mod?.reservation_range)}</h1>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         )}
                         

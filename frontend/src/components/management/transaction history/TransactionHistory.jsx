@@ -92,6 +92,9 @@ function TransactionHistory() {
                                         *
                                     )
                                 ),
+                                gps_mod (
+                                    *
+                                ),
                                 transaction:transactions_mod (
                                     profile:profiles_mod!transactions_mod_user_id_fkey1 (*),
                                     walk_in:walk_ins_users_mod (*)
