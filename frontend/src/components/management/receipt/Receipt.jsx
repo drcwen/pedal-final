@@ -3,7 +3,60 @@ import { IoIosArrowBack } from "react-icons/io";
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from "motion/react"
 
-function Receipt({setReceipt}) {
+function Receipt({ setReceipt, startedBikes, transaction }) {
+
+    function formatDate(dateString) {
+        if (!dateString) return "-";
+
+        const date = new Date(`${dateString}T00:00:00`);
+
+        return date.toLocaleDateString("en-PH", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+        });
+    }
+
+    function formatTime12Hour(time) {
+        if (!time) return "-";
+
+        const [hours, minutes, seconds] = time.split(":").map(Number);
+
+        const date = new Date();
+        date.setHours(hours, minutes, seconds || 0);
+
+        return date.toLocaleTimeString("en-PH", {
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+        });
+    }
+
+    function formatDatePH(timestamp) {
+        if (!timestamp) return "-";
+
+        const date = new Date(timestamp);
+
+        return date.toLocaleDateString("en-PH", {
+            timeZone: "Asia/Manila",
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+        });
+    }
+
+    function formatTimePH(timestamp) {
+        if (!timestamp) return "-";
+
+        const date = new Date(timestamp);
+
+        return date.toLocaleTimeString("en-PH", {
+            timeZone: "Asia/Manila",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+        });
+    }
 
     return (
     <>
@@ -33,59 +86,64 @@ function Receipt({setReceipt}) {
                         {/*Receipt No*/}
                         <div className='flex flex-row justify-between'>
                             <h1>Receipt No:</h1>
-                            <h1>#405</h1>
+                            <h1>#{transaction.id}</h1>
                         </div>
 
                         {/*Date and Time*/}
                         <div className='flex flex-col py-2'>
                             <div className='flex flex-row justify-between'>
                                 <h1>Transaction Date:</h1>
-                                <h1>Sep 13, 2026</h1>
+                                <h1>{formatDatePH(transaction.created_at)}</h1>
                             </div>
 
                             <div className='flex flex-row justify-between'>
                                 <h1>Transaction Time:</h1>
-                                <h1>10:00 AM</h1>
+                                <h1>{formatTimePH(transaction.created_at)}</h1>
                             </div>
                         </div>
 
                         {/*Type*/}
                         <div className='flex flex-row justify-between'>
                             <h1>Type:</h1>
-                            <h1>Walk-in</h1>
+                            <h1>{transaction.type}</h1>
                         </div>
 
                         <div className='flex flex-col py-5'>
                             <div className='w-full bg-gray/40 h-0.5 rounded-xl'></div>
                         </div>
 
-                        {/*Orders*/}
-                        <div className='flex flex-row justify-between py-2 items-center'>
-                            <div className='flex flex-col'>
-                                <div className='flex flex-row gap-2'>
-                                    <h1>Mountain Bike</h1>
-                                    <h1>x2</h1>
+                        {/* Orders */}
+                        <div className='flex flex-col'>
+                            {startedBikes?.map((bike, index) => (
+                                <div
+                                    key={bike.id ?? index}
+                                    className='flex flex-row justify-between py-2 items-center'
+                                >
+                                    <div className='flex flex-col'>
+                                        <div className='flex flex-row gap-2'>
+                                            <h1>
+                                                {bike.bike_types_mod?.name ?? "Unknown Bike"}
+                                            </h1>
+
+                                            <h1>
+                                                x1
+                                            </h1>
+                                        </div>
+
+                                        <h1>
+                                            {formatDate(bike.reservation_date) ?? "--"}
+                                        </h1>
+
+                                        <h1>
+                                            {formatTime12Hour(bike.start_time) ?? "--"}
+                                        </h1>
+                                    </div>
+
+                                    <h1>
+                                        P{bike.bike_types_mod?.price ?? 0}
+                                    </h1>
                                 </div>
-
-                                <h1>Sep 22, 2054</h1>
-                                <h1>10:00 AM</h1>
-                            </div>
-
-                            <h1>P500</h1>
-                        </div>
-
-                        <div className='flex flex-row justify-between py-2 items-center'>
-                            <div className='flex flex-col'>
-                                <div className='flex flex-row gap-2'>
-                                    <h1>Mountain Bike</h1>
-                                    <h1>x2</h1>
-                                </div>
-
-                                <h1>Sep 22, 2054</h1>
-                                <h1>10:00 AM</h1>
-                            </div>
-
-                            <h1>P500</h1>
+                            ))}
                         </div>
 
                         <div className='flex flex-col py-5'>
@@ -94,27 +152,27 @@ function Receipt({setReceipt}) {
 
                         <div className='flex flex-row justify-between'>
                             <h1>Total:</h1>
-                            <h1>P600</h1>
+                            <h1>P{transaction.total_amount}</h1>
                         </div>
 
                         <div className='flex flex-row justify-between'>
                             <h1>Tendered Amount:</h1>
-                            <h1>P600</h1>
+                            <h1>P{transaction.amount_paid}</h1>
                         </div>
 
                         <div className='flex flex-row justify-between'>
                             <h1>Change:</h1>
-                            <h1>P600</h1>
+                            <h1>P{transaction.change_amount}</h1>
                         </div>
 
                         <div className='flex flex-row justify-between'>
                             <h1>Method:</h1>
-                            <h1>Cash</h1>
+                            <h1>{transaction.payment_method}</h1>
                         </div>
 
                         <div className='flex flex-row justify-between'>
                             <h1>Assisted by:</h1>
-                            <h1>Hazel Bisnar</h1>
+                            <h1>{transaction?.assisted_by_profile?.full_name}</h1>
                         </div>
                     </div>
                 </div>

@@ -11,7 +11,7 @@ import MaintenancePayment from "./MaintenancePayment"
 import { MdOutlineReceiptLong } from "react-icons/md";
 import Receipt from "../../receipt/Receipt"
 
-function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, transaction }) {
+function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, transaction, transactionDetails }) {
 
     const [receipt, setReceipt] = useState(false);
 
@@ -26,6 +26,7 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
     const [payment, setPayment] = useState(null);
 
     const [extendedTotal, setExtendedTotal] = useState(0);
+    
 
     const startedBikes = bikeDetails.filter(
         (bike) => bike.status === "started"
@@ -111,6 +112,7 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
         updateStatus();
         
     }, [startedBikes.length]);
+d
 
   return (
     <>
@@ -181,7 +183,6 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
                                         setMaintenancePayment={setMaintenancePayment}
                                         pricePerHour={bikes.bike_types_mod.price}
                                         transactionId={transaction}
-                                        bikeTypeId={bikes.bike_types_mod.id}
                                         bikeId={bikes.bikes_mod?.id}
                                         extensionsDuration={bikes.extensions_mod?.map(
                                             extension => extension.extension_duration
@@ -203,6 +204,8 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
                         {receipt &&
                             <Receipt 
                                 setReceipt={setReceipt}
+                                startedBikes={startedBikes}
+                                transaction={transactionDetails}
                             />
                         }
                     </motion.div>

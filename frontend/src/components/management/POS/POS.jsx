@@ -121,6 +121,9 @@ function POS() {
                     bikes_mod (*),
                     gps_mod (*),
                     extensions_mod (*)
+                ),
+                assisted_by_profile:profiles_mod!transactions_mod_assisted_by_fkey (
+                    *
                 )
             `)
             .eq("status", "started");
@@ -395,6 +398,7 @@ function POS() {
                                                 bikeDetails={trans.orders_mod}
                                                 refreshOngoing={fetchOngoing}
                                                 transaction={trans.id}
+                                                transactionDetails={trans}
                                             />
                                         );
                                     })
