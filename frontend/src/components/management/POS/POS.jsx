@@ -415,8 +415,22 @@ function POS() {
         </div>
 
         {history && (
-            <div className="fixed inset-0 z-[9999] bg-black/50 flex justify-center items-center xl:px-70 px-10">
-                <div className="w-full bg-[#ffffff] rounded-xl p-5 font-akagi font-bold text-gray flex flex-col gap-5">
+            <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-100 p-5">
+                <div className="
+                    bg-[#ffffff]
+                    p-5 md:p-10
+                    rounded-xl
+                    w-full
+                    max-w-6xl
+                    max-h-[90vh]
+                    overflow-y-auto
+                    scrollbar-thin
+                    scrollbar-thumb-[#B9B9B9]
+                    scrollbar-track-[#E2E2E2] flex flex-col gap-5
+                    font-akagi
+                    font-bold
+                    text-blue
+                ">
                     <h1 className='text-2xl text-blue'>Reservation History</h1>
 
                     <div className=''>
@@ -479,7 +493,7 @@ function POS() {
                     <div className='flex justify-between'>
                         <div 
                             onClick={() => {setHistory(false)}}
-                            className='w-fit cursor-pointer text-md rounded-lg px-3 py-1 border border-gray'>
+                            className='w-fit cursor-pointer text-md rounded-lg px-3 py-1 border border-gray text-gray'>
                             Back
                         </div>
                     </div>
