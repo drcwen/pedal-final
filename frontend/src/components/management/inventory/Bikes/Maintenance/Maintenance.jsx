@@ -65,6 +65,8 @@ function Maintenance( {setMaintenance }) {
         fetchMaintenanceBikes();
     }, []);
 
+    const bikesId = settle?.bikeCode ?? settle?.managementBikeId;
+
     const handleSubmit = async () => {
         if (!settle) return;
 
@@ -87,7 +89,7 @@ function Maintenance( {setMaintenance }) {
                 .update({
                     status: "Available",
                 })
-                .eq("id", settle.bikeCode);
+                .eq("id", bikesId);
 
             if (bikeError) {
                 console.error("Bike update error:", bikeError);
@@ -170,8 +172,13 @@ function Maintenance( {setMaintenance }) {
                                     bikeCode={info.orders_mod?.bikes_mod?.id}
                                     bikeTypeId={info.orders_mod?.bikes_mod?.bike_types_mod?.name}
 
+                                    managementBikeId={info.bike_id}
+                                    managementBikeCode={info.bikes_mod?.code}
+                                    managementBikeTypeId={info.bikes_mod?.bike_types_mod?.name}
+
                                     inventoryBikeCode={info.bikes_mod?.bike_types_mod?.name}
                                     inventoryBikeId={info.bikes_mod?.code}
+
                                     date={convertToPhilippineDate(info.created_at)}
                                     time={convertToPhilippineTime(info.created_at)}
                                     reason={info.reason}
@@ -206,11 +213,11 @@ function Maintenance( {setMaintenance }) {
                         <div className='bg-gray/20 p-3 rounded-lg flex flex-row justify-between items-center'>
                             <div className='flex flex-row gap-2'>
                                 <div className='bg-blue rounded-lg p-1 w-fit font-akagi font-bold text-[#ffffff] px-2'>
-                                    {settle.bikeId}
+                                    {settle.bikeId ?? settle.managementBikeCode}
                                 </div>
 
                                 <div className='font-akagi font-bold text-gray px-2 text-lg'>
-                                    {settle.bikeTypeId}
+                                    {settle.bikeTypeId ?? settle.managementBikeTypeId}
                                 </div>
                             </div>
 
