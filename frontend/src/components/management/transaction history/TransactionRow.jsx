@@ -5,10 +5,14 @@ import { motion, AnimatePresence } from "motion/react"
 import TransactionBikes from "./TransactionBikes"
 import { MdOutlineKeyboardArrowRight } from "react-icons/md";
 import { supabase } from "../../../lib/supabase"
+import Receipt from "./Receipt"
+import { MdOutlineReceiptLong } from "react-icons/md";
 
 function TransactionRow({totalBikes, transactionId, fullName, transactionType, timeAdded, assistedBy, status, transactionData, transactionPayment, extensionsData, changeBikesData, maintenanceData}) {
 
     const [dropDown, setDropDown] = useState(false);
+
+    const [receipt, setReceipt] = useState(false);
 
     function formatTimeTo12Hour(time) {
         const [hours, minutes, seconds] = time.split(":").map(Number);
@@ -121,11 +125,7 @@ function TransactionRow({totalBikes, transactionId, fullName, transactionType, t
                             </div>
                         </div>
 
-                        
-                        <div className='md:hidden w-fit pb-4 flex flex-row items-center'>
-                            <h1 className='text-md font-akagi font-bold text-gray '>All Details</h1>
-                            <MdOutlineKeyboardArrowRight className='text-xl font-bold text-gray'/>
-                        </div>
+                        <div className='flex flex-col gap-2'>
 
                             <div className={`${transactionType === "reservation" || transactionType === "walk-in" ? "md:grid md:grid-cols-2 xl:grid-cols-3" : "hidden"} flex flex-col gap-3 pb-5`}>
                                 
@@ -167,23 +167,41 @@ function TransactionRow({totalBikes, transactionId, fullName, transactionType, t
                                 })}
 
                             </div>
-
-                            {transactionType === "extend" && (
-                                <div className="grid md:grid-cols-3 gap-2 pb-5">
-
-                                    <TransactionBikes 
-                                        image={extensionsData?.bike_types_mod.image_url}
-                                        bikeType={extensionsData?.bike_types_mod.name}
-                                        price={""}
-                                        unitId={extensionsData?.bikes_mod.code}
-                                        gpsId={"-"}
-                                        duration={extensionsData?.orders_mod.duration_hours + " hour"}
-                                        start={formatTimeTo12Hour(extensionsData?.orders_mod.start_time)}
-                                        end={getEndTimeOnly(extensionsData?.new_reservation_range)}
-                                        extension={"+" + extensionsData?.extension_duration + " hour"}
-                                        />
+                            
+                            <div className='flex justify-end'>
+                                <div 
+                                    onClick={() => setReceipt(!receipt)}
+                                    className='flex gap-2 bg-blue px-2 py-1 rounded-lg font-akagi font-semibold cursor-pointer text-[#ffffff] text-sm'>
+                                    <MdOutlineReceiptLong className='text-lg'/>Receipt
                                 </div>
-                            )}
+                            </div>
+
+                            {receipt &&
+                                <Receipt 
+                                    setReceipt={setReceipt}
+                                    startedBikes={transactionData}
+                                    transaction={transactionPayment}
+                                />
+                            }
+                        </div>
+
+
+                        {transactionType === "extend" && (
+                            <div className="grid md:grid-cols-3 gap-2 pb-5">
+
+                                <TransactionBikes 
+                                    image={extensionsData?.bike_types_mod.image_url}
+                                    bikeType={extensionsData?.bike_types_mod.name}
+                                    price={""}
+                                    unitId={extensionsData?.bikes_mod.code}
+                                    gpsId={"-"}
+                                    duration={extensionsData?.orders_mod.duration_hours + " hour"}
+                                    start={formatTimeTo12Hour(extensionsData?.orders_mod.start_time)}
+                                    end={getEndTimeOnly(extensionsData?.new_reservation_range)}
+                                    extension={"+" + extensionsData?.extension_duration + " hour"}
+                                    />
+                            </div>
+                        )}
 
                         {transactionType === "change" && (
                             <div className="grid md:grid-cols-3 gap-2 pb-5">
@@ -261,7 +279,7 @@ function TransactionRow({totalBikes, transactionId, fullName, transactionType, t
                         )}
 
                         {transactionType === "maintenance" && (
-                            <div className="grid md:grid-cols-3 gap-2 pb-5">
+                            <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-2 pb-5">
 
                                 <div className='w-full border shadow-md border-[#DBDBDB] p-3 rounded-lg flex flex-col gap-4 font-akagi font-bold text-gray'>
 

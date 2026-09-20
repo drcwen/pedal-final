@@ -32,6 +32,27 @@ function Receipt({ setReceipt, startedBikes, transaction }) {
         });
     }
 
+    function getEndTimePH(range) {
+        if (!range) return "-";
+
+        // Get the end timestamp from the range
+        const endTimestamp = range
+            .replace("[", "")
+            .replace(")", "")
+            .split(",")[1];
+
+        if (!endTimestamp) return "-";
+
+        const date = new Date(endTimestamp);
+
+        return date.toLocaleTimeString("en-PH", {
+            timeZone: "Asia/Manila",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+        });
+    }
+
     function formatDatePH(timestamp) {
         if (!timestamp) return "-";
 
@@ -151,9 +172,17 @@ function Receipt({ setReceipt, startedBikes, transaction }) {
                                             {formatDate(bike.reservation_date) ?? "--"}
                                         </h1>
 
+                                        <div className='flex flex-row gap-1'>
                                         <h1>
                                             {formatTime12Hour(bike.start_time) ?? "--"}
                                         </h1>
+
+                                        -
+
+                                        <h1>
+                                            {getEndTimePH(bike.reservation_range) ?? "--"}
+                                        </h1>
+                                        </div>
                                     </div>
 
                                     <h1>
