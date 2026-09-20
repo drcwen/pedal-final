@@ -81,7 +81,10 @@ function SetMaintenanceStatus({setFetchBikeStatus, setMaintenanceModal, bikeId, 
         }
     }
 
-    const insertTransaction = async (amountPaid = cashAmount) => {
+    const insertTransaction = async (
+        amountPaid = cashAmount,
+        referenceNumber = referenceNo
+    ) => {
         const {
             data: { user },
             error: userError
@@ -102,7 +105,7 @@ function SetMaintenanceStatus({setFetchBikeStatus, setMaintenanceModal, bikeId, 
                 type: "maintenance",
                 status: "completed",
                 assisted_by: user.id,
-                reference_number: referenceNo
+                reference_number: referenceNumber
             })
             .select()
             .single();
@@ -147,28 +150,27 @@ function SetMaintenanceStatus({setFetchBikeStatus, setMaintenanceModal, bikeId, 
         }
     };
 
-    const GCashonSubmit = async (e) => {
-        if (e) e.preventDefault();
-
+    const GCashonSubmit = async (reference) => {
         setIsLoading(true);
 
         try {
-            // Explicitly pass price as the amount paid
-            const transactionId = await insertTransaction(price);
+            // Pass the generated GCash reference directly
+            const transactionId = await insertTransaction(price, reference);
 
             if (!transactionId) {
-                return;
+                return false;
             }
 
             const maintenance = await insertToMaintenance(transactionId);
 
             if (!maintenance) {
-                return;
+                return false;
             }
 
             await updateBike();
 
             console.log("Transaction ID:", transactionId);
+            console.log("GCash Reference:", reference);
             console.log("Maintenance:", maintenance);
 
             return true;
@@ -189,11 +191,16 @@ function SetMaintenanceStatus({setFetchBikeStatus, setMaintenanceModal, bikeId, 
         setGcash(true);
         setCash(false);
         setCashAmount(price);
+
+        // Keep it in state for display/use later
         setReferenceNo(reference);
 
         setGcashStatus("processing");
 
-        const success = await GCashonSubmit();
+        // IMPORTANT:
+        // Pass reference directly because setReferenceNo()
+        // does not update immediately.
+        const success = await GCashonSubmit(reference);
 
         if (!success) {
             setGcashStatus("waiting");

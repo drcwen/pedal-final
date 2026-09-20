@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "motion/react"
 import TransactionBikes from "./TransactionBikes"
 import { MdOutlineKeyboardArrowRight } from "react-icons/md";
 
-function TransactionRow({totalBikes, transactionId, fullName, transactionType, timeAdded, status, transactionData, transactionPayment, extensionsData, changeBikesData}) {
+function TransactionRow({totalBikes, transactionId, fullName, transactionType, timeAdded, status, transactionData, transactionPayment, extensionsData, changeBikesData, maintenanceData}) {
 
     const [dropDown, setDropDown] = useState(false);
 
@@ -40,11 +40,6 @@ function TransactionRow({totalBikes, transactionId, fullName, transactionType, t
             hour12: true,
         });
     }
-
-    useEffect(() => {
-        console.log(extensionsData);
-    }, []);
-
 
   return (
     <>
@@ -222,6 +217,13 @@ function TransactionRow({totalBikes, transactionId, fullName, transactionType, t
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                        )}
+
+                        {transactionType === "maintenance" && (
+                            <div className="grid md:grid-cols-3 gap-2 pb-5">
+
+                                
                             </div>
                         )}
                         

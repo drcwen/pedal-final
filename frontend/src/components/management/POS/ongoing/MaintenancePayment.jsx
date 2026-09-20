@@ -103,7 +103,10 @@ function MaintenancePayment({setMaintenancePayment, maintenancePayment}) {
         }
     }
 
-    const insertTransaction = async (amountPaid = cashAmount) => {
+    const insertTransaction = async (
+        amountPaid = cashAmount,
+        referenceNumber = referenceNo
+    ) => {
         const {
             data: { user },
             error: userError
@@ -124,7 +127,7 @@ function MaintenancePayment({setMaintenancePayment, maintenancePayment}) {
                 type: "maintenance",
                 status: "completed",
                 assisted_by: user.id,
-                reference_number: referenceNo
+                reference_number: referenceNumber
             })
             .select()
             .single();
@@ -169,14 +172,12 @@ function MaintenancePayment({setMaintenancePayment, maintenancePayment}) {
         }
     };
 
-    const GCashonSubmit = async (e) => {
-        if (e) e.preventDefault();
+    const GCashonSubmit = async (reference) => {
 
         setIsLoading(true);
 
         try {
-            // Explicitly pass price as the amount paid
-            const transactionId = await insertTransaction(price);
+            const transactionId = await insertTransaction(price, reference);
 
             if (!transactionId) {
                 return;
@@ -215,7 +216,7 @@ function MaintenancePayment({setMaintenancePayment, maintenancePayment}) {
 
         setGcashStatus("processing");
 
-        const success = await GCashonSubmit();
+        const success = await GCashonSubmit(reference);
 
         if (!success) {
             setGcashStatus("waiting");
