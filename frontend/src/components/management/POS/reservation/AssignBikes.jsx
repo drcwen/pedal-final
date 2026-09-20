@@ -116,28 +116,55 @@ function AssignBikes({onClose, fullName, bikeDetails, transaction}) {
                                 model={order.bike_types_mod.name}
                                 price={"P" + order.bike_types_mod.price * order.duration_hours}
                                 image={order.bike_types_mod.image_url}
+
                                 selectedBikeId={selectedItems[order.id]?.bikeId}
                                 selectedGpsId={selectedItems[order.id]?.gpsId}
-                                onBikeChange={(bikeId) =>
-                                setSelectedItems((prev) => ({
-                                    ...prev,
-                                    [order.id]: {
-                                    ...prev[order.id],
-                                    bikeId,
-                                    },
-                                }))
+
+                                selectedBikeIds={
+                                    Object.entries(selectedItems)
+                                        .filter(
+                                            ([orderId]) =>
+                                                String(orderId) !== String(order.id)
+                                        )
+                                        .map(
+                                            ([_, item]) => item.bikeId
+                                        )
+                                        .filter(Boolean)
                                 }
+
+                                selectedGpsIds={
+                                    Object.entries(selectedItems)
+                                        .filter(
+                                            ([orderId]) =>
+                                                String(orderId) !== String(order.id)
+                                        )
+                                        .map(
+                                            ([_, item]) => item.gpsId
+                                        )
+                                        .filter(Boolean)
+                                }
+
+                                onBikeChange={(bikeId) =>
+                                    setSelectedItems((prev) => ({
+                                        ...prev,
+                                        [order.id]: {
+                                            ...prev[order.id],
+                                            bikeId,
+                                        },
+                                    }))
+                                }
+
                                 onGpsChange={(gpsId) =>
-                                setSelectedItems((prev) => ({
-                                    ...prev,
-                                    [order.id]: {
-                                    ...prev[order.id],
-                                    gpsId,
-                                    },
-                                }))
+                                    setSelectedItems((prev) => ({
+                                        ...prev,
+                                        [order.id]: {
+                                            ...prev[order.id],
+                                            gpsId,
+                                        },
+                                    }))
                                 }
                             />
-                            ))}
+                        ))}
 
                     </div>
                 </div>

@@ -6,7 +6,27 @@ import { GoDotFill } from "react-icons/go";
 import { supabase } from "../../../../lib/supabase"
 import WalkInRent from "../ongoing/WalkInRent"
 
-function OngoingBikesOrders({ bikeTypeId, orderId, bikeCode, bikeId, gpsId, gpsCode, type, price, duration, start, end, image, setExtendOrder, setMaintenancePayment, extensionsDuration, setChangeOrder, pricePerHour, transactionId }) {
+function OngoingBikesOrders({ 
+    bikeTypeId, 
+    orderId, 
+    bikeCode, 
+    bikeId, 
+    gpsId, 
+    gpsCode, 
+    type, 
+    price, 
+    duration, 
+    start, 
+    end, 
+    image, 
+    setExtendOrder, 
+    setMaintenancePayment, 
+    extensionsDuration, 
+    setChangeOrder, 
+    pricePerHour, 
+    transactionId,
+    refreshOngoing
+}) {
 
     const [dot, setDot] = useState(false);
     const [returned, setReturned] = useState(false);
@@ -140,7 +160,8 @@ function OngoingBikesOrders({ bikeTypeId, orderId, bikeCode, bikeId, gpsId, gpsC
 
     const handleReturn = async () => {
 
-        if(dropDownValue === "Under Maintenance") {
+        if (dropDownValue === "Under Maintenance") {
+
             setMaintenancePayment({
                 orderId,
                 bikeCode,
@@ -154,15 +175,16 @@ function OngoingBikesOrders({ bikeTypeId, orderId, bikeCode, bikeId, gpsId, gpsC
                 bikeId,
                 gpsId,
                 gpsCode
-            })
-        } else if(dropDownValue === "Available") {
+            });
+
+        } else if (dropDownValue === "Available") {
+
             await returnBike();
             await returnGps();
             await setReturn();
 
-            window.location.reload();
+            await refreshOngoing();
         }
-        
     };
 
     //remaining
@@ -301,7 +323,7 @@ function OngoingBikesOrders({ bikeTypeId, orderId, bikeCode, bikeId, gpsId, gpsC
 
                             <div
                                 onClick={() => {setDropDownValue("Under Maintenance"), setDropDown(!dropDown)}}
-                                value="Available" 
+                                value="Under Maintenance" 
                                 className='px-2 py-1 text-gray flex flex-row gap-1 items-center'
                             >
                                 <GoDotFill className='text-red-500 text-2xl'/>

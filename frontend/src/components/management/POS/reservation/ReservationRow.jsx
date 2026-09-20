@@ -6,11 +6,15 @@ import ReservationBikesOrders from "./ReservationBikesOrders"
 import { useState, useEffect } from 'react';
 import { supabase } from "../../../../lib/supabase"
 import AssignBikes from "./AssignBikes"
+import ReservationReceipt from "./ReservationReceipt"
+import { MdOutlineReceiptLong } from "react-icons/md";
 
 function ReservationRow({ name, ordercount, type, start, bikeDetails, customer, transaction }) {
 
     const [dropdown, setDropdown] = useState(false);
     const [startRow, setStartRow] = useState(false);
+
+    const [receipt, setReceipt] = useState(false);
 
     function calculateEndTime(startTime, durationHours) {
         const date = new Date(`1970-01-01T${startTime}`);
@@ -99,6 +103,7 @@ function ReservationRow({ name, ordercount, type, start, bikeDetails, customer, 
 
             <AnimatePresence initial={false}>
                 {dropdown && (
+                    <>
                     <motion.div
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: "auto", opacity: 1 }}
@@ -123,9 +128,29 @@ function ReservationRow({ name, ordercount, type, start, bikeDetails, customer, 
 
                         </div>
 
+                        <div className='flex justify-end pt-5'>
+                            <div 
+                                onClick={() => setReceipt(!receipt)}
+                                className='flex gap-2 bg-blue px-2 py-1 rounded-lg font-akagi font-semibold cursor-pointer text-[#ffffff] text-sm'>
+                                <MdOutlineReceiptLong className='text-lg'/>Receipt
+                            </div>
+                        </div>
+                        
                     </motion.div>
+
+                    </>
                 )}
+                
             </AnimatePresence>
+
+
+            {receipt &&
+                <ReservationReceipt
+                    setReceipt={setReceipt}
+                    startedBikes={bikeDetails}
+                    transaction={transaction}
+                />
+            }
 
             {startRow &&
                 <>

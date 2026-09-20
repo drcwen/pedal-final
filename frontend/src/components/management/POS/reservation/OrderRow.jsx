@@ -2,7 +2,20 @@ import { useState, useEffect } from "react";
 import DropDown from "./DropDown"
 import { supabase } from "../../../../lib/supabase"
 
-function OrderRow({ duration, image, model, price, selectedBikeId,  selectedGpsId, onBikeChange, onGpsChange}) {
+function OrderRow({
+    duration,
+    image,
+    model,
+    price,
+    selectedBikeId,
+    selectedGpsId,
+
+    selectedBikeIds = [],
+    selectedGpsIds = [],
+
+    onBikeChange,
+    onGpsChange
+}) {
 
     const [bikeId, setBikeId] = useState([]);
     const [gpsId, setGpsId] = useState([]);
@@ -35,6 +48,26 @@ function OrderRow({ duration, image, model, price, selectedBikeId,  selectedGpsI
         fetchGPSID();
     }, [])
 
+    const availableBikeIds = bikeId.filter((bike) => {
+        if (String(bike.id) === String(selectedBikeId)) {
+            return true;
+        }
+
+        return !selectedBikeIds.some(
+            (id) => String(id) === String(bike.id)
+        );
+    });
+
+    const availableGpsIds = gpsId.filter((gps) => {
+        if (String(gps.id) === String(selectedGpsId)) {
+            return true;
+        }
+
+        return !selectedGpsIds.some(
+            (id) => String(id) === String(gps.id)
+        );
+    });
+
   return (
     <>
     <div className='md:bg-[#F0F0F0] md:grid md:grid-cols-[100px_1fr_1fr_1fr_120px] md:text-center md:items-center gap-3 md:px-3 md:py-2 md:rounded-xl md:border md:border-[#DBDBDB]'>
@@ -43,11 +76,21 @@ function OrderRow({ duration, image, model, price, selectedBikeId,  selectedGpsI
         <h1 className='hidden md:block text-md font-akagi font-medium text-[#6D7172]'>{duration === 1 ? duration + " hour" : duration +  " hours"}</h1>
 
         <div className='hidden md:block'>
-            <DropDown options={bikeId} placeholder="Bike ID" onChange={onBikeChange} value={selectedBikeId}/>
+            <DropDown
+                options={availableBikeIds}
+                placeholder="Bike ID"
+                onChange={onBikeChange}
+                value={selectedBikeId}
+            />
         </div>
         
         <div className='hidden md:block'>
-            <DropDown options={gpsId} placeholder="GPS ID" onChange={onGpsChange} value={selectedGpsId}/>
+            <DropDown
+                options={availableGpsIds}
+                placeholder="GPS ID"
+                onChange={onGpsChange}
+                value={selectedGpsId}
+            />
         </div>
         <h1 className='hidden md:block text-md font-akagi font-medium text-[#6D7172]'>{price}</h1>
 

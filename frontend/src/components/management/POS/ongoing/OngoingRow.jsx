@@ -112,7 +112,6 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
         updateStatus();
         
     }, [startedBikes.length]);
-d
 
   return (
     <>
@@ -173,8 +172,12 @@ d
                                         gpsCode={bikes.gps_mod?.id}
                                         type={bikes.bike_types_mod.name}
                                         image={bikes.bike_types_mod.image_url}
-                                        price={bikes.bike_type_id.price}
-                                        duration={bikes.duration_hours === 1 ? bikes.duration_hours + " hour" : bikes.duration_hours + " hours"}
+                                        price={bikes.bike_types_mod?.price ?? 0}
+                                        duration={
+                                            bikes.duration_hours === 1
+                                                ? bikes.duration_hours + " hour"
+                                                : bikes.duration_hours + " hours"
+                                        }
                                         start={bikes.start_time}
                                         end={bikes.reservation_range}
                                         orderId={bikes.id}
@@ -186,7 +189,8 @@ d
                                         bikeId={bikes.bikes_mod?.id}
                                         extensionsDuration={bikes.extensions_mod?.map(
                                             extension => extension.extension_duration
-                                        )}                       
+                                        )}
+                                        refreshOngoing={refreshOngoing}
                                     />
                                 ))
                             }
