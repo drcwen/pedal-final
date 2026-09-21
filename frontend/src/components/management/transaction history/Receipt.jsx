@@ -3,7 +3,7 @@ import { IoIosArrowBack } from "react-icons/io";
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from "motion/react"
 
-function Receipt({ setReceipt, startedBikes, transaction, maintenanceData, fullName, extensionsData }) {
+function Receipt({ setReceipt, startedBikes, transaction, maintenanceData, fullName, extensionsData, changeBikesData }) {
 
     function formatDate(dateString) {
         if (!dateString) return "-";
@@ -294,6 +294,82 @@ function Receipt({ setReceipt, startedBikes, transaction, maintenanceData, fullN
                                 </h1>
                             </div>
                         }
+
+                        {/*Changed Bikes */}
+                        {transaction.type === "change" &&
+                        <>
+                            <div
+                                className='flex flex-row justify-between py-2 items-center'
+                            >
+                                <div className='flex flex-col'>
+                                    <h1>
+                                        ORIGINAL BIKE
+                                    </h1>
+                                    <div className='flex flex-row gap-2'>
+                                        <h1>
+                                            {changeBikesData?.[0]?.original_bike_type?.name}
+                                        </h1>
+
+                                        <h1>
+                                            {changeBikesData?.[0]?.original_bike?.code}
+                                        </h1>
+                                    </div>
+
+                                    <div className='flex flex-row gap-1'>
+                                        <h1>
+                                            {formatTime12Hour(changeBikesData?.[0]?.orders_mod?.start_time)}
+                                        </h1>
+
+                                        -
+
+                                        <h1>
+                                            {getEndTimePH(changeBikesData?.[0]?.orders_mod?.reservation_range) ?? "--"}
+                                        </h1>
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <div
+                                className='flex flex-row justify-between py-2 items-center'
+                            >
+                                <div className='flex flex-col'>
+                                    <h1>
+                                        CHANGED BIKE
+                                    </h1>
+                                    <div className='flex flex-row gap-2'>
+                                        <h1>
+                                            {changeBikesData?.[0]?.changed_bike_type?.name}
+                                        </h1>
+
+                                        <h1>
+                                            {changeBikesData?.[0]?.changed_bike?.code}
+                                        </h1>
+                                    </div>
+
+                                    <div className='flex flex-row gap-1'>
+                                        <h1>
+                                            {formatTime12Hour(changeBikesData?.[0]?.orders_mod?.start_time)}
+                                        </h1>
+
+                                        -
+
+                                        <h1>
+                                            {getEndTimePH(changeBikesData?.[0]?.orders_mod?.reservation_range) ?? "--"}
+                                        </h1>
+                                    </div>
+
+                                </div>
+
+                                <h1>
+                                    P{transaction.total_amount}
+                                </h1>
+
+                            </div>
+                        </>
+                        }
+
 
                         <div className='flex flex-col py-5'>
                             <div className='w-full bg-gray/40 h-0.5 rounded-xl'></div>

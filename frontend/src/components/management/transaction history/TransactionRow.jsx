@@ -187,6 +187,7 @@ function TransactionRow({totalBikes, transactionId, fullName, transactionType, t
                                 maintenanceData={maintenanceData}
                                 fullName={fullName}
                                 extensionsData={extensionsData}
+                                changeBikesData={changeBikesData}
                             />
                         }
 
@@ -219,78 +220,87 @@ function TransactionRow({totalBikes, transactionId, fullName, transactionType, t
                         )}
 
                         {transactionType === "change" && (
-                            <div className="grid md:grid-cols-3 gap-2 pb-5">
+                            <>
+                                <div className="grid md:grid-cols-3 gap-2 pb-5">
 
-                                <div className='w-full border shadow-md border-[#DBDBDB] p-3 rounded-lg flex flex-col gap-4 font-akagi font-bold text-gray'>
-                                    <h1>Previous Bike</h1>
+                                    <div className='w-full border shadow-md border-[#DBDBDB] p-3 rounded-lg flex flex-col gap-4 font-akagi font-bold text-gray'>
+                                        <h1>Previous Bike</h1>
 
-                                    <div className='flex flex-row justify-between'>
-                                        <div className='flex flex-row gap-3 items-center'>
-                                            <div className='items-center bg-yellow p-1 rounded-lg'>
-                                                <img 
-                                                    src={changeBikesData?.[0]?.original_bike_type?.image_url}
-                                                    className='w-6'
-                                                />
+                                        <div className='flex flex-row justify-between'>
+                                            <div className='flex flex-row gap-3 items-center'>
+                                                <div className='items-center bg-yellow p-1 rounded-lg'>
+                                                    <img 
+                                                        src={changeBikesData?.[0]?.original_bike_type?.image_url}
+                                                        className='w-6'
+                                                    />
 
+                                                </div>
+
+                                                <h1 className='text-md font-akagi font-bold text-gray'>{changeBikesData?.[0]?.original_bike_type?.name}</h1>
+                                            </div>
+                                        </div>
+
+                                        <div className='w-full grid grid-cols-3 gap-2'>
+                                            <div className='flex flex-col'>
+                                                <h1 className='text-sm font-akagi font-bold text-gray'>UNIT ID</h1>
+                                                <h1 className='text-sm font-akagi font-medium text-gray'>{changeBikesData?.[0]?.original_bike?.code}</h1>
                                             </div>
 
-                                            <h1 className='text-md font-akagi font-bold text-gray'>{changeBikesData?.[0]?.original_bike_type?.name}</h1>
+                                            <div className='flex flex-col'>
+                                                <h1 className='text-sm font-akagi font-bold text-gray'>START</h1>
+                                                <h1 className='text-sm font-akagi font-medium text-gray'>{formatTimeTo12Hour(changeBikesData?.[0]?.orders_mod?.start_time)}</h1>
+                                            </div>
+
+                                            <div className='flex flex-col'>
+                                                <h1 className='text-sm font-akagi font-bold text-gray'>END</h1>
+                                                <h1 className='text-sm font-akagi font-medium text-gray'>{getEndTimeOnly(changeBikesData?.[0]?.orders_mod?.reservation_range)}</h1>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <div className='w-full grid grid-cols-3 gap-2'>
-                                        <div className='flex flex-col'>
-                                            <h1 className='text-sm font-akagi font-bold text-gray'>UNIT ID</h1>
-                                            <h1 className='text-sm font-akagi font-medium text-gray'>{changeBikesData?.[0]?.original_bike?.code}</h1>
+                                    <div className='w-full border shadow-md border-[#DBDBDB] p-3 rounded-lg flex flex-col gap-4 font-akagi font-bold text-gray'>
+                                        <h1>Changed Bike</h1>
+
+                                        <div className='flex flex-row justify-between'>
+                                            <div className='flex flex-row gap-3 items-center'>
+                                                <div className='items-center bg-yellow p-1 rounded-lg'>
+                                                    <img
+                                                        src={changeBikesData?.[0]?.changed_bike_type?.image_url}
+                                                        className="w-6"
+                                                    />
+
+                                                </div>
+
+                                                <h1 className='text-md font-akagi font-bold text-gray'>{changeBikesData?.[0]?.changed_bike_type?.name}</h1>
+                                            </div>
                                         </div>
 
-                                        <div className='flex flex-col'>
-                                            <h1 className='text-sm font-akagi font-bold text-gray'>START</h1>
-                                            <h1 className='text-sm font-akagi font-medium text-gray'>{formatTimeTo12Hour(changeBikesData?.[0]?.orders_mod?.start_time)}</h1>
-                                        </div>
+                                        <div className='w-full grid grid-cols-3 gap-2'>
+                                            <div className='flex flex-col'>
+                                                <h1 className='text-sm font-akagi font-bold text-gray'>UNIT ID</h1>
+                                                <h1 className='text-sm font-akagi font-medium text-gray'>{changeBikesData?.[0]?.changed_bike?.code}</h1>
+                                            </div>
 
-                                        <div className='flex flex-col'>
-                                            <h1 className='text-sm font-akagi font-bold text-gray'>END</h1>
-                                            <h1 className='text-sm font-akagi font-medium text-gray'>{getEndTimeOnly(changeBikesData?.[0]?.orders_mod?.reservation_range)}</h1>
+                                            <div className='flex flex-col'>
+                                                <h1 className='text-sm font-akagi font-bold text-gray'>START</h1>
+                                                <h1 className='text-sm font-akagi font-medium text-gray'>{formatTimeTo12Hour(changeBikesData?.[0]?.orders_mod?.start_time)}</h1>
+                                            </div>
+
+                                            <div className='flex flex-col'>
+                                                <h1 className='text-sm font-akagi font-bold text-gray'>END</h1>
+                                                <h1 className='text-sm font-akagi font-medium text-gray'>{getEndTimeOnly(changeBikesData?.[0]?.orders_mod?.reservation_range)}</h1>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-
-                                <div className='w-full border shadow-md border-[#DBDBDB] p-3 rounded-lg flex flex-col gap-4 font-akagi font-bold text-gray'>
-                                    <h1>Changed Bike</h1>
-
-                                    <div className='flex flex-row justify-between'>
-                                        <div className='flex flex-row gap-3 items-center'>
-                                            <div className='items-center bg-yellow p-1 rounded-lg'>
-                                                <img
-                                                    src={changeBikesData?.[0]?.changed_bike_type?.image_url}
-                                                    className="w-6"
-                                                />
-
-                                            </div>
-
-                                            <h1 className='text-md font-akagi font-bold text-gray'>{changeBikesData?.[0]?.changed_bike_type?.name}</h1>
-                                        </div>
-                                    </div>
-
-                                    <div className='w-full grid grid-cols-3 gap-2'>
-                                        <div className='flex flex-col'>
-                                            <h1 className='text-sm font-akagi font-bold text-gray'>UNIT ID</h1>
-                                            <h1 className='text-sm font-akagi font-medium text-gray'>{changeBikesData?.[0]?.changed_bike?.code}</h1>
-                                        </div>
-
-                                        <div className='flex flex-col'>
-                                            <h1 className='text-sm font-akagi font-bold text-gray'>START</h1>
-                                            <h1 className='text-sm font-akagi font-medium text-gray'>{formatTimeTo12Hour(changeBikesData?.[0]?.orders_mod?.start_time)}</h1>
-                                        </div>
-
-                                        <div className='flex flex-col'>
-                                            <h1 className='text-sm font-akagi font-bold text-gray'>END</h1>
-                                            <h1 className='text-sm font-akagi font-medium text-gray'>{getEndTimeOnly(changeBikesData?.[0]?.orders_mod?.reservation_range)}</h1>
-                                        </div>
+                                <div className='flex justify-end py-2'>
+                                    <div 
+                                        onClick={() => setReceipt(!receipt)}
+                                        className='flex gap-2 bg-blue px-2 py-1 rounded-lg font-akagi font-semibold cursor-pointer text-[#ffffff] text-sm'>
+                                        <MdOutlineReceiptLong className='text-lg'/>Receipt
                                     </div>
                                 </div>
-                            </div>
+                            </>
                         )}
 
                         {transactionType === "maintenance" && (
