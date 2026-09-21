@@ -159,9 +159,9 @@ function TransactionRow({totalBikes, transactionId, fullName, transactionType, t
 
                                             duration={orders.duration_hours + " hour"}
 
-                                            start={orders.start_time}
+                                            start={formatTimeTo12Hour(orders.start_time)}
 
-                                            end={orders.start_time}
+                                            end={getEndTimeOnly(orders.reservation_range)}
                                         />
                                     );
                                 })}
