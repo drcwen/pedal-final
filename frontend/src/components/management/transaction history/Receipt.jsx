@@ -2,6 +2,7 @@
 import { IoIosArrowBack } from "react-icons/io";
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from "motion/react"
+import { printReceipt } from "./printReceipt"
 
 function Receipt({ setReceipt, startedBikes, transaction, maintenanceData, fullName, extensionsData, changeBikesData }) {
 
@@ -409,15 +410,26 @@ function Receipt({ setReceipt, startedBikes, transaction, maintenanceData, fullN
                             Close
                     </div>
 
-                    <div 
-                        className='flex gap-2 bg-blue text-[#ffffff] px-2 py-1 rounded-lg font-akagi font-semibold cursor-pointer text-sm'>
-                            Print
+                    <div  
+                        onClick={() => {
+                            printReceipt({
+                                transaction,
+                                startedBikes,
+                                maintenanceData,
+                                fullName,
+                                extensionsData,
+                                changeBikesData
+                            });
+                        }}
+                        className='flex gap-2 bg-blue text-[#ffffff] px-2 py-1 rounded-lg font-akagi font-semibold cursor-pointer text-sm'
+                    >
+                        Print
                     </div>
                 </div>
             </div>
         </div>
     </>
-  )
+)
 }
 
 export default Receipt

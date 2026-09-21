@@ -9,6 +9,7 @@ import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import { IoMdArrowDropdown } from "react-icons/io";
 import { Calendar } from 'primereact/calendar';
 import "primereact/resources/themes/lara-light-cyan/theme.css";
+import TransactionRow from "../transaction history/TransactionRow"
 import { IoIosInformationCircleOutline } from "react-icons/io";
 import {
     AreaChart,
@@ -34,14 +35,23 @@ function DataReports() {
     const [changeGross, setChangeGross] = useState("...");
 
     const formatDate = (date) => {
-        if (!date) return null;
+        if (!date) return "";
 
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const day = String(date.getDate()).padStart(2, "0");
+        const parsedDate = date instanceof Date
+            ? date
+            : new Date(date);
+
+        if (isNaN(parsedDate.getTime())) {
+            return "";
+        }
+
+        const year = parsedDate.getFullYear();
+        const month = String(parsedDate.getMonth() + 1).padStart(2, "0");
+        const day = String(parsedDate.getDate()).padStart(2, "0");
 
         return `${year}-${month}-${day}`;
-    };
+
+        };
 
     const [activeTab, setActiveTab] = useState("Sales");
 
@@ -70,6 +80,23 @@ function DataReports() {
     };
 
     const [dates, setDates] = useState([firstDay, lastDay]);
+    const [transactionData, setTransactionData] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    const [selectedTypes, setSelectedTypes] = useState([
+        "walk-in",
+        "reservation",
+        "extend",
+        "change"
+    ]);
+
+    const handleTypeCheckbox = (type) => {
+        setSelectedTypes((current) =>
+            current.includes(type)
+                ? current.filter((item) => item !== type)
+                    : [...current, type]
+        );
+    };
 
     useEffect(() => {
         const fetchData = async () => {
@@ -192,6 +219,226 @@ function DataReports() {
         fetchWalkInGross();
         fetchExtensions();
         fetchChange();
+    }, [dates]);
+
+    useEffect(() => {
+        const getTransactions = async () => {
+
+            if (!dates || dates.length < 2 || !dates[0] || !dates[1]) {
+                setTransactionData([]);
+                setLoading(false);
+                return;
+            }
+
+            setLoading(true);
+
+            const startDate = dates[0];
+            const endDate = dates[1];
+
+            const start = new Date(startDate);
+            start.setHours(0, 0, 0, 0);
+
+            const end = new Date(endDate);
+            end.setHours(23, 59, 59, 999);
+
+            const { data, error } = await supabase
+                .from("transactions_mod")
+                .select(`
+                    *,
+                    profile:profiles_mod!transactions_mod_user_id_fkey1 (
+                        *
+                    ),
+                    walk_in:walk_ins_users_mod (
+                        *
+                    ),
+                    assisted_by_profile:profiles_mod!transactions_mod_assisted_by_fkey (
+                        *
+                    ),
+                    orders_mod (
+                        *,
+                        bike_types_mod (*),
+                        bikes_mod (*),
+                        gps_mod (*)
+                    ),
+                    extensions_mod (
+                        *,
+                        bikes_mod(
+                        *
+                        ),
+                        bike_types_mod (
+                        *
+                        ),
+                        orders_mod (
+                            *,
+                            bikes_mod (
+                                *,
+                                bike_types_mod (
+                                    *
+                                )
+                            ),
+                            transaction:transactions_mod (
+                                *,
+                                profile:profiles_mod!transactions_mod_user_id_fkey1 (*),
+                                walk_in:walk_ins_users_mod (*)
+                            )
+                        )
+                    ),
+                    maintenance_mod (
+                        *,
+                        orders_mod (
+                            *,
+                            bikes_mod (
+                                *,
+                                bike_types_mod (
+                                    *
+                                )
+                            ),
+                            gps_mod (
+                                *
+                            ),
+                            transaction:transactions_mod (
+                                profile:profiles_mod!transactions_mod_user_id_fkey1 (*),
+                                walk_in:walk_ins_users_mod (*)
+                            )
+                        )
+                    ),
+                    change_bikes_mod (
+                        *,
+                        original_bike:bikes_mod!change_bikes_mod_bike_id_fkey (
+                            *,
+                            bike_type:bike_types_mod (*)
+                        ),
+
+                        changed_bike:bikes_mod!change_bikes_mod_changed_bike_id_fkey (
+                            *,
+                            bike_type:bike_types_mod (*)
+                        ),
+
+                        original_bike_type:bike_types_mod!change_bikes_mod_bike_type_id_fkey (*),
+
+                        changed_bike_type:bike_types_mod!change_bikes_mod_changed_bike_type_id_fkey (*),
+
+                        orders_mod (
+                            *,
+                            bikes_mod (
+                                *,
+                                bike_types_mod (*)
+                            ),
+                            transaction:transactions_mod (
+                                *,
+                                profile:profiles_mod!transactions_mod_user_id_fkey1 (*),
+                                walk_in:walk_ins_users_mod (*)
+                            )
+                        )
+                    )
+                `)
+                .gte("created_at", start.toISOString())
+                .lte("created_at", end.toISOString())
+                .order("created_at", { ascending: false });
+
+            if (error) {
+                console.error("Transaction error:", error);
+                setLoading(false);
+                return;
+            }
+
+            const orderIds = (data ?? []).flatMap((transaction) =>
+                (transaction.orders_mod ?? []).map((order) => order.id)
+            );
+
+            let allChangeBikes = [];
+
+            if (orderIds.length > 0) {
+
+                const {
+                    data: changeData,
+                    error: changeError
+                } = await supabase
+                    .from("change_bikes_mod")
+                    .select(`
+                        *,
+
+                        original_bike:bikes_mod!change_bikes_mod_bike_id_fkey (
+                            *,
+                            bike_type:bike_types_mod (*)
+                        ),
+
+                        changed_bike:bikes_mod!change_bikes_mod_changed_bike_id_fkey (
+                            *,
+                            bike_type:bike_types_mod (*)
+                        ),
+
+                        original_bike_type:bike_types_mod!change_bikes_mod_bike_type_id_fkey (*),
+
+                        changed_bike_type:bike_types_mod!change_bikes_mod_changed_bike_type_id_fkey (*)
+                    `)
+                    .in("order_id", orderIds)
+                    .order("id", { ascending: true });
+
+                if (changeError) {
+                    console.error("Change bike error:", changeError);
+                } else {
+                    allChangeBikes = changeData ?? [];
+                }
+            }
+
+            const finalTransactions = (data ?? []).map((transaction) => {
+
+                const ordersWithOriginalBike =
+                    (transaction.orders_mod ?? []).map((order) => {
+
+                        // Find ALL change records for this order
+                        const changesForOrder = allChangeBikes
+                            .filter(
+                                (change) =>
+                                    Number(change.order_id) === Number(order.id)
+                            )
+                            .sort(
+                                (a, b) =>
+                                    Number(a.id) - Number(b.id)
+                            );
+
+                        if (changesForOrder.length === 0) {
+
+                            return {
+                                ...order,
+
+                                original_bike_id: order.bike_id,
+                                original_bike_type_id: order.bike_type_id,
+
+                                original_bike: order.bikes_mod,
+                                original_bike_type: order.bike_types_mod
+                            };
+                        }
+
+                        const firstChange = changesForOrder[0];
+
+                        return {
+                            ...order,
+
+                            original_bike_id: firstChange.bike_id,
+                            original_bike_type_id: firstChange.bike_type_id,
+
+                            original_bike: firstChange.original_bike,
+
+                            original_bike_type:
+                                firstChange.original_bike_type ??
+                                firstChange.original_bike?.bike_type
+                        };
+                    });
+
+                return {
+                    ...transaction,
+                    orders_mod: ordersWithOriginalBike
+                };
+            });
+
+            setTransactionData(finalTransactions);
+            setLoading(false);
+        };
+
+        getTransactions();
+
     }, [dates]);
 
   return (
@@ -523,24 +770,65 @@ function DataReports() {
 
                                 <div className="flex-1 min-w-0 overflow-x-auto whitespace-nowrap scrollbar-thin scrollbar-thumb-[#B9B9B9] scrollbar-track-transparent">
                                     <div className="flex flex-row lg:gap-8 gap-5 w-max">
-                                        <div className='flex flex-row gap-2 font-akagi font-bold text-gray'>
-                                            <input type='checkbox' className='cursor-pointer'/>
-                                            <h1>Walk-ins</h1>
+                                        <div className="flex-1 min-w-0 overflow-x-auto whitespace-nowrap scrollbar-thin scrollbar-thumb-[#B9B9B9] scrollbar-track-transparent"> <div className="flex flex-row lg:gap-8 gap-5 w-max">
+
+                                            {/* Walk-ins */}
+                                            <label className="flex flex-row gap-2 font-akagi font-bold text-gray cursor-pointer items-center">
+                                                <input
+                                                    type="checkbox"
+                                                    className="cursor-pointer"
+                                                    checked={selectedTypes.includes("walk-in")}
+                                                    onChange={() => handleTypeCheckbox("walk-in")}
+                                                />
+                                                <h1>Walk-ins</h1>
+                                            </label>
+
+                                            {/* Reservations */}
+                                            <label className="flex flex-row gap-2 font-akagi font-bold text-gray cursor-pointer items-center">
+                                                <input
+                                                    type="checkbox"
+                                                    className="cursor-pointer"
+                                                    checked={selectedTypes.includes("reservation")}
+                                                    onChange={() => handleTypeCheckbox("reservation")}
+                                                />
+                                                <h1>Reservations</h1>
+                                            </label>
+
+                                            {/* Extensions */}
+                                            <label className="flex flex-row gap-2 font-akagi font-bold text-gray cursor-pointer items-center">
+                                                <input
+                                                    type="checkbox"
+                                                    className="cursor-pointer"
+                                                    checked={selectedTypes.includes("extend")}
+                                                    onChange={() => handleTypeCheckbox("extend")}
+                                                />
+                                                <h1>Extensions</h1>
+                                            </label>
+
+                                            {/* Changed Bikes */}
+                                            <label className="flex flex-row gap-2 font-akagi font-bold text-gray cursor-pointer items-center">
+                                                <input
+                                                    type="checkbox"
+                                                    className="cursor-pointer"
+                                                    checked={selectedTypes.includes("change")}
+                                                    onChange={() => handleTypeCheckbox("change")}
+                                                />
+                                                <h1>Changed Bikes</h1>
+                                            </label>
+
+                                            {/* Maintenance */}
+                                            <label className="flex flex-row gap-2 font-akagi font-bold text-gray cursor-pointer items-center">
+                                                <input
+                                                    type="checkbox"
+                                                    className="cursor-pointer"
+                                                    checked={selectedTypes.includes("maintenance")}
+                                                    onChange={() => handleTypeCheckbox("maintenance")}
+                                                />
+                                                <h1>Maintenance</h1>
+                                            </label>
+
                                         </div>
 
-                                        <div className='flex flex-row gap-2 font-akagi font-bold text-gray'>
-                                            <input type='checkbox' className='cursor-pointer'/>
-                                            <h1>Reservations</h1>
-                                        </div>
-
-                                        <div className='flex flex-row gap-2 font-akagi font-bold text-gray'>
-                                            <input type='checkbox' className='cursor-pointer'/>
-                                            <h1>Extensions</h1>
-                                        </div>
-
-                                        <div className='flex flex-row gap-2 font-akagi font-bold text-gray'>
-                                            <input type='checkbox' className='cursor-pointer'/>
-                                            <h1>Changed Bikes</h1>
                                         </div>
                                     </div>
                                 </div>
@@ -551,43 +839,138 @@ function DataReports() {
                                 </div>
                             </div>
 
-                            {/*Reservations*/}
-                            <div className='flex flex-col gap-2'>
+                            {/* All Transactions */}
+                                {loading ? (
+                                    <div className="flex justify-center py-10">
+                                        <h1 className="font-akagi text-lg text-[#6D7172]">
+                                            Loading transactions...
+                                        </h1>
+                                    </div>
+                                ) : transactionData.length === 0 ? (
+                                    <div className="flex justify-center py-10">
+                                        <h1 className="font-akagi text-lg text-[#6D7172]">
+                                            No transactions found for the selected dates.
+                                        </h1>
+                                    </div>
+                                ) : (
 
-                                <h1 className='font-akagi font-bold text-gray text-xl'>Reservations</h1>
-                                <div className='grid grid-cols-[70px_100px_1fr_1fr_120px_120px_120px] items-center w-full rounded-xl p-2 bg-[#ffffff] border border-gray/50 font-akagi font-bold text-[#ffffff]'>
-                                    <div className='rounded-lg bg-blue px-3 py-1 w-fit'>
-                                        1004
+                                    <div className="flex flex-col gap-3">
+                                    {transactionData
+                                        .filter((transaction) =>
+                                            selectedTypes.includes(transaction.type)
+                                        )
+                                        .map((transaction) => {
+
+                                            const extensionTransaction =
+                                                transaction.type === "extend"
+                                                    ? transaction.extensions_mod?.[0]?.orders_mod?.transaction
+                                                    : null;
+
+                                            const changeTransaction =
+                                                transaction.type === "change"
+                                                    ? transaction.change_bikes_mod?.[0]?.orders_mod?.transaction
+                                                    : null;
+
+                                            const maintenanceTransaction =
+                                                transaction.type === "maintenance"
+                                                    ? transaction.maintenance_mod?.[0]?.orders_mod?.transaction
+                                                    : null;
+
+                                            const profile =
+                                                transaction.type === "extend"
+                                                    ? extensionTransaction?.profile
+                                                    : transaction.type === "change"
+                                                        ? changeTransaction?.profile
+                                                        : transaction.type === "maintenance"
+                                                            ? maintenanceTransaction?.profile
+                                                            : transaction.profile;
+
+                                            const walkIn =
+                                                transaction.type === "extend"
+                                                    ? extensionTransaction?.walk_in
+                                                    : transaction.type === "change"
+                                                        ? changeTransaction?.walk_in
+                                                        : transaction.type === "maintenance"
+                                                            ? maintenanceTransaction?.walk_in
+                                                            : transaction.walk_in;
+
+                                            const customerName =
+                                                transaction.type === "maintenance"
+                                                    ? profile
+                                                        ? (
+                                                            profile.full_name ??
+                                                            `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim()
+                                                        )
+                                                        : walkIn?.[0]?.full_name ?? "Management"
+                                                    : profile
+                                                        ? (
+                                                            profile.full_name ??
+                                                            `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim()
+                                                        )
+                                                        : walkIn?.[0]?.full_name ?? "Unknown Customer";
+
+                                            const extensionData =
+                                                transaction.extensions_mod?.[0] ?? null;
+
+                                            const changedBikesData =
+                                                transaction.change_bikes_mod ?? [];
+
+                                            const maintenanceData =
+                                                transaction.maintenance_mod?.[0] ?? null;
+
+                                            let totalBikes;
+
+                                            if (
+                                                transaction.type === "walk-in" ||
+                                                transaction.type === "reservation"
+                                            ) {
+                                                totalBikes = transaction.orders_mod?.length ?? 0;
+                                            } else if (transaction.type === "change") {
+                                                totalBikes = "C";
+                                            } else if (transaction.type === "extend") {
+                                                totalBikes = "E";
+                                            } else if (transaction.type === "maintenance") {
+                                                totalBikes = "M";
+                                            } else {
+                                                totalBikes = 0;
+                                            }
+
+                                            return (
+                                                <TransactionRow
+                                                    key={transaction.id}
+
+                                                    totalBikes={totalBikes}
+
+                                                    transactionId={transaction.id}
+
+                                                    fullName={customerName}
+
+                                                    transactionType={transaction.type}
+
+                                                    timeAdded={formatDate(transaction.created_at)}
+
+                                                    status={transaction.status}
+
+                                                    transactionData={transaction.orders_mod ?? []}
+
+                                                    transactionPayment={transaction}
+
+                                                    extensionsData={extensionData}
+
+                                                    changeBikesData={changedBikesData}
+
+                                                    maintenanceData={maintenanceData}
+
+                                                    assistedBy={
+                                                        transaction?.assisted_by_profile?.full_name ??
+                                                        "Unknown"
+                                                    }
+                                                />
+                                            );
+                                        })}
                                     </div>
 
-                                    <div className='text-gray text-center '>
-                                        10/9/26
-                                    </div>
-
-                                    <div className='text-gray text-center'>
-                                        Wendel Derraco
-                                    </div>
-
-                                    <div className='text-gray text-center'>
-                                        H1
-                                        
-                                    </div>
-
-                                    <div className='text-gray text-center'>
-                                        reservation
-                                    </div>
-
-                                    <div className='text-gray text-center'>
-                                        GCash
-                                    </div>
-
-                                    <div className='text-gray text-center'>
-                                        P380
-                                    </div>
-
-                                </div>
-
-                            </div>
+                                )}
 
                             
 

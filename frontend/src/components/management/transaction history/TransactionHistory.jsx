@@ -9,7 +9,24 @@ import { supabase } from "../../../lib/supabase"
 
 function TransactionHistory() {
 
-    const [dates, setDates] = useState();
+    const today = new Date();
+
+    const firstDayOfMonth = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        1
+    );
+
+    const lastDayOfMonth = new Date(
+        today.getFullYear(),
+        today.getMonth() + 1,
+        0
+    );
+
+    const [dates, setDates] = useState([
+        firstDayOfMonth,
+        lastDayOfMonth
+    ]);
 
     const [transactionData, setTransactionData] = useState([]);
     const [loading, setLoading] = useState(true);
