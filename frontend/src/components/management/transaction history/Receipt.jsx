@@ -3,7 +3,7 @@ import { IoIosArrowBack } from "react-icons/io";
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from "motion/react"
 
-function Receipt({ setReceipt, startedBikes, transaction }) {
+function Receipt({ setReceipt, startedBikes, transaction, maintenanceData, fullName, extensionsData }) {
 
     function formatDate(dateString) {
         if (!dateString) return "-";
@@ -44,6 +44,27 @@ function Receipt({ setReceipt, startedBikes, transaction }) {
         if (!endTimestamp) return "-";
 
         const date = new Date(endTimestamp);
+
+        return date.toLocaleTimeString("en-PH", {
+            timeZone: "Asia/Manila",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+        });
+    }
+
+    function getStartTimePH(range) {
+        if (!range) return "-";
+
+        // Get the first/start timestamp from the range
+        const startTimestamp = range
+            .replace("[", "")
+            .replace(")", "")
+            .split(",")[0];
+
+        if (!startTimestamp) return "-";
+
+        const date = new Date(startTimestamp);
 
         return date.toLocaleTimeString("en-PH", {
             timeZone: "Asia/Manila",
@@ -127,6 +148,18 @@ function Receipt({ setReceipt, startedBikes, transaction }) {
                             <h1>#{transaction.id}</h1>
                         </div>
 
+                        {/*Customer*/}
+                        <div className='flex flex-row justify-between'>
+                            <h1>Customer:</h1>
+                            <h1>{fullName}</h1>
+                        </div>
+
+                        {/*Type*/}
+                        <div className='flex flex-row justify-between'>
+                            <h1>Type:</h1>
+                            <h1>{transaction.type}</h1>
+                        </div>
+
                         {/*Date and Time*/}
                         <div className='flex flex-col py-2'>
                             <div className='flex flex-row justify-between'>
@@ -140,57 +173,127 @@ function Receipt({ setReceipt, startedBikes, transaction }) {
                             </div>
                         </div>
 
-                        {/*Type*/}
-                        <div className='flex flex-row justify-between'>
-                            <h1>Type:</h1>
-                            <h1>{transaction.type}</h1>
-                        </div>
-
                         <div className='flex flex-col py-5'>
                             <div className='w-full bg-gray/40 h-0.5 rounded-xl'></div>
                         </div>
 
-                        {/* Orders */}
-                        <div className='flex flex-col'>
-                            {groupedBikes.map((bike, index) => (
-                                <div
-                                    key={bike.id ?? index}
-                                    className='flex flex-row justify-between py-2 items-center'
-                                >
-                                    <div className='flex flex-col'>
-                                        <div className='flex flex-row gap-2'>
-                                            <h1>
-                                                {bike.bike_types_mod?.name ?? "Unknown Bike"}
-                                            </h1>
+                        {/*Walk-in and Reservation rents*/}
+                        {transaction.type === "reservation" || transaction.type === "walk-in" && 
+                            <div className='flex flex-col'>
+                                {groupedBikes.map((bike, index) => (
+                                    <div
+                                        key={bike.id ?? index}
+                                        className='flex flex-row justify-between py-2 items-center'
+                                    >
+                                        <div className='flex flex-col'>
+                                            <div className='flex flex-row gap-2'>
+                                                <h1>
+                                                    {bike.bike_types_mod?.name ?? "Unknown Bike"}
+                                                </h1>
+
+                                                <h1>
+                                                    x{bike.quantity}
+                                                </h1>
+                                            </div>
 
                                             <h1>
-                                                x{bike.quantity}
+                                                {formatDate(bike.reservation_date) ?? "--"}
+                                            </h1>
+
+                                            <div className='flex flex-row gap-1'>
+                                                <h1>
+                                                    {formatTime12Hour(bike.start_time) ?? "--"}
+                                                </h1>
+
+                                                -
+
+                                                <h1>
+                                                    {getEndTimePH(bike.reservation_range) ?? "--"}
+                                                </h1>
+                                            </div>
+
+                                            <h1>
+                                                {bike.duration_hours === 1 ? bike.duration_hours + " hour" : bike.duration_hours + " hours"}
                                             </h1>
                                         </div>
 
                                         <h1>
-                                            {formatDate(bike.reservation_date) ?? "--"}
+                                            P{(bike.bike_types_mod?.price ?? 0) * bike.quantity}
+                                        </h1>
+                                    </div>
+                                ))}
+                            </div>
+                        }
+
+                        {/*Maintenance */}
+                        {transaction.type === "maintenance" &&
+                            <div
+                                className='flex flex-row justify-between py-2 items-center'
+                            >
+                                <div className='flex flex-col'>
+                                    <div className='flex flex-row gap-3'>
+                                        <h1>
+                                            {maintenanceData?.orders_mod?.bikes_mod?.bike_types_mod?.name}
                                         </h1>
 
-                                        <div className='flex flex-row gap-1'>
                                         <h1>
-                                            {formatTime12Hour(bike.start_time) ?? "--"}
+                                            {maintenanceData?.orders_mod?.bikes_mod?.code}
+                                        </h1>
+                                    </div>
+
+                                    <h1>
+                                        {maintenanceData?.reason}
+                                    </h1>
+
+                                    <h1>
+                                        {fullName}
+                                    </h1>
+                                </div>
+
+                                <h1>
+                                    P{transaction.total_amount}
+                                </h1>
+                            </div>
+                        }
+
+                        {/*Extension */}
+                        {transaction.type === "extend" &&
+                            <div
+                                className='flex flex-row justify-between py-2 items-center'
+                            >
+                                <div className='flex flex-col'>
+                                    <div className='flex flex-row gap-2'>
+                                        <h1>
+                                            {extensionsData?.bike_types_mod?.name}
+                                        </h1>
+
+                                        <h1>
+                                            {extensionsData?.bikes_mod?.code}
+                                        </h1>
+                                    </div>
+
+                                    <h1>
+                                        +{extensionsData?.extension_duration === 1 ? extensionsData?.extension_duration + " hour" : extensionsData?.extension_duration + " hours"}
+                                    </h1>
+
+                                    <div className='flex flex-row gap-1'>
+                                        <h1>
+                                            {getStartTimePH(extensionsData?.new_reservation_range) ?? "--"}
                                         </h1>
 
                                         -
 
                                         <h1>
-                                            {getEndTimePH(bike.reservation_range) ?? "--"}
+                                            {getEndTimePH(extensionsData?.new_reservation_range) ?? "--"}
                                         </h1>
-                                        </div>
                                     </div>
-
-                                    <h1>
-                                        P{(bike.bike_types_mod?.price ?? 0) * bike.quantity}
-                                    </h1>
                                 </div>
-                            ))}
-                        </div>
+
+                                <h1>
+                                    P{transaction.total_amount}
+                                </h1>
+                            </div>
+                        }
 
                         <div className='flex flex-col py-5'>
                             <div className='w-full bg-gray/40 h-0.5 rounded-xl'></div>

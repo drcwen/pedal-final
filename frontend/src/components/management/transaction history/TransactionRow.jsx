@@ -167,26 +167,32 @@ function TransactionRow({totalBikes, transactionId, fullName, transactionType, t
                                 })}
 
                             </div>
-                            
-                            <div className='flex justify-end'>
-                                <div 
-                                    onClick={() => setReceipt(!receipt)}
-                                    className='flex gap-2 bg-blue px-2 py-1 rounded-lg font-akagi font-semibold cursor-pointer text-[#ffffff] text-sm'>
-                                    <MdOutlineReceiptLong className='text-lg'/>Receipt
+                            {transactionType === "reservation" || transactionType === "walk-in" &&
+                                <div className='flex justify-end py-2'>
+                                    <div 
+                                        onClick={() => setReceipt(!receipt)}
+                                        className='flex gap-2 bg-blue px-2 py-1 rounded-lg font-akagi font-semibold cursor-pointer text-[#ffffff] text-sm'>
+                                        <MdOutlineReceiptLong className='text-lg'/>Receipt
+                                    </div>
                                 </div>
-                            </div>
-
-                            {receipt &&
-                                <Receipt 
-                                    setReceipt={setReceipt}
-                                    startedBikes={transactionData}
-                                    transaction={transactionPayment}
-                                />
                             }
+
                         </div>
+
+                        {receipt &&
+                            <Receipt 
+                                setReceipt={setReceipt}
+                                startedBikes={transactionData}
+                                transaction={transactionPayment}
+                                maintenanceData={maintenanceData}
+                                fullName={fullName}
+                                extensionsData={extensionsData}
+                            />
+                        }
 
 
                         {transactionType === "extend" && (
+                            <>
                             <div className="grid md:grid-cols-3 gap-2 pb-5">
 
                                 <TransactionBikes 
@@ -201,6 +207,15 @@ function TransactionRow({totalBikes, transactionId, fullName, transactionType, t
                                     extension={"+" + extensionsData?.extension_duration + " hour"}
                                     />
                             </div>
+
+                            <div className='flex justify-end py-2'>
+                                <div 
+                                    onClick={() => setReceipt(!receipt)}
+                                    className='flex gap-2 bg-blue px-2 py-1 rounded-lg font-akagi font-semibold cursor-pointer text-[#ffffff] text-sm'>
+                                    <MdOutlineReceiptLong className='text-lg'/>Receipt
+                                </div>
+                            </div>
+                            </>
                         )}
 
                         {transactionType === "change" && (
@@ -279,6 +294,7 @@ function TransactionRow({totalBikes, transactionId, fullName, transactionType, t
                         )}
 
                         {transactionType === "maintenance" && (
+                            <>
                             <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-2 pb-5">
 
                                 <div className='w-full border shadow-md border-[#DBDBDB] p-3 rounded-lg flex flex-col gap-4 font-akagi font-bold text-gray'>
@@ -320,6 +336,14 @@ function TransactionRow({totalBikes, transactionId, fullName, transactionType, t
                                     </div>
                                 </div>
                             </div>
+                            <div className='flex justify-end py-2'>
+                                <div 
+                                    onClick={() => setReceipt(!receipt)}
+                                    className='flex gap-2 bg-blue px-2 py-1 rounded-lg font-akagi font-semibold cursor-pointer text-[#ffffff] text-sm'>
+                                    <MdOutlineReceiptLong className='text-lg'/>Receipt
+                                </div>
+                            </div>
+                            </>
                         )}
                         
                     </motion.div>   
