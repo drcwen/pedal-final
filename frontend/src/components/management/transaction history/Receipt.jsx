@@ -179,7 +179,7 @@ function Receipt({ setReceipt, startedBikes, transaction, maintenanceData, fullN
                         </div>
 
                         {/*Walk-in and Reservation rents*/}
-                        {transaction.type === "reservation" || transaction.type === "walk-in" && 
+                        {(transaction.type === "reservation" || transaction.type === "walk-in") && 
                             <div className='flex flex-col'>
                                 {groupedBikes.map((bike, index) => (
                                     <div

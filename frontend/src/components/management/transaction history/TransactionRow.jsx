@@ -167,7 +167,7 @@ function TransactionRow({totalBikes, transactionId, fullName, transactionType, t
                                 })}
 
                             </div>
-                            {transactionType === "reservation" || transactionType === "walk-in" &&
+                            {(transactionType === "reservation" || transactionType === "walk-in") &&
                                 <div className='flex justify-end py-2'>
                                     <div 
                                         onClick={() => setReceipt(!receipt)}
