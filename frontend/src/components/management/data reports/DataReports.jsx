@@ -28,11 +28,38 @@ import { FaPrint } from "react-icons/fa6";
 function DataReports() {
 
     const [dashboardData, setDashboardData] = useState([]);
-    const [gross, setGross] = useState("...");
+
     const [reservationGross, setReservationGross] = useState("...");
     const [walkInGross , setWalkInGross] = useState("...");
     const [extensionsGross, setExtensionsGross] = useState("...");
     const [changeGross, setChangeGross] = useState("...");
+
+    //NET SALES
+    const [gross, setGross] = useState("...");
+    const [netSales, setNetSales] = useState({
+        gross_sales: 0,
+        total_deductions: 0,
+        net_sales: 0
+    });
+    const fetchNetSales = async () => {
+
+        const { data, error } = await supabase.rpc(
+            "get_date_net_sales",
+            {
+                start_date: formatDate(dates[0]),
+                end_date: formatDate(dates[1])
+            }
+        );
+
+        if (error) {
+            console.error("Net sales error:", error);
+            return;
+        }
+
+        console.log("Net Sales:", data);
+
+        setNetSales(data);
+    };
 
     const formatDate = (date) => {
         if (!date) return "";
@@ -219,6 +246,7 @@ function DataReports() {
         fetchWalkInGross();
         fetchExtensions();
         fetchChange();
+        fetchNetSales();
     }, [dates]);
 
     useEffect(() => {
@@ -545,8 +573,8 @@ function DataReports() {
 
             </div>
 
-                    {/*Sales*/}
-                    {activeTab === "Sales" &&
+                {/*Sales*/}
+                {activeTab === "Sales" &&
 
                     <>
                         <div className='bg-[#ffffff] w-full rounded-xl p-5 flex flex-col gap-3'>
@@ -978,7 +1006,58 @@ function DataReports() {
                         </div>
                         
                     </>
-                    }
+                }
+
+                {activeTab === "Net Sales" &&
+                    <div className='xl:grid-cols-3 grid grid-cols-2 gap-5'>
+                        <div className='bg-gradient-to-t from-blue to-blue/65 shadow-md rounded-xl px-4 py-4 flex flex-col gap-2 font-akagi font-bold text-[#ffffff]'>
+                            <div className='w-full h-full lg:h-27 flex flex-col justify-between'>
+                                <div className='flex flex-row justify-between'>
+                                    <h1 className='font-medium text-sm md:text-lg'>Gross Sales</h1>
+                                </div>
+
+                                <div className='flex flex-col'>
+                                    <h1 className='text-xl lg:text-3xl'>
+                                        ₱{Number(netSales.gross_sales).toLocaleString()}
+                                    </h1>
+                                    <h1 className='text-xs lg:text-sm font-medium'>From reservation and </h1>
+                                </div>
+                            </div>
+                        </div>  
+
+                        <div className='bg-[#ffffff] shadow-md rounded-xl px-4 py-4 flex flex-col gap-2 font-akagi font-bold text-gray'>
+                            <div className='w-full h-full flex flex-col justify-between'>
+                                <div className='flex flex-row justify-between'>
+                                    <h1 className='font-medium text-sm md:text-lg'>Total Deductions</h1>
+                                </div>
+
+                                <div className='flex flex-col'>
+                                    <h1 className='text-xl lg:text-3xl'>
+                                        ₱{Number(netSales.total_deductions).toLocaleString()}
+                                    </h1>
+                                    <h1 className='text-xs lg:text-sm font-medium'>From reservation and </h1>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className='bg-[#ffffff] shadow-md  rounded-xl px-5 pl-6 py-5 flex flex-col gap-2 font-akagi font-bold text-gray'>
+                            <div className='w-full h-full flex flex-col justify-between'>
+                                <div className='flex flex-row justify-between'>
+                                    <h1 className='font-medium text-sm md:text-lg'>Net Sales</h1>
+                                </div>
+
+                                <div className='flex flex-col'>
+                                    <h1 className='text-xl lg:text-3xl'>
+                                        ₱{Number(netSales.net_sales).toLocaleString()}
+                                    </h1>
+                                    <h1 className='text-xs lg:text-sm font-medium'>From reservation and </h1>
+                                </div>
+                            </div>
+                        </div>
+
+
+                    </div>
+                }
                     
                 </div>
             </motion.div>
