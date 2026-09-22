@@ -33,6 +33,7 @@ function DataReports() {
     const [walkInGross , setWalkInGross] = useState("...");
     const [extensionsGross, setExtensionsGross] = useState("...");
     const [changeGross, setChangeGross] = useState("...");
+    const [deductions, setDeductions] = useState([]);
 
     //NET SALES
     const [gross, setGross] = useState("...");
@@ -41,6 +42,33 @@ function DataReports() {
         total_deductions: 0,
         net_sales: 0
     });
+
+    const fetchDateDeductions = async (startDate, endDate) => {
+        try {
+            const { data, error } = await supabase.rpc(
+                "get_date_deductions",
+                {
+                    start_date: startDate,
+                    end_date: endDate
+                }
+            );
+
+            if (error) {
+                console.error("Error fetching deductions:", error);
+                setDeductions([]);
+                return;
+            }
+
+            console.log("Deductions:", data);
+
+            setDeductions(data || []);
+
+        } catch (error) {
+            console.error("Unexpected error:", error);
+            setDeductions([]);
+        }
+    };
+
     const fetchNetSales = async () => {
 
         const { data, error } = await supabase.rpc(
@@ -247,6 +275,11 @@ function DataReports() {
         fetchExtensions();
         fetchChange();
         fetchNetSales();
+
+        fetchDateDeductions(
+            formatDate(dates[0]),
+            formatDate(dates[1])
+        );
     }, [dates]);
 
     useEffect(() => {
@@ -674,8 +707,8 @@ function DataReports() {
 
                         <div className='w-full grid lg:grid-cols-4 grid-cols-2 gap-5'>
                             <div className='bg-[#ffffff] p-5 font-akagi font-bold text-gray rounded-xl flex flex-col gap-2'>
-                                <h1 className=''>Gross Revenue</h1>
-                                <h1 className='text-4xl'>P{gross}</h1>
+                                <h1 className='font-medium'>Gross Revenue</h1>
+                                <h1 className='lg:text-4xl text-2xl'>P{gross}</h1>
                                     <div className="w-full h-[70px]">
                                         <ResponsiveContainer width="100%" height="100%">
                                             <BarChart
@@ -694,10 +727,10 @@ function DataReports() {
 
                             <div className='bg-[#ffffff] p-5 font-akagi font-bold text-gray rounded-xl flex flex-col gap-2'>
                                 <div className='flex flex-row justify-between items-center'>
-                                    <h1>Net Revenue</h1>
+                                    <h1 className='font-medium'>Net Revenue</h1>
                                     <IoIosInformationCircleOutline className='text-xl cursor-pointer'/>
                                 </div>
-                                <h1 className='text-4xl'>P12000</h1>
+                                <h1 className='lg:text-4xl text-2xl'>P{Number(netSales.net_sales).toLocaleString()}</h1>
                                 <div className="w-full h-[70px]">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <BarChart
@@ -715,8 +748,8 @@ function DataReports() {
                             </div>
 
                             <div className='bg-[#ffffff] p-5 font-akagi font-bold text-gray rounded-xl flex flex-col gap-2'>
-                                <h1>Walk-In Gross Revenue</h1>
-                                <h1 className='text-4xl'>P{walkInGross}</h1>
+                                <h1 className='font-medium'>Walk-In Gross Revenue</h1>
+                                <h1 className='lg:text-4xl text-2xl'>P{walkInGross}</h1>
                                 <div className="w-full h-[70px]">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <BarChart
@@ -735,8 +768,8 @@ function DataReports() {
                             </div>
 
                             <div className='bg-[#ffffff] p-5 font-akagi font-bold text-gray rounded-xl flex flex-col gap-2'>
-                                <h1>Reservation Gross Revenue</h1>
-                                <h1 className='text-4xl'>P{reservationGross}</h1>
+                                <h1 className='font-medium'>Reservation Gross Revenue</h1>
+                                <h1 className='lg:text-4xl text-2xl'>P{reservationGross}</h1>
                                 <div className="w-full h-[70px]">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <BarChart
@@ -754,8 +787,8 @@ function DataReports() {
                             </div>
 
                             <div className='bg-[#ffffff] p-5 font-akagi font-bold text-gray rounded-xl flex flex-col gap-2'>
-                                <h1>Extensions Gross Revenue</h1>
-                                <h1 className='text-4xl'>P{extensionsGross}</h1>
+                                <h1 className='font-medium'>Extensions Gross Revenue</h1>
+                                <h1 className='lg:text-4xl text-2xl'>P{extensionsGross}</h1>
                                 <div className="w-full h-[70px]">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <BarChart
@@ -773,8 +806,8 @@ function DataReports() {
                             </div>
 
                             <div className='bg-[#ffffff] p-5 font-akagi font-bold text-gray rounded-xl flex flex-col gap-2'>
-                                <h1>Changed Bikes Gross Revenue</h1>
-                                <h1 className='text-4xl'>P{changeGross}</h1>
+                                <h1 className='font-medium'>Changed Bikes Gross Revenue</h1>
+                                <h1 className='lg:text-4xl text-2xl'>P{changeGross}</h1>
                                 <div className="w-full h-[70px]">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <BarChart
@@ -1009,6 +1042,7 @@ function DataReports() {
                 }
 
                 {activeTab === "Net Sales" &&
+                    <>
                     <div className='xl:grid-cols-3 grid grid-cols-2 gap-5'>
                         <div className='bg-gradient-to-t from-blue to-blue/65 shadow-md rounded-xl px-4 py-4 flex flex-col gap-2 font-akagi font-bold text-[#ffffff]'>
                             <div className='w-full h-full lg:h-27 flex flex-col justify-between'>
@@ -1020,7 +1054,7 @@ function DataReports() {
                                     <h1 className='text-xl lg:text-3xl'>
                                         ₱{Number(netSales.gross_sales).toLocaleString()}
                                     </h1>
-                                    <h1 className='text-xs lg:text-sm font-medium'>From reservation and </h1>
+                                    <h1 className='text-xs lg:text-sm font-medium'>Sales before deductions</h1>
                                 </div>
                             </div>
                         </div>  
@@ -1035,12 +1069,12 @@ function DataReports() {
                                     <h1 className='text-xl lg:text-3xl'>
                                         ₱{Number(netSales.total_deductions).toLocaleString()}
                                     </h1>
-                                    <h1 className='text-xs lg:text-sm font-medium'>From reservation and </h1>
+                                    <h1 className='text-xs lg:text-sm font-medium'>Deductions</h1>
                                 </div>
                             </div>
                         </div>
 
-                        <div className='bg-[#ffffff] shadow-md  rounded-xl px-5 pl-6 py-5 flex flex-col gap-2 font-akagi font-bold text-gray'>
+                        <div className='bg-[#ffffff] shadow-md  rounded-xl px-4 py-4 flex flex-col gap-2 font-akagi font-bold text-gray'>
                             <div className='w-full h-full flex flex-col justify-between'>
                                 <div className='flex flex-row justify-between'>
                                     <h1 className='font-medium text-sm md:text-lg'>Net Sales</h1>
@@ -1050,13 +1084,106 @@ function DataReports() {
                                     <h1 className='text-xl lg:text-3xl'>
                                         ₱{Number(netSales.net_sales).toLocaleString()}
                                     </h1>
-                                    <h1 className='text-xs lg:text-sm font-medium'>From reservation and </h1>
+                                    <h1 className='text-xs lg:text-sm font-medium'>Sales after deductions</h1>
                                 </div>
                             </div>
                         </div>
 
 
                     </div>
+
+                    <div className='bg-[#ffffff] shadow-md rounded-xl p-5 flex flex-col gap-4'>
+
+                        <div className='flex flex-row justify-between items-center gap-5'>
+                            <h1 className='font-akagi font-bold text-lg text-gray'>
+                                Deductions
+                            </h1>
+
+                            <h1 className='font-akagi font-medium text-sm text-gray'>
+                                {dates?.[0] && dates?.[1]
+                                    ? `${formatDisplayDate(dates[0])} – ${formatDisplayDate(dates[1])}`
+                                    : ""
+                                }
+                            </h1>
+                        </div>
+
+                        {deductions.length === 0 ? (
+
+                            <div className='flex justify-center py-6'>
+                                <h1 className='font-akagi text-gray'>
+                                    No deductions for the selected dates.
+                                </h1>
+                            </div>
+
+                        ) : (
+
+                            <div className='flex flex-col divide-y divide-[#E5E5E5]'>
+
+                                {deductions.map((deduction) => (
+
+                                    <div
+                                        key={deduction.id}
+                                        className='py-4 flex flex-row justify-between items-center gap-5'
+                                    >
+
+                                        <div className='flex flex-col'>
+
+                                            <h1 className='font-akagi font-bold text-gray'>
+                                                {deduction.type}
+                                            </h1>
+
+                                            <h1 className='font-akagi text-sm text-[#777777]'>
+                                                {deduction.calculation} • {deduction.value}
+                                                {deduction.calculation?.toLowerCase() === "percentage"
+                                                    ? "%"
+                                                    : ""
+                                                }
+                                            </h1>
+
+                                            {deduction.occurence ? (
+
+                                                <h1 className='font-akagi text-xs text-[#999999]'>
+                                                    {deduction.occurence}
+                                                </h1>
+
+                                            ) : deduction.deadline ? (
+
+                                                <h1 className='font-akagi text-xs text-[#999999]'>
+                                                    Deadline:{" "}
+                                                    {new Date(deduction.deadline).toLocaleDateString(
+                                                        "en-US",
+                                                        {
+                                                            month: "long",
+                                                            day: "numeric",
+                                                            year: "numeric"
+                                                        }
+                                                    )}
+                                                </h1>
+
+                                            ) : null}
+
+                                        </div>
+
+                                        <h1 className='font-akagi font-bold text-gray text-lg whitespace-nowrap'>
+                                            − ₱
+                                            {Number(
+                                                deduction.deduction_amount
+                                            ).toLocaleString("en-PH", {
+                                                minimumFractionDigits: 2,
+                                                maximumFractionDigits: 2
+                                            })}
+                                        </h1>
+
+                                    </div>
+
+                                ))}
+
+                            </div>
+
+                        )}
+
+                    </div>
+                    </>
                 }
                     
                 </div>
