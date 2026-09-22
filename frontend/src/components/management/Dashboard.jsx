@@ -37,6 +37,27 @@ function Dashboard() {
 
     const [dashboardData, setDashboardData] = useState([]);
 
+    const [dashboardCounts, setDashboardCounts] = useState({
+        reservations_today: 0,
+        walk_ins_today: 0,
+        total_revenue_today: 0
+    });
+
+    const fetchDashboardCounts = async () => {
+        const { data, error } = await supabase.rpc(
+            "get_today_dashboard_counts"
+        );
+
+        if (error) {
+            console.error(error);
+            return;
+        }
+
+        console.log("dashboard counts:", data);
+
+        setDashboardCounts(data);
+    };
+
     const formatDate = (date) => {
         if (!date) return null;
 
@@ -69,6 +90,7 @@ function Dashboard() {
 
     useEffect(() => {
         fetchData();
+        fetchDashboardCounts();
     }, [dates]);
     
     console.log(dashboardData)
@@ -98,7 +120,7 @@ function Dashboard() {
                             </div>
 
                             <div className='flex flex-col'>
-                                <h1 className='text-xl lg:text-3xl'>10</h1>
+                                <h1 className='text-xl lg:text-3xl'>{dashboardCounts.walk_ins_today}</h1>
                                 <h1 className='text-xs lg:text-sm font-medium'>From reservation and </h1>
                             </div>
                         </div>
@@ -111,13 +133,23 @@ function Dashboard() {
                             </div>
 
                             <div className='flex flex-col'>
-                                <h1 className='text-xl lg:text-3xl'>10</h1>
+                                <h1 className='text-xl lg:text-3xl'>{dashboardCounts.reservations_today}</h1>
                                 <h1 className='text-xs lg:text-sm font-medium'>From reservation and </h1>
                             </div>
                         </div>
                     </div>
 
-                    <div className='bg-[#ffffff] shadow-md  rounded-xl px-5 pl-6 py-5 flex flex-col gap-2'>
+                    <div className='bg-[#ffffff] shadow-md  rounded-xl px-5 pl-6 py-5 flex flex-col gap-2 font-akagi font-bold text-gray'>
+                        <div className='w-full h-full flex flex-col justify-between'>
+                            <div className='flex flex-row justify-between'>
+                                <h1 className='font-medium text-sm md:text-lg'>Total Revenue Today</h1>
+                            </div>
+
+                            <div className='flex flex-col'>
+                                <h1 className='text-xl lg:text-3xl'>₱{Number(dashboardCounts.total_revenue_today).toLocaleString()}</h1>
+                                <h1 className='text-xs lg:text-sm font-medium'>From reservation and </h1>
+                            </div>
+                        </div>
 
                     </div>
 
