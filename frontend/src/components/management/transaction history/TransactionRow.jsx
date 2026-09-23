@@ -15,10 +15,14 @@ function TransactionRow({totalBikes, transactionId, fullName, transactionType, t
     const [receipt, setReceipt] = useState(false);
 
     function formatTimeTo12Hour(time) {
+        if (typeof time !== "string" || !time.trim()) {
+            return "N/A";
+        }
+
         const [hours, minutes, seconds] = time.split(":").map(Number);
 
         const date = new Date();
-        date.setHours(hours, minutes, seconds);
+        date.setHours(hours, minutes, seconds || 0);
 
         return date.toLocaleTimeString("en-PH", {
             hour: "2-digit",
@@ -28,9 +32,15 @@ function TransactionRow({totalBikes, transactionId, fullName, transactionType, t
     }
     
     function getEndTimeOnly(tstzrange) {
+        if (typeof tstzrange !== "string" || !tstzrange.trim()) {
+            return "N/A";
+        }
+
         const match = tstzrange.match(/\["[^"]+","([^"]+)"\)/);
 
-        if (!match) return null;
+        if (!match) {
+            return "N/A";
+        }
 
         const utcDate = new Date(
             match[1]
@@ -313,35 +323,35 @@ function TransactionRow({totalBikes, transactionId, fullName, transactionType, t
                                         <div className='flex flex-row gap-3 items-center'>
                                             <div className='items-center bg-yellow p-1 rounded-lg'>
                                                 <img
-                                                    src={maintenanceData?.orders_mod?.bikes_mod?.bike_types_mod?.image_url}
+                                                    src={maintenanceData?.orders_mod?.bikes_mod?.bike_types_mod?.image_url ?? maintenanceData?.bikes_mod?.bike_types_mod?.image_url}
                                                     className="w-6"
                                                 />
 
                                             </div>
 
-                                            <h1 className='text-md font-akagi font-bold text-gray'>{maintenanceData?.orders_mod?.bikes_mod?.bike_types_mod?.name}</h1>
+                                            <h1 className='text-md font-akagi font-bold text-gray'>{maintenanceData?.orders_mod?.bikes_mod?.bike_types_mod?.name ?? maintenanceData?.bikes_mod?.bike_types_mod?.name}</h1>
                                         </div>
                                     </div>
 
                                     <div className='w-full grid grid-cols-3 gap-2'>
                                         <div className='flex flex-col'>
                                             <h1 className='text-sm font-akagi font-bold text-gray'>UNIT ID</h1>
-                                            <h1 className='text-sm font-akagi font-medium text-gray'>{maintenanceData?.orders_mod?.bikes_mod?.code}</h1>
+                                            <h1 className='text-sm font-akagi font-medium text-gray'>{maintenanceData?.orders_mod?.bikes_mod?.code ?? maintenanceData?.bikes_mod?.code}</h1>
                                         </div>
 
                                         <div className='flex flex-col'>
                                             <h1 className='text-sm font-akagi font-bold text-gray'>GPS ID</h1>
-                                            <h1 className='text-sm font-akagi font-medium text-gray'>{maintenanceData?.orders_mod?.gps_mod?.code}</h1>
+                                            <h1 className='text-sm font-akagi font-medium text-gray'>{maintenanceData?.orders_mod?.gps_mod?.code ?? "N/A"}</h1>
                                         </div>
 
                                         <div className='flex flex-col'>
                                             <h1 className='text-sm font-akagi font-bold text-gray'>START</h1>
-                                            <h1 className='text-sm font-akagi font-medium text-gray'>{formatTimeTo12Hour(maintenanceData?.orders_mod?.start_time)}</h1>
+                                            <h1 className='text-sm font-akagi font-medium text-gray'>{formatTimeTo12Hour(maintenanceData?.orders_mod?.start_time ?? undefined)}</h1>
                                         </div>
 
                                         <div className='flex flex-col'>
                                             <h1 className='text-sm font-akagi font-bold text-gray'>END</h1>
-                                            <h1 className='text-sm font-akagi font-medium text-gray'>{getEndTimeOnly(maintenanceData?.orders_mod?.reservation_range)}</h1>
+                                            <h1 className='text-sm font-akagi font-medium text-gray'>{getEndTimeOnly(maintenanceData?.orders_mod?.reservation_range ?? undefined)}</h1>
                                         </div>
                                     </div>
                                 </div>

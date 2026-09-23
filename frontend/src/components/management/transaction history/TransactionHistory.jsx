@@ -136,6 +136,12 @@ function TransactionHistory() {
                                     profile:profiles_mod!transactions_mod_user_id_fkey1 (*),
                                     walk_in:walk_ins_users_mod (*)
                                 )
+                            ),
+                            bikes_mod (
+                                *,
+                                bike_types_mod(
+                                    *
+                                )
                             )
                         ),
                         change_bikes_mod (
