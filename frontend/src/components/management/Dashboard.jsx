@@ -139,7 +139,7 @@ function Dashboard() {
                         </div>
                     </div>
 
-                    <div className='bg-[#ffffff] shadow-md  rounded-xl px-5 pl-6 py-5 flex flex-col gap-2 font-akagi font-bold text-gray'>
+                    <div className='bg-[#ffffff] shadow-md rounded-xl px-4 py-4 flex flex-col gap-2 font-akagi font-bold text-gray'>
                         <div className='w-full h-full flex flex-col justify-between'>
                             <div className='flex flex-row justify-between'>
                                 <h1 className='font-medium text-sm md:text-lg'>Total Revenue Today</h1>
@@ -150,7 +150,6 @@ function Dashboard() {
                                 <h1 className='text-xs lg:text-sm font-medium'>From reservation and </h1>
                             </div>
                         </div>
-
                     </div>
 
 
