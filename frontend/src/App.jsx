@@ -37,7 +37,6 @@
     const navigate = useNavigate();
 
     const [allAccountID, setAllAccountID] = useState([]);
-    const [allBikeId, setAllBikeId] = useState([]);
 
     const fetchUserRole = async (userId) => {
       const { data, error } = await supabase
@@ -62,14 +61,6 @@
           .select("*");
 
           setAllAccountID(data || []);
-      }
-
-      const fetchBikesId = async () => {
-        const { data, error } = await supabase
-          .from("bikes_mod")
-          .select("*");
-
-          setAllBikeId(data || []);
       }
 
       const init = async () => {
@@ -104,7 +95,6 @@
 
       init();
       fetchAllAccountID();
-      fetchBikesId();
 
       const {
         data: { subscription },
@@ -163,14 +153,8 @@
             <Route path="/login" element={<Login />} />
             <Route path="/createaccount" element={<CreateAccount />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/alerts/:bikeId" element={<Alerts />} />
             <Route path="*" element={<Navigate to="/login" />} />
-            {allBikeId.map((bikeId) => (
-              <Route
-                  key={bikeId.id}
-                  path={`/alerts/${bikeId.id}`}
-                  element={<Alerts bikeId={bikeId.id} />}
-              />
-            ))}
           </>
         )}
 

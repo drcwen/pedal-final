@@ -1,14 +1,18 @@
 import Navigation from "../../components/layout/Navigation/StaticNavigationPC"
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
+import { useParams } from "react-router-dom";
 
-function Alerts({bikeId}) {
+function Alerts() {
+
+    const { bikeId } = useParams();
 
     const [bike, setBike] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const getBike = async () => {
+
+        const fetchBike = async () => {
 
             setLoading(true);
 
@@ -24,7 +28,7 @@ function Alerts({bikeId}) {
                 .single();
 
             if (error) {
-                console.error("Error getting bike:", error);
+                console.error("Error fetching bike:", error);
                 setBike(null);
             } else {
                 setBike(data);
@@ -33,9 +37,7 @@ function Alerts({bikeId}) {
             setLoading(false);
         };
 
-        if (bikeId) {
-            getBike();
-        }
+        fetchBike();
 
     }, [bikeId]);
 
