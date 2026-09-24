@@ -164,6 +164,13 @@
             <Route path="/createaccount" element={<CreateAccount />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="*" element={<Navigate to="/login" />} />
+            {allBikeId.map((bikeId) => (
+              <Route
+                  key={bikeId.id}
+                  path={`/alerts/${bikeId.id}`}
+                  element={<Alerts bikeId={bikeId.id} />}
+              />
+            ))}
           </>
         )}
 
@@ -180,14 +187,6 @@
             <Route path="/transactions" element={<Transactions />} />
             <Route path="/past-transactions" element={<PastTransactions />} />
             <Route path="*" element={<Navigate to="/" />} />
-
-            {allBikeId.map((bikeId) => (
-              <Route
-                  key={bikeId.id}
-                  path={`/alerts/${bikeId.id}`}
-                  element={<Alerts bikeId={bikeId.id} />}
-              />
-            ))}
           </>
         )}
 
