@@ -89,7 +89,7 @@ function TransactionsSection() {
                 )
             `)
             .eq("user_id", user.id)
-            .eq("status", "completed");
+            .eq("status", "pending");
 
         if (error) {
                 console.log(error);
