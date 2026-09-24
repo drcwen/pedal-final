@@ -26,6 +26,7 @@
   import AccountDetails from "./components/management/manage account/AccountDetails"
   import Settings from "./components/management/settings/Settings"
   import DataReports from "./components/management/data reports/DataReports"
+  import Alerts from "./components/sections/Alerts"
 
   function App() {
     const [session, setSession] = useState(null);
@@ -36,6 +37,7 @@
     const navigate = useNavigate();
 
     const [allAccountID, setAllAccountID] = useState([]);
+    const [allBikeId, setAllBikeId] = useState([]);
 
     const fetchUserRole = async (userId) => {
       const { data, error } = await supabase
@@ -55,11 +57,19 @@
     useEffect(() => {
 
       const fetchAllAccountID = async () => {
-      const { data, error } = await supabase
-        .from("profiles_mod")
-        .select("*");
+        const { data, error } = await supabase
+          .from("profiles_mod")
+          .select("*");
 
-        setAllAccountID(data || []);
+          setAllAccountID(data || []);
+      }
+
+      const fetchBikesId = async () => {
+        const { data, error } = await supabase
+          .from("bikes_mod")
+          .select("*");
+
+          setAllBikeId(data || []);
       }
 
       const init = async () => {
@@ -94,6 +104,7 @@
 
       init();
       fetchAllAccountID();
+      fetchBikesId();
 
       const {
         data: { subscription },
@@ -169,6 +180,14 @@
             <Route path="/transactions" element={<Transactions />} />
             <Route path="/past-transactions" element={<PastTransactions />} />
             <Route path="*" element={<Navigate to="/" />} />
+
+            {allBikeId.map((bikeId) => (
+              <Route
+                  key={bikeId.id}
+                  path={`/alerts/${bikeId.id}`}
+                  element={<Alerts bikeId={bikeId.id} />}
+              />
+            ))}
           </>
         )}
 
