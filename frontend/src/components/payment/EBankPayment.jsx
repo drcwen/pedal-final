@@ -79,6 +79,8 @@ function EBankPayment() {
         }
     }
 
+    console.log(checkoutTotal, orders);
+
    
   return (
     <>
@@ -101,7 +103,7 @@ function EBankPayment() {
                                 <input
                                     type="email"
                                     required
-                                    className="w-full font-akagi font-md font-bold text-[#6D7172]"
+                                    className="w-full focus:outline-none font-akagi font-md font-bold text-[#6D7172]"
                                     placeholder="juandelacruz@gmail.com"
                                 />
                             </div>
@@ -114,7 +116,7 @@ function EBankPayment() {
                                     type="text"
                                     required
                                     id="card-number"
-                                    className="w-full font-akagi font-md font-bold text-[#6D7172]"
+                                    className="w-full focus:outline-none font-akagi font-md font-bold text-[#6D7172]"
                                     placeholder="•••• •••• ••••"
                                     maxLength={19}
                                     minLength={19}
@@ -139,7 +141,7 @@ function EBankPayment() {
                                 <input
                                     required
                                     type="text"
-                                    className="w-full font-akagi font-md font-bold text-[#6D7172]"
+                                    className="w-full focus:outline-none font-akagi font-md font-bold text-[#6D7172]"
                                     placeholder="Juan Dela Cruz"
                                 />
                             </div>
@@ -153,30 +155,72 @@ function EBankPayment() {
                                     <input
                                         type="text"
                                         required
-                                        className="w-full font-akagi font-md font-bold text-[#6D7172]"
+                                        className="w-full focus:outline-none font-akagi font-md font-bold text-[#6D7172]"
                                         placeholder="MM/YY"
                                         maxLength={5}
                                         onChange={(e) => {
-                                            let value = e.target.value.replace(/\D/g, ""); // numbers only
+                                            let value = e.target.value.replace(/\D/g, "");
 
-                                            // limit to 4 digits
+                                            // Limit to 4 digits
                                             value = value.slice(0, 4);
 
-                                            // format as MM/YY
+                                            // Format as MM/YY
                                             if (value.length >= 3) {
-                                            value = `${value.slice(0, 2)}/${value.slice(2)}`;
+                                                value = `${value.slice(0, 2)}/${value.slice(2)}`;
                                             }
 
-                                            // validate month
+                                            // Validate month
                                             const month = parseInt(value.slice(0, 2));
 
                                             if (month > 12) {
-                                            value = "12" + value.slice(2);
+                                                value = "12" + value.slice(2);
                                             } else if (month === 0) {
-                                            value = "";
+                                                value = "";
                                             }
 
                                             e.target.value = value;
+                                        }}
+                                        onBlur={(e) => {
+                                            const value = e.target.value;
+
+                                            // Must be MM/YY
+                                            if (!/^\d{2}\/\d{2}$/.test(value)) {
+                                                e.target.setCustomValidity("Please enter a valid expiration date.");
+                                                return;
+                                            }
+
+                                            const [monthString, yearString] = value.split("/");
+
+                                            const month = parseInt(monthString);
+                                            const year = 2000 + parseInt(yearString);
+
+                                            const today = new Date();
+
+                                            const currentYear = today.getFullYear();
+                                            const currentMonth = today.getMonth() + 1;
+
+                                            // Maximum allowed expiration: 10 years from now
+                                            const maxYear = currentYear + 10;
+
+                                            // Convert both dates into a comparable number
+                                            const inputDate = year * 12 + month;
+                                            const currentDate = currentYear * 12 + currentMonth;
+                                            const maxDate = maxYear * 12 + currentMonth;
+
+                                            // Expired
+                                            if (inputDate < currentDate) {
+                                                e.target.setCustomValidity("This card has expired.");
+                                            }
+                                            // More than 10 years in the future
+                                            else if (inputDate > maxDate) {
+                                                e.target.setCustomValidity(
+                                                    "Card expiration date cannot be more than 10 years in the future."
+                                                );
+                                            }
+                                            // Valid
+                                            else {
+                                                e.target.setCustomValidity("");
+                                            }
                                         }}
                                     />
                                 </div>
@@ -189,7 +233,7 @@ function EBankPayment() {
                                 <input
                                         required
                                         type="text"
-                                        className="w-full font-akagi font-md font-bold text-[#6D7172]"
+                                        className="w-full focus:outline-none font-akagi font-md font-bold text-[#6D7172]"
                                         placeholder="CVV"
                                         maxLength={3}
                                         onChange={(e) => {
@@ -213,11 +257,6 @@ function EBankPayment() {
                     <div className='w-full flex flex-row justify-between gap-3'>
                         <h1 className='text-lg font-akagi font-bold text-gray'>Subtotal</h1>
                         <h1 className='text-lg font-akagi font-bold text-gray'>P{checkoutTotal}</h1>
-                    </div>
-
-                    <div className='w-full flex flex-row justify-between gap-3'>
-                        <h1 className='text-lg font-akagi font-bold text-gray'>Tax</h1>
-                        <h1 className='text-lg font-akagi font-bold text-gray'>P30</h1>
                     </div>
 
                     <div className='w-full h-0.5 bg-gray'></div>

@@ -310,6 +310,7 @@ function CartSection() {
                                     hour={order.duration_hours}
                                     reservationdate={order.reservation_date}
                                     starttime={order.start_time}
+                                    range={order.reservation_range}
                                     price={order.bike_types_mod.price}
                                     quantity={order.quantity}
                                     orderIds={order.orderIds}

@@ -13,8 +13,30 @@ function CartRentRow({
     onCheck,
     price,
     quantity,
-    onQuantityChange
+    onQuantityChange,
+    range
 }) {
+
+    function getEndTimePH(range) {
+        if (!range) return null;
+
+        const match = range.match(/,"([^"]+)"\)/);
+
+        if (!match) return null;
+
+        const endDate = new Date(
+            match[1]
+                .replace(" ", "T")
+                .replace("+00", "Z")
+        );
+
+        return endDate.toLocaleTimeString("en-US", {
+            timeZone: "Asia/Manila",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true
+        });
+    }
 
     function formatTime(time) {
         if (!time) return "";
@@ -62,7 +84,7 @@ function CartRentRow({
                 className='flex flex-col gap-5'>
 
                 {/*PC*/}
-                <div className='hidden lg:grid lg:grid-cols-[40px_1fr_100px_100px_150px_100px_100px] gap-3 text-md lg:items-center border border-gray/15 rounded-lg bg-gray/10 p-5 lg:p-0 lg:px-3 lg:py-4 font-akagi font-bold'>
+                <div className='hidden lg:grid lg:grid-cols-[40px_1fr_100px_50px_150px_150px_100px] gap-3 text-md lg:items-center border border-gray/15 rounded-lg bg-gray/10 p-5 lg:p-0 lg:px-3 lg:py-4 font-akagi font-bold'>
                     <div className=''>
                         <input type='checkbox' className='lg:w-5 lg:h-5 accent-blue-500'
                             checked={checked}
@@ -99,8 +121,9 @@ function CartRentRow({
                         <h1 className='py-1 text-[#6D7172] font-medium text-md'>{formatDisplayDate(reservationdate)}</h1>
                     </div>
 
-                    <div className='w-full rounded-lg items-center justify-center text-center'>
-                        <h1 className='py-1 text-[#6D7172] font-medium text-md'>{formatTime(starttime)}</h1>
+                    <div className='w-full rounded-lg items-center flex flex-row justify-center text-center'>
+                        <h1 className='py-1 text-[#6D7172] font-medium text-md'>{formatTime(starttime)}-</h1>
+                        <h1 className='py-1 text-[#6D7172] font-medium text-md'>{getEndTimePH(range)}</h1>
                     </div>
 
                     <div className='flex items-center justify-end'>
@@ -155,7 +178,7 @@ function CartRentRow({
                                 <h1 className='font-medium'>{hour === 1 ? hour + " hour" : hour + " hours"}</h1>
 
                                 <h1>Start Time:</h1>
-                                <h1 className='font-medium'>{formatTime(starttime)}</h1>
+                                <h1 className='font-medium'>{formatTime(starttime)}-{getEndTimePH(range)}</h1>
                             </div>
                         </div>
                     </div>

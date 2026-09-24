@@ -1,7 +1,27 @@
 
 function CheckoutRentRow({image, bike, quantity, rentdate, rentstart, duration, price}) {
 
-    
+    function formatDate(date) {
+        return new Date(date).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric"
+        });
+    }
+
+    function formatTime(time) {
+        const [hours, minutes] = time.split(":");
+
+        const date = new Date();
+        date.setHours(hours, minutes);
+
+        return date.toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true
+        });
+    }
+
   return (
     
     <div className='flex flex-row gap-5 lg:grid lg:grid-cols-7 items-center justify-items-center text-center justify-between md:px-15 lg:px-0 px-5'>
@@ -12,13 +32,13 @@ function CheckoutRentRow({image, bike, quantity, rentdate, rentstart, duration, 
 
         <h1 className='hidden lg:flex font-akagi font-light text-[#6D7172]'>{quantity}</h1>
 
-        <h1 className='hidden lg:flex font-akagi font-light text-[#6D7172]'>{rentdate}</h1>
+        <h1 className='hidden lg:flex font-akagi font-light text-[#6D7172]'>{formatDate(rentdate)}</h1>
 
-        <h1 className='hidden lg:flex font-akagi font-light text-[#6D7172]'>{rentstart}</h1>
+        <h1 className='hidden lg:flex font-akagi font-light text-[#6D7172]'>{formatTime(rentstart)}</h1>
 
         <h1 className='hidden lg:flex font-akagi font-light text-[#6D7172]'>{duration}</h1>
 
-        <h1 className='hidden lg:flex font-akagi font-bold text-[#6D7172]'>{price}</h1>
+        <h1 className='hidden lg:flex font-akagi font-bold text-[#6D7172]'>P{price}</h1>
 
         {/*Mobile*/} 
 
@@ -33,14 +53,14 @@ function CheckoutRentRow({image, bike, quantity, rentdate, rentstart, duration, 
                 </div>
 
                 <div className='flex flex-row gap-2'>
-                    <h1 className='font-akagi font-light text-[#6D7172]'>{rentdate}</h1>
-                    <h1 className='font-akagi font-light text-[#6D7172]'>{rentstart}</h1>
+                    <h1 className='font-akagi font-light text-[#6D7172]'>{formatDate(rentdate)}</h1>
+                    <h1 className='font-akagi font-light text-[#6D7172]'>{formatTime(rentstart)}</h1>
                 </div>
             </div>
         </div>
 
         <div className='lg:hidden'>
-            <h1 className='font-akagi font-bold text-[#6D7172]'>{price}</h1>
+            <h1 className='font-akagi font-bold text-[#6D7172]'>P{price}</h1>
         </div>
     </div>
                 

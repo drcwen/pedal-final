@@ -19,31 +19,75 @@ function CartSection() {
 
     const [showPopup, setShowPopup] = useState(false);
 
+    const [name, setName] = useState("");
+    const [username, setUsername] = useState("");
+    const [email, setEmail] = useState("");
+
     const navigate = useNavigate();
 
-    useEffect(() => {
-        async function fetchCheckoutTotal() {
+    async function getUserName() {
+        const {
+            data: { user },
+            error: authError
+        } = await supabase.auth.getUser();
 
-            if (!orders || orders.length === 0) return;
-
-            const selectedIds = orders.map((order) => order.id);
-
-            const { data, error } = await supabase.rpc(
-                "calculate_checkout_total",
-                {
-                    order_ids: selectedIds
-                }
-            );
-
-            if (error) {
-                console.log(error);
-                return;
-            }
-
-            setCheckoutTotal(data);
+        if (authError || !user) {
+            console.error("No authenticated user:", authError);
+            return;
         }
 
+        const { data, error } = await supabase
+            .from("profiles_mod")
+            .select("first_name, last_name, name, full_name, username, email")
+            .eq("id", user.id)
+            .single();
+
+        if (error) {
+            console.error("Error fetching user profile:", error);
+            return;
+        }
+
+        let displayName = "";
+
+        if (data.first_name || data.last_name) {
+            displayName = `${data.first_name || ""} ${data.last_name || ""}`.trim();
+        }
+        else if (data.name) {
+            displayName = data.name;
+        }
+        else if (data.full_name) {
+            displayName = data.full_name;
+        }
+        setUsername(data.username);
+        setEmail(data.email);
+        setName(displayName);
+    }
+
+    async function fetchCheckoutTotal() {
+
+        if (!orders || orders.length === 0) return;
+
+        const selectedIds = orders.map((order) => order.id);
+
+        const { data, error } = await supabase.rpc(
+            "calculate_checkout_total",
+            {
+                order_ids: selectedIds
+            }
+        );
+
+        if (error) {
+            console.log(error);
+            return;
+        }
+
+        setCheckoutTotal(data);
+    }
+
+    useEffect(() => {
+
         fetchCheckoutTotal();
+        getUserName();
 
     }, [orders]);
 
@@ -74,31 +118,24 @@ function CartSection() {
 
                     <div className='lg:grid lg:grid-cols-2 lg:grid-rows-2 lg:gap-3 pt-20 flex flex-col gap-3'>
 
-                    <div className='flex flex-row items-center gap-4'>
-                        <h1 className='w-28 font-akagi text-[#6D7172] font-bold whitespace-nowrap'>First Name:</h1>
+                    <div className='lg:col-span-2 lg:grid lg:grid-cols-[80px_1fr] flex flex-row items-center gap-4'>
+                        <h1 className='w-28 font-akagi text-[#6D7172] font-bold whitespace-nowrap'>Name:</h1>
                         <div className='w-full bg-[#D9D9D9] rounded-lg px-3 py-1'>
-                            <h1 className='font-akagi text-[#6D7172] font-bold'>Wendel</h1>
+                            <h1 className='font-akagi text-[#6D7172] font-bold'>{name}</h1>
                         </div>
                     </div>
 
-                    <div className='flex flex-row items-center gap-4'>
-                        <h1 className='w-28 font-akagi text-[#6D7172] font-bold whitespace-nowrap'>Last Name:</h1>
-                        <div className='w-full bg-[#D9D9D9] rounded-lg px-3 py-1'>
-                            <h1 className='font-akagi text-[#6D7172] font-bold'>Derraco</h1>
-                        </div>
-                    </div>
-
-                    <div className='flex flex-row items-center gap-4'>
+                    <div className='lg:grid lg:grid-cols-[80px_1fr] flex flex-row items-center gap-4'>
                         <h1 className='w-28 font-akagi text-[#6D7172] font-bold whitespace-nowrap'>Username:</h1>
                         <div className='w-full bg-[#D9D9D9] rounded-lg px-3 py-1'>
-                            <h1 className='font-akagi text-[#6D7172] font-bold'>drcwen</h1>
+                            <h1 className='font-akagi text-[#6D7172] font-bold'>{username}</h1>
                         </div>
                     </div>
 
-                    <div className='flex flex-row items-center gap-4'>
+                    <div className='lg:grid lg:grid-cols-[80px_1fr] flex flex-row items-center gap-4'>
                         <h1 className='w-28 font-akagi text-[#6D7172] font-bold whitespace-nowrap'>Email:</h1>
                         <div className='w-full bg-[#D9D9D9] rounded-lg px-3 py-1'>
-                            <h1 className='font-akagi text-[#6D7172] font-bold'>wendelderraco@gmail.com</h1>
+                            <h1 className='font-akagi text-[#6D7172] font-bold'>{email}</h1>
                         </div>
                     </div>
                 </div>
@@ -203,7 +240,16 @@ function CartSection() {
                 </div>
 
                 { showPopup && (
-                    <GCashPayment payment={checkoutTotal} onClose={() => setShowPopup(false)}/>
+                    <GCashPayment
+                        payment={checkoutTotal}
+                        orders={orders}
+                        onClose={() => {
+                            setShowPopup(false);
+                        }}
+                        onSuccess={() => {
+                            navigate("/");
+                        }}
+                    />
                 )}
 
                 
