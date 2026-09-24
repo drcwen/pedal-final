@@ -229,7 +229,8 @@ export function printReceipt({
 
     if (
         transaction.type === "reservation" ||
-        transaction.type === "walk-in"
+        transaction.type === "walk-in" || 
+        transaction?.type === undefined
     ) {
 
         for (const bike of groupedBikes) {

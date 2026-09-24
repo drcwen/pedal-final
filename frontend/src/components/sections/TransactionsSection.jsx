@@ -156,7 +156,7 @@ function TransactionsSection() {
   return (
     <>
 
-        <div className='py-30 px-7 lg:px-20 flex flex-col gap-20 flex flex-col'>
+        <div className='py-30 px-7 lg:px-20 gap-20 flex flex-col'>
 
             <div className='flex flex-col gap-7'>
             
