@@ -152,13 +152,13 @@ function Receipt({ setReceipt, startedBikes, transaction, maintenanceData, fullN
                         </div>
 
                         {/*Customer*/}
-                        <div className='flex flex-row justify-between'>
+                        <div className={`${transaction?.type === undefined ? "hidden" : "block"} flex flex-row justify-between`}>
                             <h1>Customer:</h1>
                             <h1>{fullName}</h1>
                         </div>
 
                         {/*Type*/}
-                        <div className='flex flex-row justify-between'>
+                        <div className={`${transaction?.type === undefined ? "hidden" : "block"} flex flex-row justify-between`}>
                             <h1>Type:</h1>
                             <h1>{transaction.type}</h1>
                         </div>
@@ -181,7 +181,7 @@ function Receipt({ setReceipt, startedBikes, transaction, maintenanceData, fullN
                         </div>
 
                         {/*Walk-in and Reservation rents*/}
-                        {(transaction?.type === "reservation" || transaction?.type === "walk-in" || transaction?.type === null) && 
+                        {(transaction?.type === "reservation" || transaction?.type === "walk-in" || transaction?.type === undefined) && 
                             <div className='flex flex-col'>
                                 {groupedBikes.map((bike, index) => (
                                     <div
@@ -398,7 +398,7 @@ function Receipt({ setReceipt, startedBikes, transaction, maintenanceData, fullN
                             <h1>{transaction.payment_method}</h1>
                         </div>
 
-                        <div className='flex flex-row justify-between'>
+                        <div className={`${transaction?.type === undefined ? "hidden" : "block"} flex flex-row justify-between`}>
                             <h1>Assisted by:</h1>
                             <h1>{transaction?.assisted_by_profile?.full_name}</h1>
                         </div>

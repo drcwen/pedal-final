@@ -89,7 +89,7 @@ function TransactionsSection() {
                 )
             `)
             .eq("user_id", user.id)
-            .eq("status", "pending");
+            .eq("status", "completed");
 
         if (error) {
                 console.log(error);
@@ -230,6 +230,7 @@ function TransactionsSection() {
                                         total={`P${transaction.amount_paid}`}
                                         status={transaction.status}
                                         transactions={transaction}
+                                        startedBikes={transaction?.orders_mod}
                                     />
                                 </motion.div>
                             );
@@ -271,6 +272,7 @@ function TransactionsSection() {
                                         total={`P${transaction.amount_paid}`}
                                         status={transaction.status}
                                         transactions={transaction}
+                                        startedBikes={transaction?.orders_mod}
                                     />
                                 </motion.div>
                             );

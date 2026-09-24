@@ -6,7 +6,10 @@ import { IoReceiptSharp } from "react-icons/io5";
 import Receipt from "../management/transaction history/Receipt"
 import { printReceipt } from "../management/transaction history/printReceipt"
 
-function TransactionCurrentRow({ bikeCount, date, method, total, status, transactions }) {
+function TransactionCurrentRow({ bikeCount, date, method, total, status, transactions, startedBikes }) {
+
+    const [openReceipt, setOpenReceipt] = useState(false);
+    console.log(startedBikes)
 
     function formatTime(time) {
         const [hours, minutes] = time.split(":");
@@ -207,11 +210,24 @@ function TransactionCurrentRow({ bikeCount, date, method, total, status, transac
 
                     <div className='flex justify-end'>
                         <div 
+                            onClick={() => setOpenReceipt(!openReceipt)}
                             className='bg-blue px-2 py-1 rounded-lg flex gap-2 items-center text-[#ffffff] text-sm'>
                             <IoReceiptSharp className='text-md'/>
                             Receipt
                         </div>
                     </div>
+
+                    {openReceipt &&
+                        <Receipt 
+                            setReceipt={() => {setOpenReceipt(!openReceipt)}}
+                            startedBikes={startedBikes}
+                            transaction={transactions}
+                            maintenanceData={null}
+                            fullName={null}
+                            extensionsData={null}
+                            changeBikesData={null}
+                        />
+                    }
                 </div>
             </div>
         }
