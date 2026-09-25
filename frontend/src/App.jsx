@@ -170,6 +170,7 @@
             <Route path="/ebank" element={<EBankPayment />} />
             <Route path="/transactions" element={<Transactions />} />
             <Route path="/past-transactions" element={<PastTransactions />} />
+            <Route path="/alerts/:bikeId" element={<Alerts />} />
             <Route path="*" element={<Navigate to="/" />} />
           </>
         )}
