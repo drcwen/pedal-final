@@ -27,6 +27,7 @@
   import Settings from "./components/management/settings/Settings"
   import DataReports from "./components/management/data reports/DataReports"
   import Alerts from "./components/sections/Alerts"
+  import AdminAlerts from "./components/management/Alerts"
 
   function App() {
     const [session, setSession] = useState(null);
@@ -208,6 +209,7 @@
             <Route path="/accounts" element={<ManageAccount/>}/>
             <Route path="/settings" element={<Settings/>}/>
             <Route path="/data-reports" element={<DataReports/>}/>
+            <Route path="/admin-alerts" element={<AdminAlerts/>} />
             
             {allAccountID.map((accountId) => (
               <Route 

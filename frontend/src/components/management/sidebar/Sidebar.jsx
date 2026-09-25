@@ -12,10 +12,15 @@ import { supabase } from "../../../lib/supabase"
 import { MdManageAccounts } from "react-icons/md";
 import { IoMdSettings } from "react-icons/io";
 import { TbReportAnalytics } from "react-icons/tb";
+import { HiMiniBellAlert } from "react-icons/hi2";
+import Alerts from "../Alerts"
+import { useState, useEffect } from 'react';
 
 function Sidebar({active}) {
 
     const navigate = useNavigate();
+
+    const [openAlerts, setOpenAlerts] = useState(false);
 
     const handleLogout = async () => {
       const { error } = await supabase.auth.signOut()
@@ -87,8 +92,19 @@ function Sidebar({active}) {
             <div className='h-full flex flex-col justify-between'>
               <div className='flex flex-col'>
                   {/*Logo*/}
-                  <div className='p-10'>
-                      <h1 className='font-akagi font-bold text-[#0B5793] text-3xl hover:text-blue duration-300 transition-all cursor-pointer'>3JREMY</h1>
+                  <div className='w-full py-10 pl-8 flex flex-row items-center gap-3'>
+                      <h1 className='font-akagi font-bold text-[#0B5793] text-3xl hover:text-blue duration-300 transition-all cursor-pointer'><span className='text-blue'>3J</span>REMY</h1>
+                      <div 
+                        onClick={() => navigate('/admin-alerts')}
+                        className="cursor-pointer relative inline-flex"
+                      >
+                        <HiMiniBellAlert className="text-2xl text-darkblue" />
+
+                        <div 
+                          className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-yellow flex items-center justify-center font-akagi font-bold text-red-600 text-xs">
+                            1
+                        </div>
+                    </div>
                   </div>
 
                   <div className='flex flex-col gap-4'>
@@ -116,6 +132,10 @@ function Sidebar({active}) {
               </div>
             </div>
         </div>
+
+        {openAlerts &&
+          <Alerts />
+        }
       
     </>
   )
