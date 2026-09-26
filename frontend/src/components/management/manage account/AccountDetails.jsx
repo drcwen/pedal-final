@@ -30,6 +30,7 @@ function AccountDetails({ fullName, role, email, contact, id, branch, firstName,
 
     const [roleDropDown, setRoleDropDown] = useState(false);
     const [isResettingPassword, setIsResettingPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     const handleResetPassword = async () => {
         if (!editPassword) return;
@@ -57,6 +58,30 @@ function AccountDetails({ fullName, role, email, contact, id, branch, firstName,
         setEditPassword("");
         setChangePassword(false);
         setIsResettingPassword(false);
+    };
+
+    const updateProfile = async () => {
+        setLoading(true);
+
+        const { data, error } = await supabase
+            .from("profiles_mod")
+            .update({
+                first_name: editFirstName,
+                last_name: editLastName,
+                username: editUsername,
+                contact: editContact,
+                role: editRole
+            })
+            .eq("id", id);
+
+        if (error) {
+            console.error("Error updating profile:", error);
+            setLoading(false);
+            return;
+        }
+
+        setLoading(false);
+        setEdit(false);
     };
 
   return (
@@ -285,13 +310,13 @@ function AccountDetails({ fullName, role, email, contact, id, branch, firstName,
                                                 {roleDropDown ? 
                                                     <div className='absolute top-full left-0 w-full bg-white rounded-lg border border-[#9E9E9E] z-50 mt-1 '>
                                                         <div 
-                                                            onClick={() => {setEditRole("Cashier")}}
+                                                            onClick={() => {setEditRole("cashier")}}
                                                             className='px-3 py-1 hover:bg-gray/70 hover:text-[#ffffff] rounded-md'>
                                                             Cashier
                                                         </div>
 
                                                         <div 
-                                                            onClick={() => {setEditRole("Admin")}}
+                                                            onClick={() => {setEditRole("admin")}}
                                                             className='px-3 py-1 hover:bg-gray/70 hover:text-[#ffffff] rounded-md'>
                                                             Admin
                                                         </div>
@@ -316,11 +341,23 @@ function AccountDetails({ fullName, role, email, contact, id, branch, firstName,
                         </div>
                     </div>
                     
-                    {edit ? 
-                        <div className='w-fit rounded-lg bg-yellow font-akagi font-bold text-lg text-navyblue px-3 py-1'>
-                            Submit
-                        </div> : undefined
-                    }
+                    {edit ? (
+                        <button
+                            type='button'
+                            onClick={updateProfile}
+                            disabled={loading}
+                            className='w-fit flex items-center justify-center gap-2 min-w-[90px] rounded-lg bg-yellow font-akagi font-bold text-lg text-navyblue px-3 py-1 transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50'
+                        >
+                            {loading ? (
+                                <>
+                                    <span className='w-4 h-4 border-2 border-navyblue/30 border-t-navyblue rounded-full animate-spin'></span>
+                                    <span>Saving...</span>
+                                </>
+                            ) : (
+                                'Submit'
+                            )}
+                        </button>
+                    ) : undefined}
                 </div>
 
             </motion.div>
