@@ -10,6 +10,7 @@ import { IoPersonSharp } from "react-icons/io5";
 import { MdWork } from "react-icons/md";
 import { RiArrowDropDownLine } from "react-icons/ri";
 import { IoCloseSharp } from "react-icons/io5";
+import { supabase } from "../../../lib/supabase"
 
 function AccountDetails({ fullName, role, email, contact, id, branch, firstName, lastName, username }) {
 
@@ -23,8 +24,40 @@ function AccountDetails({ fullName, role, email, contact, id, branch, firstName,
     const [editRole, setEditRole] = useState(role);
     const [editContact, setEditContact] = useState(contact);
     const [editBranch, setEditBranch] = useState(branch);
+    const [editPassword, setEditPassword] = useState("");
+
+    const [changePassword, setChangePassword] = useState(false);
 
     const [roleDropDown, setRoleDropDown] = useState(false);
+    const [isResettingPassword, setIsResettingPassword] = useState(false);
+
+    const handleResetPassword = async () => {
+        if (!editPassword) return;
+
+        setIsResettingPassword(true);
+
+        const { data, error } = await supabase.functions.invoke(
+            "recover-employee",
+            {
+                body: {
+                    userId: id,
+                    password: editPassword
+                }
+            }
+        );
+
+        if (error) {
+            console.error("Error resetting password:", error);
+            setIsResettingPassword(false);
+            return;
+        }
+
+        console.log(data);
+
+        setEditPassword("");
+        setChangePassword(false);
+        setIsResettingPassword(false);
+    };
 
   return (
     <>
@@ -157,6 +190,55 @@ function AccountDetails({ fullName, role, email, contact, id, branch, firstName,
                                 <h1 className='font-bold'>{editEmail}</h1> 
                                     
                             </div>
+
+                            <div className='flex flex-col'>
+                                <h1 className='font-medium'>Password</h1>
+                                {!edit ? 
+                                    <h1 className='font-bold'>***********</h1> 
+                                    : 
+                                    <div className='flex flex-row items-center gap-2'>
+                                        {!changePassword ? (
+                                            <h1 className='font-bold'>***********</h1>
+                                        ) : (
+                                            <input
+                                                type='password'
+                                                value={editPassword}
+                                                onChange={(e) => setEditPassword(e.target.value)}
+                                                disabled={isResettingPassword}
+                                                placeholder='Enter new password'
+                                                className='w-52 bg-gray/20 font-bold focus:outline-none px-3 py-2 rounded-lg border border-gray disabled:opacity-50'
+                                            />
+                                        )}
+
+                                        {!changePassword ? (
+                                            <button
+                                                type='button'
+                                                onClick={() => setChangePassword(true)}
+                                                className='cursor-pointer rounded-lg bg-yellow px-4 py-1 text-sm font-akagi font-bold text-navyblue hover:opacity-80 transition'
+                                            >
+                                                Change
+                                            </button>
+                                        ) : (
+                                            <button
+                                                type='button'
+                                                onClick={handleResetPassword}
+                                                disabled={isResettingPassword || !editPassword}
+                                                className='flex items-center justify-center gap-2 min-w-[90px] rounded-lg bg-yellow px-4 py-2 font-akagi font-bold text-navyblue transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50'
+                                            >
+                                                {isResettingPassword ? (
+                                                    <>
+                                                        <span className='w-4 h-4 border-2 border-navyblue/30 border-t-navyblue rounded-full animate-spin'></span>
+                                                        <span>Saving...</span>
+                                                    </>
+                                                ) : (
+                                                    'Submit'
+                                                )}
+                                            </button>
+                                        )}
+                                    </div>
+                                }
+                            </div>
+                            
 
                             <div className='flex flex-col'>
                                 <h1 className='font-medium'>Contact Number</h1>

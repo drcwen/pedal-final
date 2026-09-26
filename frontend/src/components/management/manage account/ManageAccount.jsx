@@ -23,31 +23,82 @@ function ManageAccount() {
 
     const [roleDropDown, setRoleDropDown]= useState(false);
     const [role, setRole] = useState("Set Role");
+    
+    const [firstName, setFirstName] = useState("");
+    const [lastName, setLastName] = useState("");
+    const [contact, setContact] = useState("");
+    const [email, setEmail]  = useState("");
+    const [password, setPassword]  = useState("");
+    const [username, setUsername] = useState("");
+
+    const [isCreating, setIsCreating] = useState(false);
+
+    const fetchAdminAccounts = async () => {
+        const { data, error } = await supabase
+            .from("profiles_mod")
+            .select("*")
+            .eq("role", "admin");
+
+        if (error) {
+            console.error("Error fetching admin accounts:", error);
+            return;
+        }
+
+        setAdminAccounts(data || []);
+    };
+
+    const fetchCashierAccounts = async () => {
+        const { data, error } = await supabase
+            .from("profiles_mod")
+            .select("*")
+            .eq("role", "cashier");
+
+        if (error) {
+            console.error("Error fetching cashier accounts:", error);
+            return;
+        }
+
+        setCashierAccounts(data || []);
+    };
+
+    const handleCreateAccount = async () => {
+        setIsCreating(true);
+
+        const { data, error } = await supabase.functions.invoke(
+            "create-employee",
+            {
+                body: {
+                    email: email,
+                    password: password,
+                    firstName: firstName,
+                    lastName: lastName,
+                    username: username,
+                    contact: contact,
+                    role: role
+                }
+            }
+        );
+
+        if (error) {
+            console.error("Error creating account:", error);
+            setIsCreating(false);
+            return;
+        }
+
+        console.log(data);
+
+        await fetchAdminAccounts();
+        await fetchCashierAccounts();
+
+        setIsCreating(false);
+
+        setAddAccount(false);
+    };
 
     useEffect(() => {
-        const fetchAdminAccounts = async () => {
-            const {data, error} = await supabase
-                .from("profiles_mod")
-                .select("*")
-                .eq("role", "admin")
-
-                setAdminAccounts(data || []);
-        }
-
-        fetchAdminAccounts();
-
-        const fetchCashierAccounts = async () => {
-            const {data, error} = await supabase
-                .from("profiles_mod")
-                .select("*")
-                .eq("role", "cashier")
-
-                setCashierAccounts(data || []);
-        }
-
         fetchAdminAccounts();
         fetchCashierAccounts();
-    }, [])
+    }, []);
   return (
     <>
 
@@ -209,51 +260,98 @@ function ManageAccount() {
                                             {roleDropDown ? 
                                                 <div className='absolute top-full left-0 w-full bg-white rounded-lg border border-[#9E9E9E] z-50 mt-1 '>
                                                     <div 
-                                                        onClick={() => {setRole("Cashier")}}
+                                                        onClick={() => {setRole("cashier")}}
                                                         className='px-3 py-1 hover:bg-gray/70 hover:text-[#ffffff] rounded-md'>
                                                         Cashier
                                                     </div>
 
                                                     <div 
-                                                        onClick={() => {setRole("Admin")}}
+                                                        onClick={() => {setRole("admin")}}
                                                         className='px-3 py-1 hover:bg-gray/70 hover:text-[#ffffff] rounded-md'>
                                                         Admin
                                                     </div>
                                                 </div> : undefined}
                                         </div>
 
-                                        <h1>Employee ID</h1>
-                                        <input className='rounded-lg border border-gray px-3 py-1 focus:outline-none'/>
-
                                         <h1>First Name</h1>
-                                        <input className='rounded-lg border border-gray px-3 py-1 focus:outline-none'/>
-
-                                        <h1>Middle Name</h1>
-                                        <input className='rounded-lg border border-gray px-3 py-1 focus:outline-none'/>
+                                        <input 
+                                            value={firstName}
+                                            type='text'
+                                            onChange={(e) => setFirstName(e.target.value)}
+                                            className='rounded-lg border border-gray px-3 py-1 focus:outline-none'/>
 
                                         <h1>Last Name</h1>
-                                        <input className='rounded-lg border border-gray px-3 py-1 focus:outline-none'/>
+                                        <input 
+                                            value={lastName}
+                                            type='text'
+                                            onChange={(e) => setLastName(e.target.value)}
+                                            className='rounded-lg border border-gray px-3 py-1 focus:outline-none'/>
+
+                                        <h1>Username</h1>
+                                        <input 
+                                            value={username}
+                                            type='text'
+                                            onChange={(e) => setUsername(e.target.value)}
+                                            className='rounded-lg border border-gray px-3 py-1 focus:outline-none'/>
 
                                         <h1>Contact #</h1>
-                                        <input className='rounded-lg border border-gray px-3 py-1 focus:outline-none'/>
+                                        <input 
+                                            value={contact}
+                                            type='number'
+                                            onChange={(e) => setContact(e.target.value)}
+                                            className='rounded-lg border border-gray px-3 py-1 focus:outline-none'/>
 
                                         <h1>Email</h1>
-                                        <input className='rounded-lg border border-gray px-3 py-1 focus:outline-none'/>
+                                        <input 
+                                            value={email}
+                                            type='text'
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            className='rounded-lg border border-gray px-3 py-1 focus:outline-none'/>
 
                                         <h1>Default Password</h1>
-                                        <input className='rounded-lg border border-gray px-3 py-1 focus:outline-none'/>
+                                        <input 
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            type='password'
+                                            className='rounded-lg border border-gray px-3 py-1 focus:outline-none'/>
                                     </div>
 
                                     <div className='flex flex-row justify-between gap-3 font-akagi font-bold text-[#ffffff]'>
-                                        <div 
-                                            onClick={() => {setAddAccount(!addAccount)}}
-                                            className='border border-gray text-gray cursor-pointer font-bold rounded-lg px-3 py-1'>
+
+                                        <div
+                                            onClick={() => {
+                                                if (!isCreating) {
+                                                    setAddAccount(!addAccount);
+                                                }
+                                            }}
+                                            className={`border border-gray text-gray rounded-lg px-3 py-1
+                                                ${isCreating ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                                            `}
+                                        >
                                             Cancel
                                         </div>
 
-                                        <div className='bg-yellow cursor-pointer rounded-lg px-3 py-1 text-navyblue'>
-                                            Add Account
-                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={handleCreateAccount}
+                                            disabled={isCreating}
+                                            className={`bg-yellow rounded-lg px-3 py-1 text-navyblue
+                                                ${isCreating
+                                                    ? 'opacity-70 cursor-not-allowed'
+                                                    : 'cursor-pointer'
+                                                }
+                                            `}
+                                        >
+                                            {isCreating ? (
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-4 h-4 border-2 border-navyblue border-t-transparent rounded-full animate-spin"></div>
+                                                    Creating...
+                                                </div>
+                                            ) : (
+                                                "Add Account"
+                                            )}
+                                        </button>
+
                                     </div>
                                 </div>
                                 
