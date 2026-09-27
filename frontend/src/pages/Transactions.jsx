@@ -7,7 +7,7 @@ function Transactions() {
   return (
     <>
 
-        <div className='w-full bg-[#f7f7f7]'>
+        <div className='w-full min-h-screen bg-[#f7f7f7]'>
             <Navigation />
             <TransactionsSection />
         </div>

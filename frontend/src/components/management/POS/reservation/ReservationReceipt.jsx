@@ -1,0 +1,194 @@
+
+import { IoIosArrowBack } from "react-icons/io";
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from "motion/react"
+
+function ReservationReceipt({ setReceipt, startedBikes, transaction }) {
+
+    function formatDate(dateString) {
+        if (!dateString) return "-";
+
+        const date = new Date(`${dateString}T00:00:00`);
+
+        return date.toLocaleDateString("en-PH", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+        });
+    }
+
+    function formatTime12Hour(time) {
+        if (!time) return "-";
+
+        const [hours, minutes, seconds] = time.split(":").map(Number);
+
+        const date = new Date();
+        date.setHours(hours, minutes, seconds || 0);
+
+        return date.toLocaleTimeString("en-PH", {
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+        });
+    }
+
+    function formatDatePH(timestamp) {
+        if (!timestamp) return "-";
+
+        const date = new Date(timestamp);
+
+        return date.toLocaleDateString("en-PH", {
+            timeZone: "Asia/Manila",
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+        });
+    }
+
+    function formatTimePH(timestamp) {
+        if (!timestamp) return "-";
+
+        const date = new Date(timestamp);
+
+        return date.toLocaleTimeString("en-PH", {
+            timeZone: "Asia/Manila",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+        });
+    }
+
+    return (
+    <>
+
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-100 p-5">
+            <div className="
+                bg-[#ffffff]
+                p-5 md:p-10
+                rounded-xl
+                w-full
+                max-w-2xl
+                max-h-[90vh]
+                overflow-y-auto
+                scrollbar-thin
+                scrollbar-thumb-[#B9B9B9]
+                scrollbar-track-[#E2E2E2] flex flex-col gap-5
+            ">
+                <div className='w-full flex flex-col gap-5 bg-gray/10 border border-gray/30 p-2 py-10 rounded-lg'>
+                    <div className='flex flex-col items-center justify-center font-akagi font-bold text-gray'>
+                        <h1 className='text-lg text-blue'>3Jremy's Rent A Bike!</h1>
+                        <h1 className='font-medium text-sm'>La Mesa Eco Park, Quezon City</h1>
+                    </div>
+
+                    <div className='font-akagi font-medium text-gray text-sm md:text-md lg:px-10 px-2'>
+                        
+
+                        {/*Receipt No*/}
+                        <div className='flex flex-row justify-between'>
+                            <h1>Receipt No:</h1>
+                            <h1>#{transaction.id}</h1>
+                        </div>
+
+                        {/*Date and Time*/}
+                        <div className='flex flex-col py-2'>
+                            <div className='flex flex-row justify-between'>
+                                <h1>Transaction Date:</h1>
+                                <h1>{formatDatePH(transaction.created_at)}</h1>
+                            </div>
+
+                            <div className='flex flex-row justify-between'>
+                                <h1>Transaction Time:</h1>
+                                <h1>{formatTimePH(transaction.created_at)}</h1>
+                            </div>
+                        </div>
+
+                        {/*Type*/}
+                        <div className='flex flex-row justify-between'>
+                            <h1>Type:</h1>
+                            <h1>{transaction.type}</h1>
+                        </div>
+
+                        <div className='flex flex-col py-5'>
+                            <div className='w-full bg-gray/40 h-0.5 rounded-xl'></div>
+                        </div>
+
+                        {/* Orders */}
+                        <div className='flex flex-col'>
+                            {startedBikes?.map((bike, index) => (
+                                <div
+                                    key={bike.id ?? index}
+                                    className='flex flex-row justify-between py-2 items-center'
+                                >
+                                    <div className='flex flex-col'>
+                                        <div className='flex flex-row gap-2'>
+                                            <h1>
+                                                {bike.bike_types_mod?.name ?? "Unknown Bike"}
+                                            </h1>
+
+                                            <h1>
+                                                x1
+                                            </h1>
+                                        </div>
+
+                                        <h1>
+                                            {formatDate(bike.reservation_date) ?? "--"}
+                                        </h1>
+
+                                        <h1>
+                                            {formatTime12Hour(bike.start_time) ?? "--"}
+                                        </h1>
+                                    </div>
+
+                                    <h1>
+                                        P{bike.bike_types_mod?.price ?? 0}
+                                    </h1>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className='flex flex-col py-5'>
+                            <div className='w-full bg-gray/40 h-0.5 rounded-xl'></div>
+                        </div>
+
+                        <div className='flex flex-row justify-between'>
+                            <h1>Total:</h1>
+                            <h1>P{transaction.total_amount}</h1>
+                        </div>
+
+                        <div className='flex flex-row justify-between'>
+                            <h1>Tendered Amount:</h1>
+                            <h1>P{transaction.amount_paid}</h1>
+                        </div>
+
+                        <div className='flex flex-row justify-between'>
+                            <h1>Change:</h1>
+                            <h1>P{transaction.change_amount}</h1>
+                        </div>
+
+                        <div className='flex flex-row justify-between'>
+                            <h1>Method:</h1>
+                            <h1>{transaction.payment_method}</h1>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div className='flex justify-between'>
+                    <div 
+                        onClick={() => setReceipt(false)}
+                        className='flex gap-2 border border-gray text-gray px-2 py-1 rounded-lg font-akagi font-semibold cursor-pointer text-sm'>
+                            Close
+                    </div>
+
+                    <div 
+                        className='flex gap-2 bg-blue text-[#ffffff] px-2 py-1 rounded-lg font-akagi font-semibold cursor-pointer text-sm'>
+                            Print
+                    </div>
+                </div>
+            </div>
+        </div>
+    </>
+  )
+}
+
+export default ReservationReceipt

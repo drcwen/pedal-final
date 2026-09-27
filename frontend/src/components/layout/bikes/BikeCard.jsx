@@ -13,13 +13,13 @@ function BikeCard({ bike }) {
       <img
         src={bike.image_url}
         alt={bike.name}
-        className="w-50"
+        className="w-40"
       />
 
       <div className="md:flex md:flex-col md:gap-3 flex flex-col gap-5 md:items-start items-center">
 
         <div className='md:flex md:flex-col md:text-start text-center'>
-          <h1 className="text-2xl font-bold text-darkblue hover:underline transition-all duration-300 font-akagi">
+          <h1 className="text-md md:text-xl font-bold text-darkblue hover:underline transition-all duration-300 font-akagi">
             {bike.name}
           </h1>
 

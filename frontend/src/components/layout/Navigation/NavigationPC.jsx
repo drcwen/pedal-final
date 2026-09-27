@@ -66,7 +66,7 @@ function NavigationPC() {
           scrolled ? 'bg-darkblue' : 'bg-transparent'
         }`}
       >
-        <div className='md:px-30 md:py-7 px-10 py-8 flex justify-between flex-row items-center'>
+        <div className='md:px-30 md:py-5 px-10 py-5 flex justify-between flex-row items-center'>
           <div className='lg:flex hidden'>
             <h1 onClick={() => navigate("/")}
               className='font-akagi text-2xl cursor-pointer font-black tracking-wide text-white text-shadow-lg hover:text-yellow transition-all duration-300 hover:scale-110'>
@@ -130,7 +130,7 @@ function NavigationPC() {
       </div>
 
       <div
-        className={`fixed top-24 left-0 z-[999] w-full transform transition-transform duration-300
+        className={`fixed top-19 left-0 z-[999] w-full transform transition-transform duration-300
           ${menu ? "translate-x-0 opacity-100" : "-translate-x-full opacity-0"}`}
       >
         <NavMobile />

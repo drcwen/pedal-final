@@ -71,7 +71,7 @@ function CreateAccountSection() {
                         <div className='flex flex-col gap-10'>
 
                             <div className='flex flex-col gap-2 items-center justify-center'>
-                                <h1 className='md:text-4xl text-2xl font-bold tracking-wide text-darkblue'>
+                                <h1 className='md:text-4xl font-akagi text-2xl font-bold tracking-wide text-darkblue'>
                                     REGISTER
                                 </h1>
                             </div>

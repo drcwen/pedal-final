@@ -19,6 +19,35 @@ function CartSection() {
 
     const [total, setTotal] = useState(0);
 
+    const groupedOrders = groupOrders(orders);
+
+    function groupOrders(orders) {
+        const groups = {};
+
+        orders.forEach((order) => {
+            const groupKey = [
+                order.bike_type_id,
+                order.reservation_date,
+                order.start_time,
+                order.duration_hours
+            ].join("-");
+
+            if (!groups[groupKey]) {
+                groups[groupKey] = {
+                    ...order,
+                    groupKey,
+                    quantity: 0,
+                    orderIds: []
+                };
+            }
+
+            groups[groupKey].quantity += 1;
+            groups[groupKey].orderIds.push(order.id);
+        });
+
+        return Object.values(groups);
+    }
+
     function handleCheckout() {
         const selectedOrders = orders.filter(
             (order) => checkedItems[order.id]
@@ -36,15 +65,20 @@ function CartSection() {
             }
         })
     }
+    
 
-    function handleCheckbox(id) {
+    function handleCheckbox(orderIds) {
         setCheckedItems((prev) => {
-            const updated = {
-                ...prev,
-                [id]: !prev[id]
-            };
+            const isChecked = orderIds.every((id) => prev[id]);
+
+            const updated = { ...prev };
+
+            orderIds.forEach((id) => {
+                updated[id] = !isChecked;
+            });
 
             sendCheckedToBackend(updated);
+
             return updated;
         });
     }
@@ -110,58 +144,132 @@ function CartSection() {
         setTotal(data);
     }
 
-    useEffect(() => {
+    async function handleQuantityChange(order, newQuantity) {
 
-        setLoading(true);
-    
-        async function fetchOrders() {
+        const currentQuantity = order.quantity;
 
-            const { data: { user } } = await supabase.auth.getUser();
+        // ADD
+        if (newQuantity > currentQuantity) {
 
-            if (!user) return;
+            const { data: userData, error: userError } =
+                await supabase.auth.getUser();
 
-            const { data, error } = await supabase
+            if (userError || !userData?.user) {
+                console.error("No user found");
+                return;
+            }
+
+            const user = userData.user;
+
+            const { error } = await supabase
                 .from("orders_mod")
-                .select(`
+                .insert({
+                    user_id: user.id,
+                    transaction_id: null,
+                    bike_id: null,
+                    reservation_date: order.reservation_date,
+                    start_time: order.start_time,
+                    duration_hours: order.duration_hours,
+                    status: "reserved",
+                    reservation_range: order.reservation_range,
+                    bike_type_id: order.bike_type_id,
+                    type: null,
+                    gps_id: null
+                });
+
+            if (error) {
+                console.error(error);
+                return;
+            }
+
+            // Refresh orders
+            await fetchOrders();
+
+            return;
+        }
+
+        // REMOVE
+        if (newQuantity < currentQuantity) {
+
+            // Remove one of the existing rows
+            const idToDelete = order.orderIds[order.orderIds.length - 1];
+
+            const { error } = await supabase
+                .from("orders_mod")
+                .delete()
+                .eq("id", idToDelete);
+
+            if (error) {
+                console.error(error);
+                return;
+            }
+
+            // Refresh orders
+            await fetchOrders();
+        }
+    }
+
+    async function fetchOrders() {
+        setLoading(true);
+
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user) {
+            setLoading(false);
+            return;
+        }
+
+        const { data, error } = await supabase
+            .from("orders_mod")
+            .select(`
                 id,
                 reservation_date,
                 start_time,
                 duration_hours,
                 status,
+                reservation_range,
+                bike_type_id,
 
                 bike_types_mod (
-                image_url,
-                id,
-                name,
-                price
+                    image_url,
+                    id,
+                    name,
+                    price
                 ),
 
                 transactions_mod (
-                id,
-                total_amount
+                    id,
+                    total_amount
                 )
             `)
             .eq("user_id", user.id)
             .is("transaction_id", null);
 
-            if (error) {
+        if (error) {
             console.log(error);
-            } else {
+        } else {
             setOrders(data);
-            }
-
-            setLoading(false);
         }
+
+        setLoading(false);
+    }
+    
+
+    useEffect(() => {
 
         fetchOrders();
 
   }, []);
 
-  return (
-    <div className='box-model flex flex-col gap-5 flex flex-col'>
+    function orderIdsChecked(orderIds) {
+        return orderIds.every((id) => checkedItems[id]);
+    }
 
-        <div className='w-full flex flex-col gap-10'>
-            <h1 className="text-4xl font-akagi font-black text-blue">
+  return (
+    <div className='w-full min-h-screen gap-5 flex flex-col'>
+
+        <div className='w-full flex flex-col gap-10 xl:px-50 md:px-10 px-5 py-30'>
+            <h1 className="md:text-4xl text-2xl font-akagi font-black text-blue">
                 Cart
             </h1>
 
@@ -177,7 +285,7 @@ function CartSection() {
                 initial={fade.initial}
                 animate={fade.animate}
                 transition={fade.transition}
-                className='lg:h-70 h-80 overflow-y-auto flex flex-col gap-7 lg:px-10 px-2'>
+                className='flex flex-col gap-5 lg:px-10 px-2'>
                 
                 {
                     loading ? (
@@ -193,18 +301,25 @@ function CartSection() {
                             </h1>
                         </div> 
                     ) : (
-                        orders.map((order) => {
+                        groupedOrders.map((order) => {
                             return (
                                 <CartRentRow
-                                    key={order.id}
+                                    key={order.groupKey}
                                     image={order.bike_types_mod.image_url}
                                     name={order.bike_types_mod.name}
                                     hour={order.duration_hours}
                                     reservationdate={order.reservation_date}
                                     starttime={order.start_time}
+                                    range={order.reservation_range}
                                     price={order.bike_types_mod.price}
-                                    checked={checkedItems[order.id] || false}
-                                    onCheck={() => handleCheckbox(order.id)}
+                                    quantity={order.quantity}
+                                    orderIds={order.orderIds}
+                                    bikeTypeId={order.bike_type_id}
+                                    checked={orderIdsChecked(order.orderIds)}
+                                    onCheck={() => handleCheckbox(order.orderIds)}
+                                    onQuantityChange={(newQuantity) =>
+                                        handleQuantityChange(order, newQuantity)
+                                    }
                                 />
                             );
                         })
@@ -213,18 +328,39 @@ function CartSection() {
                 
             </motion.div>
 
-            <div className='h-1 bg-black/20 rounded-lg'></div>
+            
+            <div className="fixed bottom-0 left-0 w-full z-50">
+                
+                <div className="xl:px-50 px-2">
+                    <div className="bg-blue text-[#ffffff] py-5 lg:px-20 px-10 shadow-lg rounded-t-xl flex flex-col gap-5">
 
-            <div className='flex flex-row justify-between lg:px-20 px-5'>
-                <h1 className='text-2xl font-akagi font-bold text-[#6D7172]'>Total</h1>
-                <h1 className='text-2xl font-akagi font-bold text-[#6D7172]'>P{total}</h1>
-            </div>
+                        <div className="flex flex-row justify-between lg:justify-end lg:gap-5">
+                            <h1 className="md:text-2xl font-akagi font-medium">
+                                Total:
+                            </h1>
 
-            <div 
-                onClick={total !== 0 ? handleCheckout : undefined}
-                className={`w-full rounded-lg py-2 flex items-center justify-center ${total === 0 ? "bg-gray-400 cursor-not-allowed" : "bg-blue cursor-pointer"}`}
-            >
-                <h1 className='text-[#ffffff] font-akagi font-bold'>Checkout</h1>
+                            <h1 className="md:text-2xl font-akagi font-bold">
+                                P{total}
+                            </h1>
+                        </div>
+
+                        <div className="w-full flex flex-row justify-end">
+                            <div 
+                                onClick={total !== 0 ? handleCheckout : undefined}
+                                className={`w-fit text-center justify-end px-5 rounded-lg py-2 flex items-center ${
+                                    total === 0
+                                        ? "bg-gray-400 cursor-not-allowed"
+                                        : "bg-yellow text-navyblue cursor-pointer"
+                                }`}
+                            >
+                                <h1 className="font-akagi font-bold">
+                                    Checkout
+                                </h1>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
             </div>
         </div>
         

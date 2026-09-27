@@ -2,18 +2,205 @@ import { supabase } from "../../../lib/supabase"
 import Sidebar from "../sidebar/Sidebar"
 import SidebarMobile from "../sidebar/SidebarMobile"
 import { FaPlus } from "react-icons/fa6";
-import ReservationRow from "./ReservationRow"
-import { useState } from 'react';
+import ReservationRow from "./reservation/ReservationRow"
+import OngoingRow from "./ongoing/OngoingRow"
+import { useState, useEffect } from 'react';
 import { motion } from "motion/react"
 import { useNavigate } from "react-router-dom";
+import { TbHistory } from "react-icons/tb";
 
 function POS() {
 
     const [activeTab, setActiveTab] = useState("ongoing");
     const navigate = useNavigate();
 
+    const [transactions, setTransactions] = useState([]);
+    const [reservationHistory, setReservationHistory] = useState([]);
+    const [ongoing, setOngoing] = useState([]);
+
+    const [currentTime, setCurrentTime] = useState(new Date());
+
+    const [history, setHistory] = useState(false);
+
+    useEffect(() => {
+        fetchTransactions();
+        fetchOngoing();
+    }, [])
+
+    //for time and date
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentTime(new Date());
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, []);
+
+    const fetchTransactions = async () => {
+        const today = new Intl.DateTimeFormat("en-CA", {
+            timeZone: "Asia/Manila",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit"
+        }).format(new Date());
+
+        const { data, error } = await supabase
+            .from("transactions_mod")
+            .select(`
+                *,
+                customer:profiles_mod!transactions_mod_user_id_fkey1 (
+                    *
+                ),
+                orders_mod!inner (
+                    *,
+                    bike_types_mod (
+                        *
+                    )
+                )
+            `)
+            .eq("type", "reservation")
+            .eq("status", "pending")
+            .gte("orders_mod.reservation_date", today);
+
+        if (error) {
+            console.error("Error fetching reservations:", error);
+            return;
+        }
+
+        setTransactions(data || []);
+    };
+
+    const fetchHistory = async () => {
+        const today = new Intl.DateTimeFormat("en-CA", {
+            timeZone: "Asia/Manila",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit"
+        }).format(new Date());
+
+        const { data, error } = await supabase
+            .from("transactions_mod")
+            .select(`
+                *,
+                customer:profiles_mod!transactions_mod_user_id_fkey1 (
+                    *
+                ),
+                orders_mod!inner (
+                    *,
+                    bike_types_mod (
+                        *
+                    )
+                )
+            `)
+            .eq("type", "reservation")
+            .eq("status", "pending")
+            .lt("orders_mod.reservation_date", today);
+
+        if (error) {
+            console.error("Error fetching reservations:", error);
+            return;
+        }
+
+        setReservationHistory(data || []);
+    };
+
+    const fetchOngoing = async () => {
+        const { data, error } = await supabase
+            .from("transactions_mod")
+            .select(`
+                *,
+                profile:profiles_mod!transactions_mod_user_id_fkey1 (
+                    *
+                ),
+                walk_in:walk_ins_users_mod (
+                    *
+                ),
+                orders_mod (
+                    *,
+                    bike_types_mod (*),
+                    bikes_mod (*),
+                    gps_mod (*),
+                    extensions_mod (*)
+                ),
+                assisted_by_profile:profiles_mod!transactions_mod_assisted_by_fkey (
+                    *
+                )
+            `)
+            .eq("status", "started");
+            
+
+        setOngoing(data);        
+    }
+
+    const handleTabChange = async (tab) => {
+        setActiveTab(tab);
+
+        if (tab === "reservation") {
+            await fetchTransactions();
+            await fetchHistory();
+        } else {
+            await fetchOngoing();
+        }
+    };
+
+    const groupedReservations = transactions.reduce((groups, trans) => {
+        const startTime = trans.orders_mod?.[0]?.reservation_date;
+
+        if (!startTime) return groups;
+
+        const date = new Date(startTime + "T00:00:00").toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+        });
+
+        if (!groups[date]) {
+            groups[date] = [];
+        }
+
+        groups[date].push(trans);
+
+        return groups;
+    }, {});
+
+    const groupedHistory = reservationHistory.reduce((groups, trans) => {
+        const startTime = trans.orders_mod?.[0]?.reservation_date;
+
+        if (!startTime) return groups;
+
+        const date = new Date(startTime + "T00:00:00").toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+        });
+
+        if (!groups[date]) {
+            groups[date] = [];
+        }
+
+        groups[date].push(trans);
+
+        return groups;
+    }, {});
+
+    const formatTime = (time) => {
+        if (!time) return "";
+
+        const [hour, minute] = time.split(":");
+
+        let hours = Number(hour);
+        const ampm = hours >= 12 ? "PM" : "AM";
+
+        hours = hours % 12;
+        if (hours === 0) hours = 12;
+
+        return `${hours}:${minute} ${ampm}`;
+    };
+
+
   return (
     <>
+
 
         <div className='w-full h-screen bg-[#F2F2F2] flex'>
             <Sidebar active={'pos'}/>
@@ -24,9 +211,10 @@ function POS() {
                 animate={{ height: "auto", opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
                 transition={{ duration: 0.25, ease: "easeInOut" }} 
-                className='flex-1 lg:py-15 lg:px-10'>
+                className='flex-1 lg:p-5'>
 
                 <SidebarMobile active={'pos'}/>
+                
                     
                 <div className='w-full h-full p-10 bg-[#ffffff] rounded-xl flex flex-col gap-12 overflow-y-scroll scrollbar-thin scrollbar-thumb-[#B9B9B9] scrollbar-track-[#E2E2E2]'>
                     
@@ -41,14 +229,29 @@ function POS() {
                         <div className='flex flex-col gap-5'>
                             {/*Date*/}
                             <div className=''>
-                                <h1 className='text-lg lg:text-2xl font-akagi font-bold text-[#9E9E9E]'>March 13, 2026</h1>
+                                <h1 className='text-lg lg:text-2xl font-akagi font-bold text-[#9E9E9E]'>
+                                    {currentTime.toLocaleDateString("en-US", {
+                                        weekday: "long",
+                                        year: "numeric",
+                                        month: "long",
+                                        day: "numeric",
+                                    })}
+                                </h1>
+
+                                <p className="text-md font-akagi text-[#9E9E9E]">
+                                    {currentTime.toLocaleTimeString("en-US", {
+                                        hour: "numeric",
+                                        minute: "2-digit",
+                                        hour12: true,
+                                    })}
+                                </p>
                             </div>
 
                             <div className='w-fit lg:w-full flex lg:flex-row flex-col gap-5 lg:justify-between'>
                                 {/*Transaction Types*/}
                                 <div className='rounded-2xl border-3 border-blue grid grid-cols-2'>
                                     <div 
-                                        onClick={() => setActiveTab("ongoing")}
+                                        onClick={() => handleTabChange("ongoing")}
                                         className={`md:p-2 py-2 flex justify-center px-5 cursor-pointer rounded-tl-xl rounded-bl-xl transition-all
                                             ${activeTab === "ongoing" ? "bg-blue" : "bg-transparent"}
                                         `}
@@ -63,7 +266,7 @@ function POS() {
                                     </div>
 
                                     <div 
-                                        onClick={() => setActiveTab("reservation")}
+                                        onClick={() => handleTabChange("reservation")}
                                         className={`md:p-2 py-2 rounded-tr-xl rounded-br-xl flex justify-center px-5 cursor-pointer
                                             ${activeTab === "reservation" ? "bg-blue" : "bg-transparent"}
                                         `}
@@ -75,6 +278,14 @@ function POS() {
                                 </div>
 
                                 {/*Add Transactions*/}
+                                <div className='flex flex-row gap-3'>
+                                    {activeTab === "reservation" &&
+                                        <div 
+                                            onClick={() => {setHistory(!history)}}
+                                            className='bg-blue rounded-xl px-3 py-1 flex items-center'>
+                                            <TbHistory className='text-[#ffffff] text-2xl'/>
+                                        </div>
+                                    }
                                 <div 
                                     onClick={() => navigate("/pos/create")}
                                     className='w-fit rounded-xl lg:rounded-2xl bg-yellow items-center flex flex-row gap-3 lg:px-6 p-2 cursor-pointer'
@@ -82,7 +293,7 @@ function POS() {
                                     <FaPlus className='lg:text-2xl text-lg text-darkblue'/>
                                     <h1 className='lg:text-xl text-md font-akagi font-bold text-darkblue tracking-wider'>ADD</h1>
                                 </div>
-
+                                </div>
 
                             </div>
                         </div>
@@ -100,13 +311,52 @@ function POS() {
                                 transition={{ duration: 0.25, ease: "easeInOut" }} 
                                 className='flex flex-col gap-3'
                             >
-                                <ReservationRow name={"Wendel Derraco"} ordercount={"4 Bikes"} type={"Reservation"} start={"11:59 AM"}/>
-                                <ReservationRow name={"Wendel Derraco"} ordercount={"4 Bikes"} type={"Reservation"} start={"11:59 AM"}/>
-                                <ReservationRow name={"Wendel Derraco"} ordercount={"4 Bikes"} type={"Reservation"} start={"11:59 AM"}/>
-                                <ReservationRow name={"Wendel Derraco"} ordercount={"4 Bikes"} type={"Reservation"} start={"11:59 AM"}/>
-                                <ReservationRow name={"Wendel Derraco"} ordercount={"4 Bikes"} type={"Reservation"} start={"11:59 AM"}/>
-                                <ReservationRow name={"Wendel Derraco"} ordercount={"4 Bikes"} type={"Reservation"} start={"11:59 AM"}/>
-                                <ReservationRow name={"Wendel Derraco"} ordercount={"4 Bikes"} type={"Reservation"} start={"11:59 AM"}/>
+                                
+                                {transactions.length === 0 ? (
+                                    <div className="py-10 text-center">
+                                        <h1 className="font-akagi text-lg text-gray-500">
+                                            No reservations yet.
+                                        </h1>
+                                    </div>
+                                ) : (
+                                    Object.entries(groupedReservations).map(([date, reservations]) => (
+                                        <div key={date} className="flex flex-col gap-3 pb-8">
+
+                                            {/* Date heading */}
+                                            <h2 className="font-akagi text-xl font-bold text-gray">
+                                                {date}
+                                            </h2>
+
+                                            {/* Reservations for this date */}
+                                            {reservations.map((trans) => (
+                                                <ReservationRow
+                                                    key={trans.id}
+                                                    name={
+                                                        trans.customer
+                                                            ? (
+                                                                trans.customer.first_name
+                                                                    ? `${trans.customer.first_name} ${trans.customer.last_name}`
+                                                                    : trans.customer.full_name
+                                                            )
+                                                            : "Unknown Customer"
+                                                    }
+                                                    ordercount={
+                                                        trans.orders_mod.length === 1
+                                                            ? `${trans.orders_mod.length} Bike`
+                                                            : `${trans.orders_mod.length} Bikes`
+                                                    }
+                                                    type={trans.type}
+                                                    start={formatTime(trans.orders_mod?.[0]?.start_time)}
+                                                    bikeDetails={trans.orders_mod}
+                                                    customer={trans.customer}
+                                                    transaction={trans}
+                                                />
+                                            ))}
+                                        </div>
+                                    ))
+                                )}
+
+                                
                             </motion.div >
 
                         )}
@@ -117,17 +367,139 @@ function POS() {
                                 animate={{ height: "auto", opacity: 1 }}
                                 exit={{ height: 0, opacity: 0 }}
                                 transition={{ duration: 0.25, ease: "easeInOut" }} 
-                                className='flex flex-col gap-3'
+                                className='flex flex-col gap-3 pb-50'
                             >
-                                <ReservationRow name={"Wendel Derraco"} ordercount={"4 Bikes"} type={"Reservation"} start={"11:59 AM"}/>
-                                <ReservationRow name={"Wendel Derraco"} ordercount={"4 Bikes"} type={"Reservation"} start={"11:59 AM"}/>
+
+                                {ongoing.length === 0 ? (
+                                    <div className="py-10 text-center">
+                                        <h1 className="font-akagi text-lg text-gray-500">
+                                            No ongoing transactions yet.
+                                        </h1>
+                                    </div>
+                                ) : (
+                                    ongoing.map((trans) => {
+                                        const customerName =
+                                            trans.profile
+                                                ? (
+                                                    trans.profile.full_name ??
+                                                    `${trans.profile.first_name} ${trans.profile.last_name}`
+                                                )
+                                                : trans.walk_in?.[0]?.full_name;
+
+                                        return (
+                                            <OngoingRow
+                                                key={trans.id}
+                                                name={customerName}
+                                                ordercount={`${trans.orders_mod.length} ${
+                                                    trans.orders_mod.length === 1 ? "Bike" : "Bikes"
+                                                }`}
+                                                type={trans.type}
+                                                start={trans.orders_mod[0].start_time}
+                                                bikeDetails={trans.orders_mod}
+                                                refreshOngoing={fetchOngoing}
+                                                transaction={trans.id}
+                                                transactionDetails={trans}
+                                            />
+                                        );
+                                    })
+                                )}
+                                
                             </motion.div>
                         )}
                         
                     </div>
                 </div>
+                
             </motion.div>
+                
         </div>
+
+        {history && (
+            <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-100 p-5">
+                <div className="
+                    bg-[#ffffff]
+                    p-5 md:p-10
+                    rounded-xl
+                    w-full
+                    max-w-6xl
+                    max-h-[90vh]
+                    overflow-y-auto
+                    scrollbar-thin
+                    scrollbar-thumb-[#B9B9B9]
+                    scrollbar-track-[#E2E2E2] flex flex-col gap-5
+                    font-akagi
+                    font-bold
+                    text-blue
+                ">
+                    <h1 className='text-2xl text-blue'>Reservation History</h1>
+
+                    <div className=''>
+                        <motion.div 
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: "auto", opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.25, ease: "easeInOut" }} 
+                                className='flex flex-col gap-3'
+                            >
+                                
+                                {reservationHistory.length === 0 ? (
+                                    <div className="py-10 text-center">
+                                        <h1 className="font-akagi text-lg text-gray-500">
+                                            No reservations yet.
+                                        </h1>
+                                    </div>
+                                ) : (
+                                    Object.entries(groupedHistory).map(([date, reservations]) => (
+                                        <div key={date} className="flex flex-col gap-3 pb-8">
+
+                                            {/* Date heading */}
+                                            <h2 className="font-akagi text-xl font-bold text-gray">
+                                                {date}
+                                            </h2>
+
+                                            {/* Reservations for this date */}
+                                            {reservations.map((trans) => (
+                                                <ReservationRow
+                                                    key={trans.id}
+                                                    name={
+                                                        trans.customer
+                                                            ? (
+                                                                trans.customer.first_name
+                                                                    ? `${trans.customer.first_name} ${trans.customer.last_name}`
+                                                                    : trans.customer.full_name
+                                                            )
+                                                            : "Unknown Customer"
+                                                    }
+                                                    ordercount={
+                                                        trans.orders_mod.length === 1
+                                                            ? `${trans.orders_mod.length} Bike`
+                                                            : `${trans.orders_mod.length} Bikes`
+                                                    }
+                                                    type={trans.type}
+                                                    start={formatTime(trans.orders_mod?.[0]?.start_time)}
+                                                    bikeDetails={trans.orders_mod}
+                                                    customer={trans.customer}
+                                                    transaction={trans}
+                                                />
+                                            ))}
+                                        </div>
+                                    ))
+                                )}
+
+                                
+                            </motion.div >
+                    </div>
+
+                    <div className='flex justify-between'>
+                        <div 
+                            onClick={() => {setHistory(false)}}
+                            className='w-fit cursor-pointer text-md rounded-lg px-3 py-1 border border-gray text-gray'>
+                            Back
+                        </div>
+                    </div>
+                </div>  
+            </div>
+        )}
     </>
   )
 }

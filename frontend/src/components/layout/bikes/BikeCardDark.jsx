@@ -3,7 +3,7 @@ import { useEffect } from "react"
 import { supabase } from "../../../lib/supabase"
 import { useNavigate } from "react-router-dom"
 
-function BikeCardDark({ bike, reservationData }) {
+function BikeCardDark({ bike, reservationData, setBike, setAddToRent }) {
 
   const navigate = useNavigate();
 
@@ -21,7 +21,7 @@ function BikeCardDark({ bike, reservationData }) {
       <div className="md:flex md:flex-col md:gap-3 flex flex-col gap-5 md:items-start items-center">
 
         <div className='md:flex md:flex-col md:text-start text-center'>
-          <h1 className="text-2xl font-bold text-darkblue hover:underline transition-all duration-300 font-akagi">
+          <h1 className="text-lg font-bold text-darkblue hover:underline transition-all duration-300 font-akagi">
             {bike.name}
           </h1>
 
@@ -34,13 +34,12 @@ function BikeCardDark({ bike, reservationData }) {
               <h1 className='text-sm font-bold font-akagi text-navyblue'>{bike.available_bikes} units</h1>
             </div>
           </div>
-
         </div>
 
         <motion.button
           whileHover={bike.available_count > 0 ? { scale: 1.05 } : {}}
           whileTap={bike.available_count > 0 ? { scale: 0.95 } : {}}
-          onClick={() => navigate("/rent", {state: { bike, reservationData }})}
+          onClick={() => {setAddToRent(reservationData, setBike(bike))}}
           disabled={bike.available_bikes === 0}
           className={`px-4 py-2 rounded-lg font-bold transition-all cursor-pointer
             ${
