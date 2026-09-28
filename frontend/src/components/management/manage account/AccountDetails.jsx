@@ -320,6 +320,12 @@ function AccountDetails({ fullName, role, email, contact, id, branch, firstName,
                                                             className='px-3 py-1 hover:bg-gray/70 hover:text-[#ffffff] rounded-md'>
                                                             Admin
                                                         </div>
+
+                                                        <div 
+                                                            onClick={() => {setEditRole("archive")}}
+                                                            className='px-3 py-1 hover:bg-gray/70 hover:text-[#ffffff] rounded-md'>
+                                                            Archive
+                                                        </div>
                                                     </div> : undefined}
 
                                                 {/*<input 

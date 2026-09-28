@@ -160,7 +160,7 @@
         )}
 
         {/* CUSTOMER */}
-        {session && role === "customer" && (
+        {session && (role === "customer" || role === "archive") && (
           <>
             <Route path="/" element={<LandingPage />} />
             <Route path="/dashboard" element={<Dashboard />} />
