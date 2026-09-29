@@ -28,34 +28,37 @@
   import DataReports from "./components/management/data reports/DataReports"
   import Alerts from "./components/sections/Alerts"
   import AdminAlerts from "./components/management/Alerts"
+  import Profile from "./components/management/profile/Profile"
 
   function App() {
     const [session, setSession] = useState(null);
     const [role, setRole] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isRecovery, setIsRecovery] = useState(false);
+    const [userData, setUserData] = useState(null);
 
     const navigate = useNavigate();
 
     const [allAccountID, setAllAccountID] = useState([]);
 
-    const profileById = async (id) => {
-      if(!id) {
-        return
+    const fetchUserData = async (userId) => {
+      if (!userId) return;
+
+      const { data, error } = await supabase
+          .from("profiles_mod")
+          .select("*")
+          .eq("id", userId)
+          .maybeSingle();
+
+      if (error) {
+          console.error("Fetching user data error:", error);
+          return;
       }
 
-      const {data, error} = await supabase
-        .from("profiles_mod")
-        .select("*")
-        .eq("id", id)
-        .maybeSingle();
+      console.log("Logged in user profile:", data);
 
-      if(error) {
-        console.log("Error fetching profile.");
-
-        return
-      }
-    }
+      setUserData(data);
+  };
 
     const fetchUserRole = async (userId) => {
       const { data, error } = await supabase
@@ -74,6 +77,8 @@
 
     useEffect(() => {
 
+      fetchUserData();
+
       const fetchAllAccountID = async () => {
         const { data, error } = await supabase
           .from("profiles_mod")
@@ -84,33 +89,38 @@
 
       const init = async () => {
         try {
-          const {
-            data: { session },
-          } = await supabase.auth.getSession();
+            const {
+                data: { session },
+            } = await supabase.auth.getSession();
 
-          console.log("Initial Session:", session);
+            console.log("Initial Session:", session);
 
-          setSession(session);
+            setSession(session);
 
-          if (session?.user?.id) {
-            fetchUserRole(session.user.id)
-              .then((userRole) => {
-                console.log("Fetched role:", userRole);
-                setRole(userRole);
-              })
-              .catch((err) => {
-                console.error(err);
-                setRole("customer");
-              });
-          } else {
-            setRole(null);
-          }
+            if (session?.user?.id) {
+                // Fetch profile using the authenticated user's ID
+                fetchUserData(session.user.id);
+
+                fetchUserRole(session.user.id)
+                    .then((userRole) => {
+                        console.log("Fetched role:", userRole);
+                        setRole(userRole);
+                    })
+                    .catch((err) => {
+                        console.error(err);
+                        setRole("customer");
+                    });
+            } else {
+                setRole(null);
+                setUserData(null);
+            }
+
         } catch (err) {
-          console.error("Init error:", err);
+            console.error("Init error:", err);
         } finally {
-          setLoading(false);
+            setLoading(false);
         }
-      };
+    };
 
       init();
       fetchAllAccountID();
@@ -228,7 +238,21 @@
             <Route path="/settings" element={<Settings/>}/>
             <Route path="/data-reports" element={<DataReports/>}/>
             <Route path="/admin-alerts" element={<AdminAlerts/>} />
-            {profileById(session)}
+            <Route 
+              path="/prof" 
+              element={
+                <Profile
+                  fullName={userData?.full_name}
+                  role={userData?.role}
+                  email={userData?.email}
+                  contact={userData?.contact}
+                  id={userData?.id}
+                  branch={userData?.branch}
+                  firstName={userData?.first_name}
+                  lastName={userData?.last_name}
+                />
+              } 
+            />
             
             {allAccountID.map((accountId) => (
               <Route 

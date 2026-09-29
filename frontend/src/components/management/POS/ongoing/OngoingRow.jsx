@@ -11,6 +11,8 @@ import MaintenancePayment from "./MaintenancePayment"
 import { MdOutlineReceiptLong } from "react-icons/md";
 import Receipt from "../../receipt/Receipt"
 import { MdDeleteForever } from "react-icons/md";
+import { useRef } from "react";
+import { IoMdClose } from "react-icons/io";
 
 function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, transaction, transactionDetails }) {
 
@@ -28,11 +30,168 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
 
     const [extendedTotal, setExtendedTotal] = useState(0);
     
-    const [voidTransaction, setVoidTransaction] = useState(false);
+    const [voidConfirmation, setVoidConfirmation] = useState(false);
+
+    const [adminPin, setAdminPin] = useState("");
+    const [pinLoading, setPinLoading] = useState(false);
+    const [pinError, setPinError] = useState("");
+
+    const handlePinChange = (e, index) => {
+        const value = e.target.value;
+
+        if (!/^\d?$/.test(value)) return;
+
+        const currentPin = pinRefs.current.map(
+            (input) => input?.value || ""
+        );
+
+        currentPin[index] = value;
+
+        const newPin = currentPin.join("");
+
+        setAdminPin(newPin);
+        setPinError("");
+
+        if (value && index < 5) {
+            pinRefs.current[index + 1]?.focus();
+        }
+
+        if (newPin.length === 6) {
+            checkAdminPin(newPin);
+        }
+    };
+
+    const checkAdminPin = async (pinCode) => {
+        setPinLoading(true);
+        setPinError("");
+
+        const { data, error } = await supabase
+            .from("pin_mod")
+            .select("id, admin_id")
+            .eq("pin", Number(pinCode))
+            .maybeSingle();
+
+        if (error) {
+            console.error("Error checking admin PIN:", error);
+            setPinError("Something went wrong. Please try again.");
+            setPinLoading(false);
+            return;
+        }
+
+        if (!data) {
+            setPinError("Incorrect admin PIN.");
+            setPinLoading(false);
+            return;
+        }
+
+        // PIN is correct
+        console.log("Correct admin PIN:", data);
+
+        await voidTransaction();
+
+        setPinLoading(false);
+    };
 
     const startedBikes = bikeDetails.filter(
         (bike) => bike.status === "started"
     );
+
+    const pinRefs = useRef([]);
+
+    const handlePinKeyDown = (e, index) => {
+        // Move to previous input when backspacing an empty input
+        if (
+            e.key === "Backspace" &&
+            !e.target.value &&
+            index > 0
+        ) {
+            pinRefs.current[index - 1]?.focus();
+        }
+    };
+
+    const voidTransaction = async () => {
+        try {
+            const orderIds = startedBikes.map((bike) => bike.id);
+
+            const walkInUserId = transactionDetails?.walk_in?.[0]?.id;
+
+            for (const bike of startedBikes) {
+
+                if (bike.bikes_mod?.id) {
+                    const { error: bikeError } = await supabase
+                        .from("bikes_mod")
+                        .update({
+                            status: "Available",
+                        })
+                        .eq("id", bike.bikes_mod.id);
+
+                    if (bikeError) {
+                        console.error("Error updating bike:", bikeError);
+                        return;
+                    }
+                }
+
+                if (bike.gps_mod?.id) {
+                    const { error: gpsError } = await supabase
+                        .from("gps_mod")
+                        .update({
+                            status: "Available",
+                        })
+                        .eq("id", bike.gps_mod.id);
+
+                    if (gpsError) {
+                        console.error("Error updating GPS:", gpsError);
+                        return;
+                    }
+                }
+            }
+
+            if (orderIds.length > 0) {
+                const { error: ordersError } = await supabase
+                    .from("orders_mod")
+                    .delete()
+                    .in("id", orderIds);
+
+                if (ordersError) {
+                    console.error("Error deleting orders:", ordersError);
+                    return;
+                }
+            }
+
+            if (walkInUserId) {
+                const { error: walkInError } = await supabase
+                    .from("walk_ins_users_mod")
+                    .delete()
+                    .eq("id", walkInUserId);
+
+                if (walkInError) {
+                    console.error("Error deleting walk-in user:", walkInError);
+                    return;
+                }
+            }
+
+            const { error: transactionError } = await supabase
+                .from("transactions_mod")
+                .delete()
+                .eq("id", transaction);
+
+            if (transactionError) {
+                console.error("Error deleting transaction:", transactionError);
+                return;
+            }
+
+            await refreshOngoing();
+
+            setAdminPin("");
+            setPinError("");
+            setVoidConfirmation(false);
+
+            console.log("Transaction voided successfully.");
+
+        } catch (error) {
+            console.error("Error voiding transaction:", error);
+        }
+    };
 
     async function updateStatus() {
         const transactionId = bikeDetails[0].transaction_id;
@@ -188,7 +347,7 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
                         <div className='flex gap-3 justify-end items-center'>
 
                              <div 
-                                onClick={() => setReceipt(!receipt)}
+                                onClick={() => setVoidConfirmation(!voidConfirmation)}
                                 className='flex gap-2 bg-red-400 px-2 py-1 rounded-lg font-akagi font-semibold cursor-pointer text-[#ffffff] text-sm'>
                                 <MdDeleteForever className='text-lg'/>Void
                             </div>
@@ -198,6 +357,80 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
                                 className='flex gap-2 bg-blue px-2 py-1 rounded-lg font-akagi font-semibold cursor-pointer text-[#ffffff] text-sm'>
                                 <MdOutlineReceiptLong className='text-lg'/>Receipt
                             </div>
+
+                            {voidConfirmation &&
+                                <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-100 p-5">
+                                    <div className="
+                                        bg-[#ffffff]
+                                        p-5 md:p-10
+                                        rounded-xl
+                                        w-full
+                                        max-w-2xl
+                                        max-h-[90vh]
+                                        overflow-y-auto
+                                        scrollbar-thin
+                                        scrollbar-thumb-[#B9B9B9]
+                                        scrollbar-track-[#E2E2E2] flex flex-col gap-5
+                                    ">
+                                        <div className='flex justify-end'>
+                                            <IoMdClose
+                                                onClick={() => {
+                                                    setVoidConfirmation(false);
+                                                    setAdminPin("");
+                                                    setPinError("");
+                                                }}
+                                                className='text-xl text-gray cursor-pointer'
+                                            />
+                                        </div>
+                                        <div className='w-full flex flex-col gap-5 bg-gray/10 border border-gray/30 p-2 py-10 rounded-lg justify-center items-center text-center font-akagi text-2xl font-bold text-blue'>
+                                            Enter admin PIN to void transaction.
+
+                                            <div className='flex gap-3 justify-center'>
+                                                {[0, 1, 2, 3, 4, 5].map((index) => (
+                                                    <input
+                                                        key={index}
+                                                        ref={(el) => (pinRefs.current[index] = el)}
+                                                        type='password'
+                                                        maxLength={1}
+                                                        inputMode='numeric'
+                                                        value={adminPin[index] || ""}
+                                                        onChange={(e) => handlePinChange(e, index)}
+                                                        onKeyDown={(e) => handlePinKeyDown(e, index)}
+                                                        className='
+                                                            w-12 h-14
+                                                            border-2 border-gray/30
+                                                            rounded-lg
+                                                            bg-white
+                                                            text-center
+                                                            text-2xl
+                                                            font-bold
+                                                            text-blue
+                                                            outline-none
+                                                            focus:border-blue
+                                                            focus:ring-2
+                                                            focus:ring-blue/20
+                                                        '
+                                                    />
+                                                ))}
+                                            </div>
+
+                                            <div className='h-8 flex items-center justify-center'>
+                                                {pinLoading && (
+                                                    <p className='text-gray font-akagi text-lg'>
+                                                        Checking PIN...
+                                                    </p>
+                                                )}
+
+                                                {!pinLoading && pinError && (
+                                                    <p className='text-red-500 font-akagi text-lg'>
+                                                        {pinError}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
                             
                         </div>
 
