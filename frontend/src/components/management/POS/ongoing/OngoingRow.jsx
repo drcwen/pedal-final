@@ -10,6 +10,7 @@ import ChangeBike from "./ChangeBike"
 import MaintenancePayment from "./MaintenancePayment"
 import { MdOutlineReceiptLong } from "react-icons/md";
 import Receipt from "../../receipt/Receipt"
+import { MdDeleteForever } from "react-icons/md";
 
 function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, transaction, transactionDetails }) {
 
@@ -27,6 +28,7 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
 
     const [extendedTotal, setExtendedTotal] = useState(0);
     
+    const [voidTransaction, setVoidTransaction] = useState(false);
 
     const startedBikes = bikeDetails.filter(
         (bike) => bike.status === "started"
@@ -124,22 +126,8 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
                     <h1 className={`${dropdown === true ? "hidden md:block" : "block"} font-akagi font-semibold text-gray text-lg`}>{ordercount}</h1>
                     <h1 className='hidden md:block font-akagi font-semibold text-gray text-lg'>{start}</h1>
 
-                    <AnimatePresence initial={false}>
-                        <motion.div
-                                initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: "auto", opacity: 1 }}
-                                exit={{ height: 0, opacity: 0 }}
-                                transition={{ duration: 0.3, ease: "easeInOut" }} 
-                                className={`md:py-0 ${dropdown === true ? "block py-4" : "hidden"}`}>
-                            <div
-                                className={`w-fit rounded-xl bg-red-500 transition-all duration-300 
-                                    `}
-                            >
-                                <h1 className='font-akagi font-black text-[#ffffff] px-5 py-1 cursor-pointer'>END</h1>
-                            </div>
-                        </motion.div>
-                    </AnimatePresence>
                 </div>
+
                 <div 
                     onClick={() => setDropdown(!dropdown)}
                     className='cursor-pointer'
@@ -197,12 +185,20 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
 
                         </div>
 
-                        <div className='flex justify-end'>
+                        <div className='flex gap-3 justify-end items-center'>
+
+                             <div 
+                                onClick={() => setReceipt(!receipt)}
+                                className='flex gap-2 bg-red-400 px-2 py-1 rounded-lg font-akagi font-semibold cursor-pointer text-[#ffffff] text-sm'>
+                                <MdDeleteForever className='text-lg'/>Void
+                            </div>
+
                             <div 
                                 onClick={() => setReceipt(!receipt)}
                                 className='flex gap-2 bg-blue px-2 py-1 rounded-lg font-akagi font-semibold cursor-pointer text-[#ffffff] text-sm'>
                                 <MdOutlineReceiptLong className='text-lg'/>Receipt
                             </div>
+                            
                         </div>
 
                         {receipt &&

@@ -39,6 +39,24 @@
 
     const [allAccountID, setAllAccountID] = useState([]);
 
+    const profileById = async (id) => {
+      if(!id) {
+        return
+      }
+
+      const {data, error} = await supabase
+        .from("profiles_mod")
+        .select("*")
+        .eq("id", id)
+        .maybeSingle();
+
+      if(error) {
+        console.log("Error fetching profile.");
+
+        return
+      }
+    }
+
     const fetchUserRole = async (userId) => {
       const { data, error } = await supabase
         .from("profiles_mod")
@@ -210,6 +228,7 @@
             <Route path="/settings" element={<Settings/>}/>
             <Route path="/data-reports" element={<DataReports/>}/>
             <Route path="/admin-alerts" element={<AdminAlerts/>} />
+            {profileById(session)}
             
             {allAccountID.map((accountId) => (
               <Route 
