@@ -169,22 +169,22 @@ function Receipt({ setReceipt, startedBikes, transaction }) {
 
                         <div className='flex flex-row justify-between'>
                             <h1>Total:</h1>
-                            <h1>P{transaction.total_amount}</h1>
+                            <h1>P{transaction?.total_amount}</h1>
                         </div>
 
                         <div className='flex flex-row justify-between'>
                             <h1>Tendered Amount:</h1>
-                            <h1>P{transaction.amount_paid}</h1>
+                            <h1>P{transaction?.amount_paid}</h1>
                         </div>
 
                         <div className='flex flex-row justify-between'>
                             <h1>Change:</h1>
-                            <h1>P{transaction.change_amount}</h1>
+                            <h1>P{transaction?.change_amount}</h1>
                         </div>
 
                         <div className='flex flex-row justify-between'>
                             <h1>Method:</h1>
-                            <h1>{transaction.payment_method}</h1>
+                            <h1>{transaction?.payment_method}</h1>
                         </div>
 
                         <div className='flex flex-row justify-between'>

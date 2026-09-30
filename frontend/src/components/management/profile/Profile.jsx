@@ -21,6 +21,8 @@ function Profile({ fullName, role, email, contact, id, branch, firstName, lastNa
     const [editLastName, setEditLastName] = useState(lastName);
     const [editRole, setEditRole] = useState(role);
     const [editContact, setEditContact] = useState(contact);
+    const [editPin, setEditPin] = useState("");
+    const [changePin, setChangePin] = useState(false);
     const [editBranch, setEditBranch] = useState(branch);
     const [editPassword, setEditPassword] = useState("");
 
@@ -72,21 +74,42 @@ function Profile({ fullName, role, email, contact, id, branch, firstName, lastNa
             })
             .eq("id", id);
 
+        const { pinError } = await supabase 
+            .from("pin_mod") 
+            .upsert( 
+                { admin_id: id, pin: editPin }, 
+                { onConflict: "admin_id" } ); 
+                
+            if (error) { 
+                console.log("Error saving PIN:", error.message); 
+                return; 
+            } 
+            
+            console.log("PIN saved successfully:", data);
+
         if (error) {
             console.error("Error updating profile:", error);
             setLoading(false);
             return;
         }
 
+        if (pinError) {
+            console.error("Error updating PIN:", error);
+            setLoading(false);
+            return;
+        }
+
         setLoading(false);
         setEdit(false);
+        setChangePin(!changePin);
+
     };
     
 
   return (
     <>
 
-        <div className='w-full min-h-screen bg-[#F2F2F2] flex'>
+        <div className='w-full h-screen bg-[#F2F2F2] flex'>
             <Sidebar active={'dashboard'}/>
 
             <motion.div
@@ -94,13 +117,11 @@ function Profile({ fullName, role, email, contact, id, branch, firstName, lastNa
                 animate={{ height: "auto", opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
                 transition={{ duration: 0.25, ease: "easeInOut" }} 
-                className='flex flex-col flex-1 min-w-0 lg:h-screen lg:py-15 lg:px-10 p-5 md:p-7 gap-5'>
+                className='flex flex-col flex-1 min-w-0 lg:min-h-screen md:p-7 gap-5'>
 
                 <SidebarMobile active={'dashboard'}/>
-
-                <h1 className='md:text-4xl text-2xl font-akagi font-bold tracking-wide text-blue'>Profile</h1>
-
-                <div className='flex flex-col bg-[#ffffff] w-full h-full rounded-xl md:p-10 px-3 py-7 gap-6 overflow-y-scroll scrollbar-thin scrollbar-thumb-[#B9B9B9] scrollbar-track-[#E2E2E2]'>
+                
+                <div className='flex flex-col bg-[#ffffff] w-full h-full rounded-xl md:p-10 md:px-3 py-15 px-7 md:py-7 gap-6 overflow-y-scroll scrollbar-none scrollbar-thumb-[#B9B9B9] scrollbar-track-[#E2E2E2]'>
                                         
                     <div className='flex flex-row justify-between md:items-center'>
                         <div className='w-full flex flex-row justify-between gap-5 items-center'>
@@ -223,7 +244,7 @@ function Profile({ fullName, role, email, contact, id, branch, firstName, lastNa
                                                 onChange={(e) => setEditPassword(e.target.value)}
                                                 disabled={isResettingPassword}
                                                 placeholder='Enter new password'
-                                                className='w-52 bg-gray/20 font-bold focus:outline-none px-3 py-2 rounded-lg border border-gray disabled:opacity-50'
+                                                className='w-52 bg-gray/20 font-bold focus:outline-none px-3 py-1 rounded-lg border border-gray disabled:opacity-50'
                                             />
                                         )}
 
@@ -240,7 +261,7 @@ function Profile({ fullName, role, email, contact, id, branch, firstName, lastNa
                                                 type='button'
                                                 onClick={handleResetPassword}
                                                 disabled={isResettingPassword || !editPassword}
-                                                className='flex items-center justify-center gap-2 min-w-[90px] rounded-lg bg-yellow px-4 py-2 font-akagi font-bold text-navyblue transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50'
+                                                className='flex items-center justify-center gap-2 min-w-[90px] rounded-lg bg-yellow px-4 py-1 font-akagi font-bold text-navyblue transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50'
                                             >
                                                 {isResettingPassword ? (
                                                     <>
@@ -273,6 +294,60 @@ function Profile({ fullName, role, email, contact, id, branch, firstName, lastNa
                                 <h1 className='font-medium'>Employee ID</h1>
                                 <h1 className='font-bold'>{id}</h1>
                             </div>
+
+                            {role === "admin" && ( 
+                                <div className='flex flex-col'> 
+                                    <h1 className='font-medium'>Admin PIN</h1> 
+                                    
+                                    <div className='flex flex-row items-center gap-2'> 
+                                        {!changePin ? ( 
+                                            <> 
+                                                <h1 className='font-bold'>******</h1> 
+                                                    {edit && ( 
+                                                        <button 
+                                                            type='button' 
+                                                            onClick={() => setChangePin(true)} 
+                                                            className='cursor-pointer rounded-lg bg-yellow px-4 py-1 text-sm font-akagi font-bold text-navyblue hover:opacity-80 transition' > 
+                                                                Change 
+                                                        </button> )} 
+                                            </> ) : ( 
+                                                
+                                            <> 
+                                                <input
+                                                    type='password'
+                                                    value={editPin}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value.replace(/\D/g, "").slice(0, 6);
+                                                        setEditPin(value);
+                                                    }}
+                                                    inputMode='numeric'
+                                                    pattern='[0-9]{6}'
+                                                    maxLength={6}
+                                                    placeholder='Enter new PIN'
+                                                    className='w-52 bg-gray/20 font-bold focus:outline-none px-3 py-1 rounded-lg border border-gray'
+                                                />
+                                                    
+                                                <button
+                                                    type='button'
+                                                    disabled={!/^\d{6}$/.test(editPin)}
+                                                    onClick={() => {
+                                                        setChangePin(false);
+                                                        setEditPin("");
+                                                        updateProfile();
+                                                    }}
+                                                    className={`rounded-lg px-4 py-1 text-sm font-akagi font-bold transition ${
+                                                        /^\d{6}$/.test(editPin)
+                                                            ? 'cursor-pointer bg-yellow text-darkblue hover:opacity-80'
+                                                            : 'cursor-not-allowed bg-gray/30 text-gray'
+                                                    }`}
+                                                >
+                                                    Submit
+                                                </button>
+                                            </> 
+                                        )} 
+                                    </div> 
+                                </div> )}
+
 
                         </div>
                     </div>

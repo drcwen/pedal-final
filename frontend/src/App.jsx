@@ -250,6 +250,7 @@
                   branch={userData?.branch}
                   firstName={userData?.first_name}
                   lastName={userData?.last_name}
+                  username={userData?.username}
                 />
               } 
             />
