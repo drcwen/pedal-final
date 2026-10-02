@@ -108,20 +108,6 @@ function WalkInRent() {
                         </div>
 
                         <div className='h-full flex flex-col gap-7 md:px-5 px-3'>
-                            
-                            <div className='grid md:grid-cols-3 grid-cols-1 gap-3'>
-                                <div className='rounded-xl bg-blue px-6 py-2 text-center cursor-pointer'>
-                                    <h1 className='font-akagi font-bold text-[#ffffff] '>All</h1>
-                                </div>
-
-                                <div className='rounded-xl bg-[#DBDBDB] px-6 py-2 text-center cursor-pointer'>
-                                    <h1 className='font-akagi font-bold text-[#505050] '>Family Bikes</h1>
-                                </div>
-
-                                <div className='rounded-xl bg-[#DBDBDB] px-6 py-2 text-center cursor-pointer'>
-                                    <h1 className='font-akagi font-bold text-[#505050] '>Solo Bikes</h1>
-                                </div>
-                            </div>
 
                             <div className='grid md:grid-cols-3 grid-cols-2 gap-3'>
                                 

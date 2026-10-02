@@ -29,6 +29,7 @@
   import Alerts from "./components/sections/Alerts"
   import AdminAlerts from "./components/management/Alerts"
   import Profile from "./components/management/profile/Profile"
+  import CustomerProfile from "./components/sections/CustomerProfile"
 
   function App() {
     const [session, setSession] = useState(null);
@@ -201,6 +202,22 @@
             <Route path="/past-transactions" element={<PastTransactions />} />
             <Route path="/alerts/:bikeId" element={<Alerts />} />
             <Route path="*" element={<Navigate to="/" />} />
+            <Route 
+              path="/prof" 
+              element={
+                <CustomerProfile
+                  fullName={userData?.full_name}
+                  role={userData?.role}
+                  email={userData?.email}
+                  contact={userData?.contact}
+                  id={userData?.id}
+                  branch={userData?.branch}
+                  firstName={userData?.first_name}
+                  lastName={userData?.last_name}
+                  username={userData?.username}
+                />
+              } 
+            />
           </>
         )}
 
@@ -217,6 +234,22 @@
             <Route path="/history" element={<TransactionHistory />}/>
             <Route path="/inventory" element={<Inventory/>}/>
             <Route path="/monitoring" element={<Monitoring/>}/>
+            <Route 
+              path="/prof" 
+              element={
+                <Profile
+                  fullName={userData?.full_name}
+                  role={userData?.role}
+                  email={userData?.email}
+                  contact={userData?.contact}
+                  id={userData?.id}
+                  branch={userData?.branch}
+                  firstName={userData?.first_name}
+                  lastName={userData?.last_name}
+                  username={userData?.username}
+                />
+              } 
+            />
 
           </>
         )}
