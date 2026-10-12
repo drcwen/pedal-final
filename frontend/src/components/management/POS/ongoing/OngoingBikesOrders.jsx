@@ -35,6 +35,9 @@ function OngoingBikesOrders({
     const [dropDown, setDropDown] = useState(false);
     const [dropDownValue, setDropDownValue] = useState("Set Return Status");
 
+    const numericDuration = parseFloat(duration) || 0;
+    const total = Number(pricePerHour) * numericDuration;
+
     function getEndTimeOnly(tstzrange) {
         const match = tstzrange.match(/\["[^"]+","([^"]+)"\)/);
 
@@ -244,7 +247,7 @@ function OngoingBikesOrders({
                   <div className='bg-blue rounded-lg px-2 text-[#ffffff] py-0.5 font-akagi text-sm font-bold'>{bikeCode}</div>
               </div>
 
-              <h1 className='text-md font-akagi font-bold text-gray'>{price}</h1>
+              <h1 className='text-md font-akagi font-bold text-gray'>{"₱" + total}</h1>
           </div>
 
           <div className='w-full grid grid-cols-3 gap-2'>
