@@ -234,8 +234,9 @@ function OngoingBikesOrders({
                 gpsCode
             });
 
+        
         } else if (dropDownValue === "Available") {
-            if(isRentalOverdue()) {
+            if (isRentalOverdue()) {
                 setRentalOverdue({
                     orderId,
                     bikeCode,
@@ -250,15 +251,21 @@ function OngoingBikesOrders({
                     gpsId,
                     gpsCode,
                     overtimePayment,
-                    overtimeHours
-                })
+                    overtimeHours,
+                    transactionId,
+
+                    // Run these only after successful overtime payment
+                    onOvertimeSettled: async () => {
+                        await returnBike();
+                        await returnGps();
+                        await setReturn();
+                        await refreshOngoing();
+                    }
+                });
+
+                return;
             }
 
-            //await returnBike();
-            //await returnGps();
-            //await setReturn();
-
-            //await refreshOngoing();
         }
     };
 
