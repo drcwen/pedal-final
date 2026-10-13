@@ -288,13 +288,13 @@ function POS() {
                 <SidebarMobile active={'pos'}/>
                 
                     
-                <div className='w-full h-full p-10 bg-[#ffffff] rounded-xl flex flex-col gap-12 overflow-y-scroll scrollbar-thin scrollbar-thumb-[#B9B9B9] scrollbar-track-[#E2E2E2]'>
+                <div className='w-full h-full p-10 bg-[#ffffff] rounded-xl flex flex-col gap-12 overflow-y-scroll scrollbar-thin scrollbar-none scrollbar-thumb-[#B9B9B9] scrollbar-track-[#E2E2E2]'>
                     
                     <div className='flex flex-col gap-12'>
                         <div className='flex flex-row gap-5'>
                             {/* Search */}
                             <div className="flex flex-col gap-2">
-                                <div className="flex items-center gap-2 rounded-xl bg-gray/20 px-3 py-1">
+                                <div className="flex items-center gap-2 rounded-xl bg-gray/20 px-3 py-2">
                                     <input
                                         type="text"
                                         value={searchTerm}
@@ -305,7 +305,7 @@ function POS() {
                                             }
                                         }}
                                         placeholder="Search name or bike ID"
-                                        className="min-w-0 flex-1 bg-transparent text-md lg:text-xl font-akagi font-bold text-gray outline-none"
+                                        className="min-w-0 flex-1 bg-transparent text-md lg:text-lg font-akagi font-medium text-gray outline-none"
                                     />
 
                                     <button

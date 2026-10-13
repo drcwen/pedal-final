@@ -12,6 +12,7 @@ import Receipt from "../../receipt/Receipt"
 import { MdDeleteForever } from "react-icons/md";
 import { useRef } from "react";
 import { IoMdClose } from "react-icons/io";
+import RentalOverdue from "./RentalOverdue"
 
 function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, transaction, transactionDetails }) {
 
@@ -20,6 +21,7 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
     const [extendOrder, setExtendOrder] = useState(null);
     const [changeOrder, setChangeOrder] = useState(null);
     const [maintenancePayment, setMaintenancePayment] = useState(null);
+    const [rentalOverdue, setRentalOverdue] = useState(null);
 
     const [dropdown, setDropdown] = useState(false);
 
@@ -337,6 +339,7 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
                                             extension => extension.extension_duration
                                         )}
                                         refreshOngoing={refreshOngoing}
+                                        setRentalOverdue={setRentalOverdue}
                                     />
                                 ))
                             }
@@ -449,6 +452,14 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
             <ChangeBike 
                 setChangeOrder={setChangeOrder}
                 changeOrder={changeOrder}
+
+            />
+        }
+
+        { rentalOverdue && 
+            <RentalOverdue 
+                setRentalOverdue={setRentalOverdue}
+                rentalOverdue={rentalOverdue}
 
             />
         }

@@ -25,7 +25,8 @@ function OngoingBikesOrders({
     setChangeOrder, 
     pricePerHour, 
     transactionId,
-    refreshOngoing
+    refreshOngoing,
+    setRentalOverdue
 }) {
 
     const [dot, setDot] = useState(false);
@@ -37,6 +38,59 @@ function OngoingBikesOrders({
 
     const numericDuration = parseFloat(duration) || 0;
     const total = Number(pricePerHour) * numericDuration;
+
+    const isRentalOverdue = () => {
+        const endDate = getEndDate(end);
+
+        if (!endDate) return false;
+
+        const gracePeriod = 15 * 60 * 1000; // 15 minutes in milliseconds
+
+        return Date.now() > endDate.getTime() + gracePeriod;
+    };
+
+    const getOvertimeHours = (startTime, endRange) => {
+        const startDate = getEndDateStart(endRange);
+        const endDate = getEndDate(endRange);
+
+        if (!startDate || !endDate || startDate >= endDate) {
+            return 0;
+        }
+
+        const now = Date.now();
+        const gracePeriod = 15 * 60 * 1000;
+        const oneHour = 60 * 60 * 1000;
+
+        const overtimeMs = now - endDate.getTime();
+
+        // Still within the grace period
+        if (overtimeMs <= gracePeriod) {
+            return 0;
+        }
+
+        // Round up to the next whole hour
+        return Math.ceil(overtimeMs / oneHour);
+    };
+
+    const getEndDateStart = (tstzrange) => {
+        const match = tstzrange.match(
+            /^\["([^"]+)","([^"]+)"\)$/
+        );
+
+        if (!match) return null;
+
+        return new Date(
+            match[1].replace(" ", "T").replace("+00", "Z")
+        );
+    };
+
+    const overtimeHours = getOvertimeHours(start, end);
+    const overtimePayment = overtimeHours * price;
+
+    console.log("Overtime hours:", overtimeHours);
+    console.log("Overtime payment:", overtimePayment);
+
+    console.log(isRentalOverdue());
 
     function getEndTimeOnly(tstzrange) {
         const match = tstzrange.match(/\["[^"]+","([^"]+)"\)/);
@@ -181,12 +235,30 @@ function OngoingBikesOrders({
             });
 
         } else if (dropDownValue === "Available") {
+            if(isRentalOverdue()) {
+                setRentalOverdue({
+                    orderId,
+                    bikeCode,
+                    type,
+                    duration,
+                    end,
+                    image,
+                    start,
+                    pricePerHour,
+                    bikeTypeId,
+                    bikeId,
+                    gpsId,
+                    gpsCode,
+                    overtimePayment,
+                    overtimeHours
+                })
+            }
 
-            await returnBike();
-            await returnGps();
-            await setReturn();
+            //await returnBike();
+            //await returnGps();
+            //await setReturn();
 
-            await refreshOngoing();
+            //await refreshOngoing();
         }
     };
 
@@ -396,6 +468,8 @@ function OngoingBikesOrders({
 
                         </div>
                     }
+
+                    
                 </div>
             </div>
 
