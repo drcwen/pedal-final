@@ -157,7 +157,7 @@ function WalkInRent() {
     };
 
     const handleBikeClick = (bikeId) => {
-        setOpenBikeId(prev => prev === bikeId ? null : bikeId);
+        setOpenBikeId(bikeId);
     };
 
   return (
@@ -178,10 +178,11 @@ function WalkInRent() {
                         className='md:p-10 p-2 py-8 bg-[#ffffff] rounded-xl flex flex-col gap-12'
                     >
                         <div 
-                            onClick={() => navigate("/pos")}
                             className='flex flex-row items-center gap-2 cursor-pointer'
                         >
-                            <IoChevronBack className='text-3xl text-gray'/>
+                            <IoChevronBack 
+                                onClick={() => navigate("/pos")}
+                                className='text-3xl text-gray'/>
                             <h1 className='text-4xl font-akagi font-black tracking-wide text-blue'>Bikes</h1>
                         </div>
 

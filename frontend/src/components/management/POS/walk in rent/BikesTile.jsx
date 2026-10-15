@@ -24,55 +24,60 @@ function BikesTile({
 
     const remainingBikes = Math.max(
         0,
-        availableBikes - cartQuantity
+        (availableBikes ?? 0) - cartQuantity
     );
 
     const handleAdd = (e) => {
-    e.stopPropagation();
+        e.stopPropagation();
 
-    if (hours === 0) {
-        alert("Please select rental hours first.");
-        return;
-    }
-
-    if (availableBikes === null) {
-        alert("Please wait while availability is checked.");
-        return;
-    }
-
-    if (quantity === 0) {
-        alert("Please select the quantity.");
-        return;
-    }
-
-    if (quantity > remainingBikes) {
-        alert(`Only ${remainingBikes} ${name} unit(s) available.`);
-        return;
-    }
-
-    const bikesToAdd = Array.from(
-        { length: quantity },
-        (_, index) => ({
-            cartId: `${bikeId}-${Date.now()}-${index}`,
-            bikeId,
-            name,
-            image,
-            hours,
-            price,
-            total: hours * price
-        })
-    );
-
-    setCart(prev => [...prev, ...bikesToAdd]);
-
-    setBikeData(prev => ({
-        ...prev,
-        [bikeId]: {
-            quantity: 0,
-            hours: 0
+        if (hours === 0) {
+            alert("Please select rental hours first.");
+            return;
         }
-    }));
-};
+
+        if (checkingAvailability || availableBikes === null) {
+            alert("Please wait while availability is checked.");
+            return;
+        }
+
+        if (remainingBikes === 0) {
+            alert(`No ${name} units available.`);
+            return;
+        }
+
+        if (quantity === 0) {
+            alert("Please select the quantity.");
+            return;
+        }
+
+        if (quantity > remainingBikes) {
+            alert(`Only ${remainingBikes} ${name} unit(s) available.`);
+            return;
+        }
+
+        const bikesToAdd = Array.from(
+            { length: quantity },
+            (_, index) => ({
+                cartId: `${bikeId}-${Date.now()}-${index}`,
+                bikeId,
+                name,
+                image,
+                hours,
+                price,
+                total: hours * price
+            })
+        );
+
+        setCart(prev => [...prev, ...bikesToAdd]);
+
+        setBikeData(prev => ({
+            ...prev,
+            [bikeId]: {
+                quantity: 0,
+                hours: 0
+            }
+        }));
+    };
 
   return (
     <>
@@ -105,58 +110,14 @@ function BikesTile({
                     <div className="bg-navyblue rounded-lg px-2 py-1 font-akagi font-medium text-sm text-yellow">
                         {hours === 0
                             ? "Select rental hours first"
-                            : availableBikes === null
+                            : checkingAvailability
                                 ? "Checking availability..."
-                                : availableBikes === 0
-                                    ? "No Available Units"
-                                    : `${availableBikes} units available`
+                                : availableBikes === null
+                                    ? "Unable to check availability"
+                                    : remainingBikes === 0
+                                        ? "No Available Units"
+                                        : `${remainingBikes} units available`
                         }
-                    </div>
-
-                    <div className='flex md:flex-row flex-col justify-between px-4 md:items-center'>
-                        <h1 className='text-md font-akagi font-medium text-[#ffffff]'>Quantity</h1>
-                        <div className='rounded-lg border-2 border-[#ffffff] grid grid-cols-3 font-akagi font-medium'>
-                            <div
-                                onClick={(e) => {
-                                e.stopPropagation();
-
-                                setBikeData(prev => ({
-                                    ...prev,
-                                    [bikeId]: {
-                                        ...prev[bikeId],
-                                        quantity: Math.max(0, (prev[bikeId]?.quantity || 0) - 1)
-                                    }
-                                }));
-                                }}
-                                className='px-2 text-[#ffffff] cursor-pointer'
-                            >
-                                -
-                            </div>
-
-                            <div className='bg-white text-blue'>
-                                {quantity}
-                            </div>
-
-                            <div
-                                onClick={(e) => {
-                                    e.stopPropagation();
-
-                                    setBikeData(prev => ({
-                                        ...prev,
-                                        [bikeId]: {
-                                            ...prev[bikeId],
-                                            quantity: Math.min(
-                                                remainingBikes,
-                                                (prev[bikeId]?.quantity || 0) + 1
-                                            )
-                                        }
-                                    }));
-                                }}
-                                className='text-[#ffffff] cursor-pointer px-2'
-                            >
-                                +
-                            </div>
-                        </div>
                     </div>
 
                     <div className='flex md:flex-row flex-col justify-between px-4 md:items-center'>
@@ -219,11 +180,84 @@ function BikesTile({
 
                         </div>
                     </div>
-                    <div 
+
+                    {hours > 0 && remainingBikes > 0 && (
+                        <div className="flex md:flex-row flex-col justify-between px-4 md:items-center">
+                            <h1 className="text-md font-akagi font-medium text-[#ffffff]">
+                                Quantity
+                            </h1>
+
+                            <div className="rounded-lg border-2 border-[#ffffff] grid grid-cols-3 font-akagi font-medium">
+                                {/* Decrease quantity */}
+                                <div
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+
+                                        setBikeData(prev => ({
+                                            ...prev,
+                                            [bikeId]: {
+                                                ...prev[bikeId],
+                                                quantity: Math.max(
+                                                    0,
+                                                    (prev[bikeId]?.quantity || 0) - 1
+                                                )
+                                            }
+                                        }));
+                                    }}
+                                    className="px-2 text-[#ffffff] cursor-pointer"
+                                >
+                                    -
+                                </div>
+
+                                <div className="bg-white text-blue">
+                                    {quantity}
+                                </div>
+
+                                {/* Increase quantity */}
+                                <div
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+
+                                        setBikeData(prev => ({
+                                            ...prev,
+                                            [bikeId]: {
+                                                ...prev[bikeId],
+                                                quantity: Math.min(
+                                                    remainingBikes,
+                                                    (prev[bikeId]?.quantity || 0) + 1
+                                                )
+                                            }
+                                        }));
+                                    }}
+                                    className="text-[#ffffff] cursor-pointer px-2"
+                                >
+                                    +
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    <button
+                        type="button"
+                        disabled={
+                            remainingBikes === 0 ||
+                            checkingAvailability ||
+                            availableBikes === null ||
+                            quantity === 0
+                        }
                         onClick={handleAdd}
-                        className='rounded-xl bg-yellow py-1 font-akagi font-bold text-darkblue'>
+                        className={`rounded-xl py-1 font-akagi font-bold w-full
+                            ${
+                                remainingBikes === 0 ||
+                                checkingAvailability ||
+                                availableBikes === null ||
+                                quantity === 0
+                                    ? "bg-gray-400 text-gray-200 opacity-50 cursor-not-allowed"
+                                    : "bg-yellow text-darkblue cursor-pointer"
+                            }`}
+                    >
                         Add
-                    </div>
+                    </button>
                 </motion.div>
             )}
         </div>
