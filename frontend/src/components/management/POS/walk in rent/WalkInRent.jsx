@@ -1,8 +1,6 @@
 import { supabase } from "../../../../lib/supabase"
 import Sidebar from "../../sidebar/Sidebar"
 import SidebarMobile from "../../sidebar/SidebarMobile"
-import { FaPlus } from "react-icons/fa6";
-import ReservationRow from "../reservation/ReservationRow"
 import { useState, useEffect } from 'react';
 import { motion } from "motion/react"
 import { IoChevronBack } from "react-icons/io5";
@@ -25,8 +23,6 @@ function WalkInRent() {
 
     const [gcashStatus, setGcashStatus] = useState("waiting");
 
-    const [bikeAvailability, setBikeAvailability] = useState([]);
-
     const [gcash, setGcash] = useState(false);
     const [cash, setCash] = useState(false);
 
@@ -34,6 +30,7 @@ function WalkInRent() {
     const [referenceNo, setReferenceNo] = useState(null);
 
     const [cashAmount, setCashAmount] = useState(null);
+
     useEffect(() => {
         console.log(cart);
         const fetchBikes = async () => {
@@ -54,6 +51,83 @@ function WalkInRent() {
         fetchBikes()
 
     }, [])
+
+    //Available Bikes (Status = "Available" and overlapping from reservation)
+    const [availableBikes, setAvailableBikes] = useState({});
+    const [checkingAvailability, setCheckingAvailability] = useState({});
+
+    const checkBikeAvailability = async (bikeTypeId, hours) => {
+        if (!hours || hours <= 0) {
+            setAvailableBikes(prev => ({
+                ...prev,
+                [bikeTypeId]: null
+            }));
+            return;
+        }
+
+        setCheckingAvailability(prev => ({
+            ...prev,
+            [bikeTypeId]: true
+        }));
+
+        try {
+            const now = new Date();
+
+            // Get the current date and time in Philippine time.
+            const formatter = new Intl.DateTimeFormat("en-CA", {
+                timeZone: "Asia/Manila",
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+                hourCycle: "h23"
+            });
+
+            const parts = Object.fromEntries(
+                formatter
+                    .formatToParts(now)
+                    .filter(part => part.type !== "literal")
+                    .map(part => [part.type, part.value])
+            );
+
+            const rentalDate =
+                `${parts.year}-${parts.month}-${parts.day}`;
+
+            const rentalTime =
+                `${parts.hour}:${parts.minute}:${parts.second}`;
+
+            const { data, error } = await supabase.rpc(
+                "get_walkin_available_bikes",
+                {
+                    p_bike_type_id: bikeTypeId,
+                    p_date: rentalDate,
+                    p_time: rentalTime,
+                    p_hours: Number(hours)
+                }
+            );
+
+            if (error) throw error;
+
+            setAvailableBikes(prev => ({
+                ...prev,
+                [bikeTypeId]: Number(data)
+            }));
+        } catch (error) {
+            console.error("Failed to check bike availability:", error);
+
+            setAvailableBikes(prev => ({
+                ...prev,
+                [bikeTypeId]: null
+            }));
+        } finally {
+            setCheckingAvailability(prev => ({
+                ...prev,
+                [bikeTypeId]: false
+            }));
+        }
+    };
 
     const handleDelete = (cartId) => {
         setCart(prev => prev.filter(item => item.cartId !== cartId));
@@ -80,6 +154,10 @@ function WalkInRent() {
         setTimeout(() => {
             setGcashStatus("success");
         }, 2000);
+    };
+
+    const handleBikeClick = (bikeId) => {
+        setOpenBikeId(prev => prev === bikeId ? null : bikeId);
     };
 
   return (
@@ -121,19 +199,26 @@ function WalkInRent() {
                                             exit={{ height: 0, opacity: 0 }}
                                             transition={{ duration: 0.3, ease: "easeInOut" }}
                                         >
-                                            <BikesTile 
-                                                key={bike.id}
-                                                bikeId={bike.id}
-                                                name={bike.name}
-                                                availableBikes={bike.bikes_mod.length}
+                                            <BikesTile
                                                 image={bike.image_url}
-                                                isOpen={openBikeId === bike.id}
-                                                onClick={() => setOpenBikeId(bike.id)}
+                                                price={bike.price}
+                                                name={bike.name}
+                                                bikeId={bike.id}
+                                                availableBikes={
+                                                    bikeData[bike.id]?.hours > 0
+                                                        ? availableBikes[bike.id] ?? null
+                                                        : null
+                                                }
+                                                checkingAvailability={checkingAvailability[bike.id] || false}
                                                 bikeData={bikeData}
                                                 setBikeData={setBikeData}
-                                                setCart={setCart}
-                                                price={bike.price}
                                                 cart={cart}
+                                                setCart={setCart}
+                                                isOpen={openBikeId === bike.id}
+                                                onClick={() => handleBikeClick(bike.id)}
+                                                onHoursChange={(hours) =>
+                                                    checkBikeAvailability(bike.id, hours)
+                                                }
                                             />
                                         </motion.div>
                                     </>

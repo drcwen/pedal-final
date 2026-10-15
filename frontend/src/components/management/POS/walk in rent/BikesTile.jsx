@@ -1,17 +1,22 @@
-import { supabase } from "../../../../lib/supabase"
-import Sidebar from "../../sidebar/Sidebar"
-import SidebarMobile from "../../sidebar/SidebarMobile"
-import { FaPlus } from "react-icons/fa6";
-import ReservationRow from "../reservation/ReservationRow"
-import { useState } from 'react';
+
 import { motion } from "motion/react"
-import { IoChevronBack } from "react-icons/io5";
-import { useNavigate } from "react-router-dom";
 
-function WalkInRent({image, price, name, availableBikes, isOpen, onClick, bikeId, bikeData, setBikeData, setCart, cart}) {
+function BikesTile({
+    image,
+    price,
+    name,
+    availableBikes,
+    checkingAvailability,
+    onHoursChange,
+    isOpen,
+    onClick,
+    bikeId,
+    bikeData,
+    setBikeData,
+    setCart,
+    cart
+}) {
     
-    const navigate = useNavigate();
-
     const quantity = bikeData[bikeId]?.quantity || 0;
     const hours = bikeData[bikeId]?.hours || 0;
 
@@ -23,19 +28,31 @@ function WalkInRent({image, price, name, availableBikes, isOpen, onClick, bikeId
     );
 
     const handleAdd = (e) => {
-        e.stopPropagation();
+    e.stopPropagation();
 
-        const quantity = bikeData[bikeId]?.quantity || 0;
-        const hours = bikeData[bikeId]?.hours || 0;
+    if (hours === 0) {
+        alert("Please select rental hours first.");
+        return;
+    }
 
-        if (quantity === 0 || hours === 0) return;
+    if (availableBikes === null) {
+        alert("Please wait while availability is checked.");
+        return;
+    }
 
-        if (quantity > remainingBikes) {
-            alert(`Only ${remainingBikes} ${name} unit(s) available.`);
-            return;
-        }
+    if (quantity === 0) {
+        alert("Please select the quantity.");
+        return;
+    }
 
-        const bikesToAdd = Array.from({ length: quantity }, (_, index) => ({
+    if (quantity > remainingBikes) {
+        alert(`Only ${remainingBikes} ${name} unit(s) available.`);
+        return;
+    }
+
+    const bikesToAdd = Array.from(
+        { length: quantity },
+        (_, index) => ({
             cartId: `${bikeId}-${Date.now()}-${index}`,
             bikeId,
             name,
@@ -43,18 +60,19 @@ function WalkInRent({image, price, name, availableBikes, isOpen, onClick, bikeId
             hours,
             price,
             total: hours * price
-        }));
+        })
+    );
 
-        setCart(prev => [...prev, ...bikesToAdd]);
+    setCart(prev => [...prev, ...bikesToAdd]);
 
-        setBikeData(prev => ({
-            ...prev,
-            [bikeId]: {
-                quantity: 0,
-                hours: 0
-            }
-        }));
-    };
+    setBikeData(prev => ({
+        ...prev,
+        [bikeId]: {
+            quantity: 0,
+            hours: 0
+        }
+    }));
+};
 
   return (
     <>
@@ -84,12 +102,17 @@ function WalkInRent({image, price, name, availableBikes, isOpen, onClick, bikeId
                     transition={{ duration: 0.3, ease: "easeInOut" }}className='flex flex-col w-full gap-3'
                 >
 
-                <div className='bg-navyblue rounded-lg px-2 py-1 font-akagi font-medium text-sm text-yellow'>
-                    {remainingBikes === 0
-                        ? "No Available Units"
-                        : remainingBikes + " units available"
-                    }
-                </div>
+                    <div className="bg-navyblue rounded-lg px-2 py-1 font-akagi font-medium text-sm text-yellow">
+                        {hours === 0
+                            ? "Select rental hours first"
+                            : availableBikes === null
+                                ? "Checking availability..."
+                                : availableBikes === 0
+                                    ? "No Available Units"
+                                    : `${availableBikes} units available`
+                        }
+                    </div>
+
                     <div className='flex md:flex-row flex-col justify-between px-4 md:items-center'>
                         <h1 className='text-md font-akagi font-medium text-[#ffffff]'>Quantity</h1>
                         <div className='rounded-lg border-2 border-[#ffffff] grid grid-cols-3 font-akagi font-medium'>
@@ -137,45 +160,63 @@ function WalkInRent({image, price, name, availableBikes, isOpen, onClick, bikeId
                     </div>
 
                     <div className='flex md:flex-row flex-col justify-between px-4 md:items-center'>
-                        <h1 className='text-md font-akagi font-medium text-[#ffffff]'>Hours</h1>
+                        <h1 className='text-md font-akagi font-medium text-[#ffffff]'>
+                            Hours
+                        </h1>
+
                         <div className='rounded-lg border-2 border-[#ffffff] grid grid-cols-3 font-akagi font-medium'>
+
+                            {/* Decrease hours */}
                             <div
                                 onClick={(e) => {
                                     e.stopPropagation();
+
+                                    const newHours = Math.max(0, hours - 1);
 
                                     setBikeData(prev => ({
                                         ...prev,
                                         [bikeId]: {
                                             ...prev[bikeId],
-                                            hours: Math.max(0, (prev[bikeId]?.hours || 0) - 1)
+                                            hours: newHours,
+                                            quantity: 0
                                         }
                                     }));
+
+                                    onHoursChange(newHours);
                                 }}
                                 className='px-2 text-[#ffffff] cursor-pointer'
                             >
                                 -
                             </div>
 
+                            {/* Selected hours */}
                             <div className='bg-white text-blue'>
                                 {hours}
                             </div>
 
+                            {/* Increase hours */}
                             <div
                                 onClick={(e) => {
                                     e.stopPropagation();
+
+                                    const newHours = hours + 1;
 
                                     setBikeData(prev => ({
                                         ...prev,
                                         [bikeId]: {
                                             ...prev[bikeId],
-                                            hours: (prev[bikeId]?.hours || 0) + 1
+                                            hours: newHours,
+                                            quantity: 0
                                         }
                                     }));
+
+                                    onHoursChange(newHours);
                                 }}
                                 className='text-[#ffffff] cursor-pointer px-2'
                             >
                                 +
                             </div>
+
                         </div>
                     </div>
                     <div 
@@ -191,4 +232,4 @@ function WalkInRent({image, price, name, availableBikes, isOpen, onClick, bikeId
   )
 }
 
-export default WalkInRent
+export default BikesTile

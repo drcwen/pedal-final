@@ -254,7 +254,6 @@ function OngoingBikesOrders({
                     overtimeHours,
                     transactionId,
 
-                    // Run these only after successful overtime payment
                     onOvertimeSettled: async () => {
                         await returnBike();
                         await returnGps();
@@ -264,6 +263,11 @@ function OngoingBikesOrders({
                 });
 
                 return;
+            } else {
+                await returnBike();
+                await returnGps();
+                await setReturn();
+                await refreshOngoing();
             }
 
         }
