@@ -129,6 +129,90 @@ function WalkInRent() {
         }
     };
 
+    //Maximum hours based on the park's closing
+    const [maxRentalHours, setMaxRentalHours] = useState(0);
+    const [parkHours, setParkHours] = useState(null);
+
+    useEffect(() => {
+        let interval;
+
+        const checkParkHours = async () => {
+            try {
+                const now = new Date();
+
+                const parts = Object.fromEntries(
+                    new Intl.DateTimeFormat("en-US", {
+                        timeZone: "Asia/Manila",
+                        weekday: "long",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hourCycle: "h23"
+                    })
+                        .formatToParts(now)
+                        .filter(part => part.type !== "literal")
+                        .map(part => [part.type, part.value])
+                );
+
+                const currentMinutes =
+                    Number(parts.hour) * 60 + Number(parts.minute);
+
+                const { data, error } = await supabase
+                    .from("operating_hours_mod")
+                    .select("day, opening, closing, availability")
+                    .eq("day", parts.weekday)
+                    .maybeSingle();
+
+                if (error) throw error;
+
+                if (!data || !data.availability) {
+                    setParkHours(null);
+                    setMaxRentalHours(0);
+                    return;
+                }
+
+                setParkHours(data);
+
+                const [openHour, openMinute] = data.opening
+                    .split(":")
+                    .map(Number);
+
+                const [closeHour, closeMinute] = data.closing
+                    .split(":")
+                    .map(Number);
+
+                const openingMinutes = openHour * 60 + openMinute;
+                const closingMinutes = closeHour * 60 + closeMinute;
+
+                // No rentals before opening or at/after the last-transaction cutoff.
+                const lastTransactionMinutes = closingMinutes - 60;
+
+                if (
+                    currentMinutes < openingMinutes ||
+                    currentMinutes >= lastTransactionMinutes
+                ) {
+                    setMaxRentalHours(0);
+                    return;
+                }
+
+                // Rental must finish by the park's actual closing time.
+                const hoursRemaining = Math.floor(
+                    (closingMinutes - currentMinutes) / 60
+                );
+
+                setMaxRentalHours(Math.max(0, hoursRemaining));
+            } catch (error) {
+                console.error("Failed to fetch operating hours:", error);
+                setParkHours(null);
+                setMaxRentalHours(0);
+            }
+        };
+
+        checkParkHours();
+        interval = setInterval(checkParkHours, 60_000);
+
+        return () => clearInterval(interval);
+    }, []);
+
     const handleDelete = (cartId) => {
         setCart(prev => prev.filter(item => item.cartId !== cartId));
     };
@@ -205,6 +289,7 @@ function WalkInRent() {
                                                 price={bike.price}
                                                 name={bike.name}
                                                 bikeId={bike.id}
+                                                maxRentalHours={maxRentalHours}
                                                 availableBikes={
                                                     bikeData[bike.id]?.hours > 0
                                                         ? availableBikes[bike.id] ?? null
@@ -217,9 +302,7 @@ function WalkInRent() {
                                                 setCart={setCart}
                                                 isOpen={openBikeId === bike.id}
                                                 onClick={() => handleBikeClick(bike.id)}
-                                                onHoursChange={(hours) =>
-                                                    checkBikeAvailability(bike.id, hours)
-                                                }
+                                                onHoursChange={(hours) => checkBikeAvailability(bike.id, hours)}
                                             />
                                         </motion.div>
                                     </>

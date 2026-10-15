@@ -8,6 +8,7 @@ function BikesTile({
     availableBikes,
     checkingAvailability,
     onHoursChange,
+    maxRentalHours,
     isOpen,
     onClick,
     bikeId,
@@ -160,6 +161,8 @@ function BikesTile({
                                 onClick={(e) => {
                                     e.stopPropagation();
 
+                                    if (hours >= maxRentalHours) return;
+
                                     const newHours = hours + 1;
 
                                     setBikeData(prev => ({
@@ -173,13 +176,21 @@ function BikesTile({
 
                                     onHoursChange(newHours);
                                 }}
-                                className='text-[#ffffff] cursor-pointer px-2'
+                                className={`px-2 ${
+                                    hours >= maxRentalHours
+                                        ? "text-white/40 cursor-not-allowed"
+                                        : "text-white cursor-pointer"
+                                }`}
                             >
                                 +
                             </div>
 
                         </div>
                     </div>
+
+                    <p className="text-xs text-white/70">
+                        Maximum rental: {maxRentalHours} hour(s)
+                    </p>
 
                     {hours > 0 && remainingBikes > 0 && (
                         <div className="flex md:flex-row flex-col justify-between px-4 md:items-center">
