@@ -92,10 +92,16 @@ function TransactionHistory() {
                 ? transaction.maintenance_mod?.[0]?.orders_mod?.transaction
                 : null;
 
+        const overtimeTransaction =
+            transaction.type === "overtime"
+                ? transaction.overtime_mod?.[0]?.original_transaction
+                : null;
+
         const relatedTransaction =
             extensionTransaction ||
             changeTransaction ||
-            maintenanceTransaction;
+            maintenanceTransaction ||
+            overtimeTransaction;
 
         // Determine which customer information to use.
         const profile =
@@ -249,8 +255,20 @@ function TransactionHistory() {
                                     walk_in:walk_ins_users_mod (*)
                                 )
                             )
+                        ),
+                        overtime_mod!overtime_mod_transaction_id_fkey (
+                            *,
+                            original_transaction:transactions_mod!overtime_mod_original_transaction_id_fkey (
+                                *,
+                                profile:profiles_mod!transactions_mod_user_id_fkey1 (
+                                    *
+                                ),
+                                walk_in:walk_ins_users_mod (
+                                    *
+                                )
+                            )
                         )
-                    `)
+                        `)
                     .gte("created_at", start.toISOString())
                     .lte("created_at", end.toISOString())
                     .order("created_at", { ascending: false });
@@ -513,6 +531,11 @@ function TransactionHistory() {
                                             ? transaction.maintenance_mod?.[0]?.orders_mod?.transaction
                                             : null;
 
+                                    const overtimeTransaction =
+                                        transaction.type === "overtime"
+                                            ? transaction.overtime_mod?.[0]?.original_transaction
+                                            : null;
+
                                     const profile =
                                         transaction.type === "extend"
                                             ? extensionTransaction?.profile
@@ -520,7 +543,9 @@ function TransactionHistory() {
                                                 ? changeTransaction?.profile
                                                 : transaction.type === "maintenance"
                                                     ? maintenanceTransaction?.profile
-                                                    : transaction.profile;
+                                                    : transaction.type === "overtime"
+                                                        ? overtimeTransaction?.profile
+                                                        : transaction.profile;
 
                                     const walkIn =
                                         transaction.type === "extend"
@@ -529,7 +554,9 @@ function TransactionHistory() {
                                                 ? changeTransaction?.walk_in
                                                 : transaction.type === "maintenance"
                                                     ? maintenanceTransaction?.walk_in
-                                                    : transaction.walk_in;
+                                                    : transaction.type === "overtime"
+                                                        ? overtimeTransaction?.walk_in
+                                                        : transaction.walk_in;
 
                                     const customerName =
                                         transaction.type === "maintenance"
