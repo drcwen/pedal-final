@@ -218,6 +218,8 @@ function OngoingBikesOrders({
     
     const handleReturn = async () => {
         if (dropDownValue === "Under Maintenance") {
+            const overdue = isRentalOverdue();
+
             setMaintenancePayment({
                 orderId,
                 bikeCode,
@@ -232,9 +234,10 @@ function OngoingBikesOrders({
                 gpsId,
                 gpsCode,
 
-                // Continue only after maintenance payment is settled
+                isOverdue: overdue,
+
                 onMaintenanceSettled: async () => {
-                    if (isRentalOverdue()) {
+                    if (overdue) {
                         setRentalOverdue({
                             orderId,
                             bikeCode,
@@ -252,12 +255,18 @@ function OngoingBikesOrders({
                             overtimeHours,
                             transactionId,
 
+                            isMaintenance: true,
+                            
                             onOvertimeSettled: async () => {
                                 await returnBike();
                                 await returnGps();
                                 await setReturn();
                                 await refreshOngoing();
-                            }
+                            },
+
+                            onVoidSettled: async () => {
+                                await refreshOngoing();
+                            },
                         });
 
                         return;
@@ -290,12 +299,17 @@ function OngoingBikesOrders({
                     overtimeHours,
                     transactionId,
 
+                    
                     onOvertimeSettled: async () => {
                         await returnBike();
                         await returnGps();
                         await setReturn();
                         await refreshOngoing();
-                    }
+                    },
+
+                    onVoidSettled: async () => {
+                        await refreshOngoing();
+                    },
                 });
 
                 return;

@@ -37,6 +37,121 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
     const [pinLoading, setPinLoading] = useState(false);
     const [pinError, setPinError] = useState("");
 
+    const [maxExtensionHours, setMaxExtensionHours] = useState(0);
+    const [extensionHoursLoading, setExtensionHoursLoading] = useState(false);
+    const [extensionHoursError, setExtensionHoursError] = useState("");
+
+    async function fetchAvailableExtensionHours(endRange) {
+        setExtensionHoursLoading(true);
+        setExtensionHoursError("");
+        setMaxExtensionHours(0);
+
+        try {
+            const match = endRange?.match(/\["([^"]+)","([^"]+)"\)/);
+
+            if (!match) {
+            console.error("Invalid reservation range:", endRange);
+            throw new Error("Invalid rental end time.");
+            }
+
+            const endTimestamp = match[2].trim();
+
+            let normalizedTimestamp = endTimestamp.replace(" ", "T");
+            normalizedTimestamp = normalizedTimestamp.replace(
+            /([+-]\d{2})$/,
+            "$1:00"
+            );
+
+            normalizedTimestamp = normalizedTimestamp.replace(
+            /\.(\d{3})\d+(?=(?:Z|[+-]\d{2}:\d{2})?$)/,
+            ".$1"
+            );
+
+            if (!/(Z|[+-]\d{2}:\d{2})$/i.test(normalizedTimestamp)) {
+            normalizedTimestamp += "Z";
+            }
+
+            const rentalEnd = new Date(normalizedTimestamp);
+
+            if (Number.isNaN(rentalEnd.getTime())) {
+            console.error("Invalid end timestamp:", endTimestamp);
+            throw new Error("Unable to read the rental end time.");
+            }
+
+            const weekday = new Intl.DateTimeFormat("en-US", {
+            timeZone: "Asia/Manila",
+            weekday: "long",
+            }).format(rentalEnd);
+
+            const endHour = Number(
+            new Intl.DateTimeFormat("en-US", {
+                timeZone: "Asia/Manila",
+                hour: "2-digit",
+                hourCycle: "h23",
+            }).format(rentalEnd)
+            );
+
+            const endMinute = Number(
+            new Intl.DateTimeFormat("en-US", {
+                timeZone: "Asia/Manila",
+                minute: "2-digit",
+            }).format(rentalEnd)
+            );
+
+            const { data: schedule, error } = await supabase
+            .from("operating_hours_mod")
+            .select("day, opening, closing, availability, is_whole_day")
+            .eq("day", weekday)
+            .maybeSingle();
+
+            if (error) throw error;
+
+            if (!schedule) {
+            throw new Error(`No operating-hours record found for ${weekday}.`);
+            }
+
+            if (schedule.availability !== true) {
+            setMaxExtensionHours(0);
+            setExtensionHoursError(
+                `The park is closed on ${weekday}. Extensions are unavailable.`
+            );
+            return;
+            }
+
+            const [closingHour, closingMinute] = schedule.closing
+            .split(":")
+            .map(Number);
+
+            const currentEndMinutes = endHour * 60 + endMinute;
+            const closingMinutes = closingHour * 60 + closingMinute;
+
+            const remainingMinutes = closingMinutes - currentEndMinutes;
+
+            const availableHours = Math.max(
+            0,
+            Math.floor(remainingMinutes / 60)
+            );
+
+            const allowedHours = availableHours;
+
+            setMaxExtensionHours(allowedHours);
+
+            if (allowedHours === 0) {
+            setExtensionHoursError(
+                `No additional rental hours are available. The park closes at ${schedule.closing}.`
+            );
+            }
+        } catch (error) {
+            console.error("Error checking extension hours:", error);
+            setMaxExtensionHours(0);
+            setExtensionHoursError(
+            error.message || "Unable to check available extension hours."
+            );
+        } finally {
+            setExtensionHoursLoading(false);
+        }
+        }
+
     const handlePinChange = (e, index) => {
         const value = e.target.value;
 
@@ -192,6 +307,7 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
         } catch (error) {
             console.error("Error voiding transaction:", error);
         }
+        
     };
 
     async function updateStatus() {
@@ -274,6 +390,19 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
         updateStatus();
         
     }, [startedBikes.length]);
+
+    useEffect(() => {
+        if (!extendOrder) {
+            setMaxExtensionHours(0);
+            setExtensionHoursError("");
+            setUpdatedTime(null);
+            setExtensionClicked(null);
+            setExtendedTotal(0);
+            return;
+        }
+
+        fetchAvailableExtensionHours(extendOrder.end);
+    }, [extendOrder]);
 
   return (
     <>
@@ -493,36 +622,53 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
                     <div className='flex flex-col gap-5 px-10'>
                         <h1>Current End: {getEndTimeOnly(extendOrder.end)}</h1>
 
-                        <div className='grid grid-cols-4 md:gap-5 gap-2'>
-                            <div 
-                                onClick={() => {setUpdatedTime(addHoursToTstzrange(extendOrder.end, 1)), setExtensionClicked(1), setExtendedTotal(extendOrder.pricePerHour * 1)}}
-                                value={1}
-                                className={`border-2 ${extensionClicked === 1 ? "bg-blue text-[#ffffff] border-blue" : undefined} border-[#DBDBDB] rounded-lg flex py-3 justify-center items-center`}>
-                                +1
-                            </div>
+                        {extensionHoursLoading ? (
+                            <p className="col-span-4 text-center text-gray">
+                                Loading park operating hours...
+                            </p>
+                        ) : (
+                            <div className="col-span-4 grid grid-cols-4 gap-2 md:gap-5">
+                                {Array.from(
+                                    { length: maxExtensionHours },
+                                    (_, index) => index + 1
+                                ).map((hours) => (
+                                    <button
+                                        key={hours}
+                                        type="button"
+                                        onClick={() => {
+                                            setUpdatedTime(
+                                                addHoursToTstzrange(
+                                                    extendOrder.end,
+                                                    hours
+                                                )
+                                            );
 
-                            <div 
-                                onClick={() => {setUpdatedTime(addHoursToTstzrange(extendOrder.end, 2)), setExtensionClicked(2), setExtendedTotal(extendOrder.pricePerHour * 2)}}
-                                value={2}
-                                className={`border-2 ${extensionClicked === 2 ? "bg-blue text-[#ffffff] border-blue" : undefined} border-[#DBDBDB] rounded-lg flex py-3 justify-center items-center`}>
-                                +2
-                            </div>
+                                            setExtensionClicked(hours);
 
-                            <div 
-                                onClick={() => {setUpdatedTime(addHoursToTstzrange(extendOrder.end, 3)), setExtensionClicked(3), setExtendedTotal(extendOrder.pricePerHour * 3)}}
-                                value={3}
-                                className={`border-2 ${extensionClicked === 3 ? "bg-blue text-[#ffffff] border-blue" : undefined} cursor-pointer border-[#DBDBDB] rounded-lg flex py-3 justify-center items-center`}>
-                                +3
+                                            setExtendedTotal(
+                                                Number(extendOrder.pricePerHour) * hours
+                                            );
+                                        }}
+                                        className={`border-2 rounded-lg flex py-3 justify-center items-center cursor-pointer
+                                            ${
+                                                extensionClicked === hours
+                                                    ? "bg-blue text-white border-blue"
+                                                    : "border-[#DBDBDB]"
+                                            }`}
+                                    >
+                                        +{hours}
+                                    </button>
+                                ))}
                             </div>
+                        )}
 
-                            <div 
-                                onClick={() => {setUpdatedTime(addHoursToTstzrange(extendOrder.end, 4)), setExtensionClicked(4), setExtendedTotal(extendOrder.pricePerHour * 4)}}
-                                value={4}
-                                className={`border-2 ${extensionClicked === 4 ? "bg-blue text-[#ffffff] border-blue" : undefined} border-[#DBDBDB] cursor-pointer rounded-lg flex py-3 justify-center items-center`}>
-                                +4
-                            </div>
-                        
-                        </div>
+                        {!extensionHoursLoading &&
+                            maxExtensionHours === 0 && (
+                                <p className="col-span-4 text-center text-red-500">
+                                    {extensionHoursError ||
+                                        "No extension hours are available."}
+                                </p>
+                            )}
                         <h1>Updated End: {updatedTime ? getEndTimeOnly(updatedTime) : "--:--"}</h1>
 
                         <div className='flex flex-row gap-2 items-center'>
@@ -540,8 +686,23 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
                             Close
                         </button>
 
-                        <button 
-                            className={`${extendedTotal === 0 ? "pointer-events-none opacity-20" : undefined} bg-green-500 rounded-lg text-[#ffffff] px-3 py-1 cursor-pointer`}
+                        <button
+                            type="button"
+                            disabled={
+                                extensionHoursLoading ||
+                                maxExtensionHours === 0 ||
+                                !extensionClicked ||
+                                extendedTotal <= 0
+                            }
+                            className={`bg-green-500 rounded-lg text-white px-3 py-1
+                                ${
+                                    extensionHoursLoading ||
+                                    maxExtensionHours === 0 ||
+                                    !extensionClicked ||
+                                    extendedTotal <= 0
+                                        ? "opacity-30 cursor-not-allowed"
+                                        : "cursor-pointer"
+                                }`}
                             onClick={() => setPayment(true)}
                         >
                             Payment

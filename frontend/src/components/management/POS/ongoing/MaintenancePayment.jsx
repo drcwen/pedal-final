@@ -155,7 +155,9 @@ function MaintenancePayment({setMaintenancePayment, maintenancePayment}) {
 
             if (!maintenance) return;
 
-            await updateBike();
+            if (!maintenancePayment.isOverdue) {
+                await updateBike();
+            }
 
             console.log("Transaction ID:", transactionId);
             console.log("Maintenance:", maintenance);
@@ -184,7 +186,9 @@ function MaintenancePayment({setMaintenancePayment, maintenancePayment}) {
 
             if (!maintenance) return false;
 
-            await updateBike();
+            if (!maintenancePayment.isOverdue) {
+                await updateBike();
+            }
 
             console.log("Transaction ID:", transactionId);
             console.log("Maintenance:", maintenance);

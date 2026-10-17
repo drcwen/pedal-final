@@ -2,10 +2,15 @@ import { IoIosArrowBack } from "react-icons/io";
 import { useState, useEffect } from 'react';
 import { supabase } from "../../../../lib/supabase"
 import { motion, AnimatePresence } from "motion/react"
-import { RiArrowDropDownLine } from "react-icons/ri";
-import { FaCalculator } from "react-icons/fa";
+import { MdOutlineCancel } from "react-icons/md";
+import { IoMdClose } from "react-icons/io";
+import { useRef } from "react";
 
 function RentalOverdue({setRentalOverdue, rentalOverdue}) {
+
+    const [adminPin, setAdminPin] = useState("");
+    const [pinLoading, setPinLoading] = useState(false);
+    const [pinError, setPinError] = useState("");
 
     const [cashAmount, setCashAmount] = useState(null);
 
@@ -16,18 +21,15 @@ function RentalOverdue({setRentalOverdue, rentalOverdue}) {
     const [method, setMethod] = useState(null);
     const [referenceNo, setReferenceNo] = useState(null);
     
+    const [voidOvertime, setVoidOvertime] = useState(false);
+
     const paymentMethod = 
         gcash == true ? "GCash" : "Cash";
 
     const [reason, setReason] = useState("Select reason");
-    const [otherReason, setOtherReason] = useState(null);
 
-    const [dropDown, setDropDown] = useState(false);
-
-    const [payDropDown, setPayDropDown] = useState(false);
     const [paidBy, setPaidBy] = useState("Select payment by");
 
-    const [selectPrice, setSelectPrice] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
     const [confirmation, setConfirmation] = useState(false);
@@ -47,6 +49,125 @@ function RentalOverdue({setRentalOverdue, rentalOverdue}) {
 
         if (!isNaN(value)) {
             setCashAmount(value);
+        }
+    };
+
+    const handlePinChange = (e, index) => {
+        const value = e.target.value;
+
+        if (!/^\d?$/.test(value)) return;
+
+        const currentPin = pinRefs.current.map(
+            (input) => input?.value || ""
+        );
+
+        currentPin[index] = value;
+
+        const newPin = currentPin.join("");
+
+        setAdminPin(newPin);
+        setPinError("");
+
+        if (value && index < 5) {
+            pinRefs.current[index + 1]?.focus();
+        }
+
+        if (newPin.length === 6) {
+            checkAdminPin(newPin);
+        }
+    };
+
+    const checkAdminPin = async (pinCode) => {
+        setPinLoading(true);
+        setPinError("");
+
+        const { data, error } = await supabase
+            .from("pin_mod")
+            .select("id, admin_id")
+            .eq("pin", Number(pinCode))
+            .maybeSingle();
+
+        if (error) {
+            console.error("Error checking admin PIN:", error);
+            setPinError("Something went wrong. Please try again.");
+            setPinLoading(false);
+            return;
+        }
+
+        if (!data) {
+            setPinError("Incorrect admin PIN.");
+            setPinLoading(false);
+            return;
+        }
+
+        // PIN is correct
+        console.log("Correct admin PIN:", data);
+
+        await handleVoidOvertime();
+
+        setPinLoading(false);
+    };
+
+    const handleVoidOvertime = async () => {
+        try {
+            const { error: bikeError } = await supabase
+                .from("bikes_mod")
+                .update({ status: "Available" })
+                .eq("id", rentalOverdue?.bikeId);
+
+            if (bikeError) {
+                console.error("Error updating bike:", bikeError);
+                return;
+            }
+
+            const { error: gpsError } = await supabase
+                .from("gps_mod")
+                .update({ status: "Available" })
+                .eq("id", rentalOverdue?.gpsCode);
+
+            if (gpsError) {
+                console.error("Error updating GPS:", gpsError);
+                return;
+            }
+
+            const { error: orderError } = await supabase
+                .from("orders_mod")
+                .update({ status: "returned" })
+                .eq("id", rentalOverdue?.orderId);
+
+            if (orderError) {
+                console.error("Error updating order:", orderError);
+                return;
+            }
+
+            if (rentalOverdue?.onVoidSettled) {
+                await rentalOverdue.onVoidSettled();
+            }
+
+            // Close PIN modal and reset PIN
+            setVoidOvertime(false);
+            setAdminPin("");
+            setPinError("");
+            setPinLoading(false);
+
+            // Close the overtime modal
+            setConfirmation(false);
+            setRentalOverdue(null);
+
+        } catch (error) {
+            console.error("Error voiding overtime:", error);
+        }
+    };
+
+    const pinRefs = useRef([]);
+    
+    const handlePinKeyDown = (e, index) => {
+        if (
+            e.key === "Backspace" &&
+            !e.target.value &&
+            index > 0
+        ) {
+            pinRefs.current[index - 1]?.focus();
         }
     };
 
@@ -206,9 +327,11 @@ function RentalOverdue({setRentalOverdue, rentalOverdue}) {
         <div className="w-full h-full fixed inset-0 bg-black/50 flex justify-center items-center z-100 md:p-5">
             <div className='bg-[#ffffff] md:p-10 p-5 py-15 md:pt-10 md:rounded-xl w-full h-full flex flex-col overflow-y-scroll scrollbar-none scrollbar-thin scrollbar-thumb-[#B9B9B9] scrollbar-track-[#E2E2E2]'>
                 <div className='flex flex-row gap-1 items-center'>
-                    <div onClick={() => {setRentalOverdue(null)}}>
-                        <IoIosArrowBack className='text-gray text-3xl cursor-pointer'/>
-                    </div>
+                    {!rentalOverdue?.isMaintenance && (
+                        <div onClick={() => setRentalOverdue(null)}>
+                            <IoIosArrowBack className="text-gray text-3xl cursor-pointer" />
+                        </div>
+                    )}
                     <h1 className='text-3xl font-akagi font-bold text-blue'>Bike Overtime</h1>
                 </div>
 
@@ -233,31 +356,6 @@ function RentalOverdue({setRentalOverdue, rentalOverdue}) {
                                         </div>
                                         
                                     </div>
-
-                                    {/*Other input*/}
-                                    {reason === "Other" &&
-                                        <div className='lg:px-10 px-5 grid grid-cols-[60px_1fr] items-center gap-2 font-akagi font-bold text-gray'>
-                                            <h1 className='text-md font-medium'>Specify reason:</h1>
-                                            <div className="relative w-full">
-                                                <input
-                                                    type="text"
-                                                    placeholder="Enter reason"
-                                                    className="
-                                                        w-full
-                                                        outline-none
-                                                        rounded-lg
-                                                        border border-gray/70
-                                                        px-3 py-2
-                                                        text-md
-                                                        bg-[#ffffff]
-                                                    "
-                                                    onChange={(e) => setOtherReason(e.target.value)}
-                                                />
-                                            </div>
-                                            
-                                        </div>
-                                    }
-
 
                                     <div className='lg:px-10 px-5 grid grid-cols-[60px_1fr] items-center gap-2 font-akagi font-bold text-gray'>
                                         <h1 className='text-md font-medium'>Hours:</h1>
@@ -284,35 +382,14 @@ function RentalOverdue({setRentalOverdue, rentalOverdue}) {
                                         </div>
                                     </div>
 
-                                    {paidBy !== "Select payment by" && 
-                                        <div className='lg:px-10 px-5 grid grid-cols-[60px_1fr] items-center gap-2 font-akagi font-bold text-gray'>
-                                            <h1 className='text-md font-medium'>Price:</h1>
-                                            <div className="relative w-full">
-                                                <FaCalculator 
-                                                    onClick={() => {setSelectPrice(true)}}
-                                                    className="cursor-pointer absolute right-3 top-1/2 -translate-y-1/2 text-gray" />
-
-                                                <input
-                                                    value={price}
-                                                    type="number"
-                                                    placeholder="0"
-                                                    className="
-                                                        w-full
-                                                        outline-none
-                                                        rounded-lg
-                                                        border border-gray/70
-                                                        px-3 py-2
-                                                        text-md
-                                                        bg-[#ffffff]
-                                                        [appearance:textfield]
-                                                        [&::-webkit-inner-spin-button]:appearance-none
-                                                        [&::-webkit-outer-spin-button]:appearance-none
-                                                    "
-                                                />
-                                            </div>
-                                            
-                                        </div>
-                                    }   
+                                    <div className='px-5 lg:px-10'>
+                                        <div 
+                                            onClick={() => {setVoidOvertime(!voidOvertime)}}
+                                            className='rounded-lg bg-red-400 text-[#ffffff] px-3 py-0.5 cursor-pointer w-fit flex flex-row gap-1 items-center font-akagi font-bold'>
+                                            <MdOutlineCancel/>
+                                            <h1>Void Overtime</h1>
+                                        </div> 
+                                    </div>
 
                                 </div>
                                 
@@ -769,6 +846,83 @@ function RentalOverdue({setRentalOverdue, rentalOverdue}) {
                             </div>
                         </div>
 
+                    </div>
+                </div>
+            }
+
+            {voidOvertime &&
+                <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-100 p-5">
+                    <div className="
+                        bg-[#ffffff]
+                        p-5 md:p-10
+                        rounded-xl
+                        w-full
+                        max-w-2xl
+                        max-h-[90vh]
+                        overflow-y-auto
+                        scrollbar-thin
+                        scrollbar-thumb-[#B9B9B9]
+                        scrollbar-track-[#E2E2E2] flex flex-col gap-5
+                    ">
+                        <div className='flex justify-end'>
+                            <IoMdClose
+                                onClick={() => {
+                                    setVoidOvertime(false);
+                                    setAdminPin("");
+                                    setPinError("");
+                                }}
+                                className='text-xl text-gray cursor-pointer'
+                            />
+                        </div>
+                        <div className='w-full flex flex-col gap-5 bg-gray/10 border border-gray/30 p-2 py-10 rounded-lg justify-center items-center text-center font-akagi text-2xl font-bold text-blue'>
+                            Enter admin PIN to void overtime.
+
+                            <div className='flex gap-3 justify-center'>
+                                {[0, 1, 2, 3, 4, 5].map((index) => (
+                                    <input
+                                        key={index}
+                                        ref={(el) => (pinRefs.current[index] = el)}
+                                        type='password'
+                                        maxLength={1}
+                                        inputMode='numeric'
+                                        value={adminPin[index] || ""}
+                                        onChange={(e) => handlePinChange(e, index)}
+                                        onKeyDown={(e) => handlePinKeyDown(e, index)}
+                                        className='
+                                            lg:w-12 lg:h-14 h-8 w-6
+                                            border-2 border-gray/30
+                                            rounded-lg
+                                            bg-white
+                                            text-center
+                                            lg:text-2xl text-md
+                                            font-bold
+                                            text-blue
+                                            outline-none
+                                            focus:border-blue
+                                            focus:ring-2
+                                            focus:ring-blue/20
+                                        '
+                                    />
+                                ))}
+                            </div>
+
+                            <p className='text-sm text-gray font-akagi font-medium'>This will void overtime payment and will set the bike status to "Available" upon admin's approval.
+                            </p>
+
+                            <div className='h-8 flex items-center justify-center'>
+                                {pinLoading && (
+                                    <p className='text-gray font-akagi text-lg'>
+                                        Checking PIN...
+                                    </p>
+                                )}
+
+                                {!pinLoading && pinError && (
+                                    <p className='text-red-500 font-akagi text-lg'>
+                                        {pinError}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
             }
