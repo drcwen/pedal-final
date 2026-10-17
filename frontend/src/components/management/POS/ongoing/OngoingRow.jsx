@@ -284,7 +284,7 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
                 <div className='w-full md:grid md:grid-cols-4 gap-5 items-center md:text-center flex flex-row'>
                     <h1 className='font-akagi font-bold text-gray text-lg'>{name}</h1>
                     <h1 className={`${dropdown === true ? "hidden md:block" : "block"} font-akagi font-semibold text-gray text-lg`}>{ordercount}</h1>
-                    <h1 className='hidden md:block font-akagi font-semibold text-gray text-lg'>{start}</h1>
+                    <h1 className='hidden md:block font-akagi font-semibold text-gray text-lg'>{start ? formatTime12Hour(start) : "--:--"}</h1>
 
                 </div>
 

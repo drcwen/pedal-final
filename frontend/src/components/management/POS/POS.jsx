@@ -84,6 +84,109 @@ function POS() {
         setHighlightedTransactionId(matchedTransaction.id);
     };
 
+    const fetchTransactions = async () => {
+        // Get reservations that have not reached their end time.
+        const { data: activeReservations, error: rpcError } =
+            await supabase.rpc("get_active_pending_reservations");
+
+        if (rpcError) {
+            console.error("Error fetching active reservations:", rpcError);
+            return;
+        }
+
+        const transactionIds = (activeReservations || []).map(
+            (transaction) => transaction.id
+        );
+
+        if (transactionIds.length === 0) {
+            setTransactions([]);
+            return;
+        }
+
+        // Fetch the full reservation details for the active transactions.
+        const { data, error } = await supabase
+            .from("transactions_mod")
+            .select(`
+                *,
+                customer:profiles_mod!transactions_mod_user_id_fkey1 (
+                    *
+                ),
+                orders_mod!inner (
+                    *,
+                    bike_types_mod (
+                        *
+                    )
+                )
+            `)
+            .in("id", transactionIds);
+
+        if (error) {
+            console.error("Error fetching reservation details:", error);
+            return;
+        }
+
+        setTransactions(data || []);
+    };
+
+    const fetchHistory = async () => {
+        const { data: expiredReservations, error: rpcError } =
+            await supabase.rpc("get_expired_pending_reservations");
+
+        if (rpcError) {
+            console.error("Error fetching expired reservations:", rpcError);
+            return;
+        }
+
+        const transactionIds = (expiredReservations || []).map(
+            (transaction) => transaction.id
+        );
+
+        if (transactionIds.length === 0) {
+            setReservationHistory([]);
+            return;
+        }
+
+        const { data, error } = await supabase
+            .from("transactions_mod")
+            .select(`
+                *,
+                customer:profiles_mod!transactions_mod_user_id_fkey1 (
+                    *
+                ),
+                orders_mod!inner (
+                    *,
+                    bike_types_mod (
+                        *
+                    )
+                )
+            `)
+            .in("id", transactionIds);
+
+        if (error) {
+            console.error("Error fetching reservation history details:", error);
+            return;
+        }
+
+        setReservationHistory(data || []);
+    };
+
+    
+    useEffect(() => {
+        if (activeTab !== "reservation") return;
+
+        // Fetch both lists immediately.
+        fetchTransactions();
+        fetchHistory();
+
+        // Keep both lists updated while Reservations is selected.
+        const interval = setInterval(() => {
+            fetchTransactions();
+            fetchHistory();
+        }, 15000);
+
+        return () => clearInterval(interval);
+    }, [activeTab]);
+
     useEffect(() => {
         fetchTransactions();
         fetchOngoing();
@@ -98,101 +201,31 @@ function POS() {
         return () => clearInterval(interval);
     }, []);
 
-    const fetchTransactions = async () => {
-        const today = new Intl.DateTimeFormat("en-CA", {
-            timeZone: "Asia/Manila",
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit"
-        }).format(new Date());
-
-        const { data, error } = await supabase
-            .from("transactions_mod")
-            .select(`
-                *,
-                customer:profiles_mod!transactions_mod_user_id_fkey1 (
-                    *
-                ),
-                orders_mod!inner (
-                    *,
-                    bike_types_mod (
-                        *
-                    )
-                )
-            `)
-            .eq("type", "reservation")
-            .eq("status", "pending")
-            .gte("orders_mod.reservation_date", today);
-
-        if (error) {
-            console.error("Error fetching reservations:", error);
-            return;
-        }
-
-        setTransactions(data || []);
-    };
-
-    const fetchHistory = async () => {
-        const today = new Intl.DateTimeFormat("en-CA", {
-            timeZone: "Asia/Manila",
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit"
-        }).format(new Date());
-
-        const { data, error } = await supabase
-            .from("transactions_mod")
-            .select(`
-                *,
-                customer:profiles_mod!transactions_mod_user_id_fkey1 (
-                    *
-                ),
-                orders_mod!inner (
-                    *,
-                    bike_types_mod (
-                        *
-                    )
-                )
-            `)
-            .eq("type", "reservation")
-            .eq("status", "pending")
-            .lt("orders_mod.reservation_date", today);
-
-        if (error) {
-            console.error("Error fetching reservations:", error);
-            return;
-        }
-
-        setReservationHistory(data || []);
-    };
-
     const fetchOngoing = async () => {
         const { data, error } = await supabase
             .from("transactions_mod")
             .select(`
                 *,
-                profile:profiles_mod!transactions_mod_user_id_fkey1 (
-                    *
-                ),
-                walk_in:walk_ins_users_mod (
-                    *
-                ),
+                profile:profiles_mod!transactions_mod_user_id_fkey1 (*),
+                walk_in:walk_ins_users_mod (*),
                 orders_mod (
                     *,
                     bike_types_mod (*),
-                    bikes_mod (*),
+                    bikes_mod!orders_mod_bike_id_fkey (*),
                     gps_mod (*),
                     extensions_mod (*)
                 ),
-                assisted_by_profile:profiles_mod!transactions_mod_assisted_by_fkey (
-                    *
-                )
+                assisted_by_profile:profiles_mod!transactions_mod_assisted_by_fkey (*)
             `)
             .eq("status", "started");
-            
 
-        setOngoing(data);        
-    }
+        if (error) {
+            console.error("Error fetching ongoing transactions:", error);
+            return;
+        }
+
+        setOngoing(data ?? []);
+    };
 
     const handleTabChange = async (tab) => {
         setActiveTab(tab);
@@ -439,14 +472,12 @@ function POS() {
                                                             )
                                                             : "Unknown Customer"
                                                     }
-                                                    ordercount={
-                                                        trans.orders_mod.length === 1
-                                                            ? `${trans.orders_mod.length} Bike`
-                                                            : `${trans.orders_mod.length} Bikes`
-                                                    }
+                                                    ordercount={`${(trans.orders_mod ?? []).length} ${
+                                                        (trans.orders_mod ?? []).length === 1 ? "Bike" : "Bikes"
+                                                    }`}
                                                     type={trans.type}
                                                     start={formatTime(trans.orders_mod?.[0]?.start_time)}
-                                                    bikeDetails={trans.orders_mod}
+                                                    bikeDetails={trans.orders_mod ?? []}
                                                     customer={trans.customer}
                                                     transaction={trans}
                                                 />
@@ -485,6 +516,8 @@ function POS() {
                                                 )
                                                 : trans.walk_in?.[0]?.full_name;
 
+                                        const orders = trans.orders_mod ?? [];
+
                                         return (
                                             <div
                                                 key={trans.id}
@@ -499,12 +532,12 @@ function POS() {
                                             >
                                                 <OngoingRow
                                                     name={customerName}
-                                                    ordercount={`${trans.orders_mod.length} ${
-                                                        trans.orders_mod.length === 1 ? "Bike" : "Bikes"
+                                                    ordercount={`${orders.length} ${
+                                                        orders.length === 1 ? "Bike" : "Bikes"
                                                     }`}
                                                     type={trans.type}
-                                                    start={trans.orders_mod[0].start_time}
-                                                    bikeDetails={trans.orders_mod}
+                                                    start={orders[0]?.start_time}
+                                                    bikeDetails={orders}
                                                     refreshOngoing={fetchOngoing}
                                                     transaction={trans.id}
                                                     transactionDetails={trans}
@@ -559,7 +592,9 @@ function POS() {
                                         </h1>
                                     </div>
                                 ) : (
-                                    Object.entries(groupedHistory).map(([date, reservations]) => (
+                                    Object.entries(groupedHistory)
+                                        .sort(([dateA], [dateB]) => new Date(dateB) - new Date(dateA))
+                                        .map(([date, reservations]) => (
                                         <div key={date} className="flex flex-col gap-3 pb-8">
 
                                             {/* Date heading */}
@@ -580,14 +615,12 @@ function POS() {
                                                             )
                                                             : "Unknown Customer"
                                                     }
-                                                    ordercount={
-                                                        trans.orders_mod.length === 1
-                                                            ? `${trans.orders_mod.length} Bike`
-                                                            : `${trans.orders_mod.length} Bikes`
-                                                    }
+                                                    ordercount={`${(trans.orders_mod ?? []).length} ${
+                                                        (trans.orders_mod ?? []).length === 1 ? "Bike" : "Bikes"
+                                                    }`}
                                                     type={trans.type}
                                                     start={formatTime(trans.orders_mod?.[0]?.start_time)}
-                                                    bikeDetails={trans.orders_mod}
+                                                    bikeDetails={trans.orders_mod ?? []}
                                                     customer={trans.customer}
                                                     transaction={trans}
                                                 />

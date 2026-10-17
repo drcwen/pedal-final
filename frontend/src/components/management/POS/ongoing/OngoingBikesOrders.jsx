@@ -215,10 +215,9 @@ function OngoingBikesOrders({
         }
     }
 
+    
     const handleReturn = async () => {
-
         if (dropDownValue === "Under Maintenance") {
-
             setMaintenancePayment({
                 orderId,
                 bikeCode,
@@ -231,10 +230,47 @@ function OngoingBikesOrders({
                 bikeTypeId,
                 bikeId,
                 gpsId,
-                gpsCode
+                gpsCode,
+
+                // Continue only after maintenance payment is settled
+                onMaintenanceSettled: async () => {
+                    if (isRentalOverdue()) {
+                        setRentalOverdue({
+                            orderId,
+                            bikeCode,
+                            type,
+                            duration,
+                            end,
+                            image,
+                            start,
+                            pricePerHour,
+                            bikeTypeId,
+                            bikeId,
+                            gpsId,
+                            gpsCode,
+                            overtimePayment,
+                            overtimeHours,
+                            transactionId,
+
+                            onOvertimeSettled: async () => {
+                                await returnBike();
+                                await returnGps();
+                                await setReturn();
+                                await refreshOngoing();
+                            }
+                        });
+
+                        return;
+                    }
+
+                    // Not overdue: finish the return process
+                    await returnBike();
+                    await returnGps();
+                    await setReturn();
+                    await refreshOngoing();
+                }
             });
 
-        
         } else if (dropDownValue === "Available") {
             if (isRentalOverdue()) {
                 setRentalOverdue({
@@ -263,13 +299,12 @@ function OngoingBikesOrders({
                 });
 
                 return;
-            } else {
-                await returnBike();
-                await returnGps();
-                await setReturn();
-                await refreshOngoing();
             }
 
+            await returnBike();
+            await returnGps();
+            await setReturn();
+            await refreshOngoing();
         }
     };
 

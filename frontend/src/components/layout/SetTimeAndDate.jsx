@@ -11,6 +11,7 @@ import { supabase } from "../../lib/supabase";
 function SetTimeAndDate({ setReservationData, onClose, reservationData }) {
     const [operatingHours, setOperatingHours] = useState([]);
     const [hoursLoading, setHoursLoading] = useState(true);
+    const [nonWorkingDates, setNonWorkingDates] = useState([]);
     const [selectedDate, setSelectedDate] = useState(
         reservationData?.date
             ? new Date(`${reservationData.date}T00:00:00`)
@@ -76,7 +77,30 @@ function SetTimeAndDate({ setReservationData, onClose, reservationData }) {
     minDate.setDate(minDate.getDate() + 1);
     minDate.setHours(0, 0, 0, 0);
 
-    // Fetch operating hours from Supabase
+    useEffect(() => {
+        const getNonWorkingDays = async () => {
+            const { data, error } = await supabase
+                .from("non_working_days_mod")
+                .select("id, event_name, date");
+
+            if (error) {
+                console.error("Error fetching non-working days:", error);
+                setValidationError(
+                    "Unable to load non-working dates. Please try again."
+                );
+                return;
+            }
+
+            setNonWorkingDates(
+                (data || [])
+                    .map((item) => item.date)
+                    .filter(Boolean)
+            );
+        };
+
+        getNonWorkingDays();
+    }, []);
+
     useEffect(() => {
         const getOperatingHours = async () => {
             setHoursLoading(true);
@@ -234,8 +258,13 @@ function SetTimeAndDate({ setReservationData, onClose, reservationData }) {
         );
     };
 
-    // Filter available days in the date picker
     const filterAvailableDates = (date) => {
+        const dateString = formatDate(date);
+
+        if (nonWorkingDates.includes(dateString)) {
+            return false;
+        }
+
         return isDayAvailable(date);
     };
 
@@ -292,6 +321,13 @@ function SetTimeAndDate({ setReservationData, onClose, reservationData }) {
 
         if (!selectedDayHours || !selectedDayHours.availability) {
             setValidationError("The shop is closed on this day.");
+            return;
+        }
+
+        if (nonWorkingDates.includes(formatDate(selectedDate))) {
+            setValidationError(
+                "This date is a non-working day. Please select another date."
+            );
             return;
         }
 

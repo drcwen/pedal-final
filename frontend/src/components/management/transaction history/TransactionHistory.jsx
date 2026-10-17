@@ -170,7 +170,7 @@ function TransactionHistory() {
                         orders_mod (
                             *,
                             bike_types_mod (*),
-                            bikes_mod (*),
+                            bikes_mod!orders_mod_bike_id_fkey (*),
                             gps_mod (*)
                         ),
                         extensions_mod (
@@ -183,7 +183,7 @@ function TransactionHistory() {
                             ),
                             orders_mod (
                                 *,
-                                bikes_mod (
+                                bikes_mod!orders_mod_bike_id_fkey (
                                     *,
                                     bike_types_mod (
                                         *
@@ -200,7 +200,7 @@ function TransactionHistory() {
                             *,
                             orders_mod (
                                 *,
-                                bikes_mod (
+                                bikes_mod!orders_mod_bike_id_fkey (
                                     *,
                                     bike_types_mod (
                                         *
@@ -239,7 +239,7 @@ function TransactionHistory() {
 
                             orders_mod (
                                 *,
-                                bikes_mod (
+                                bikes_mod!orders_mod_bike_id_fkey (
                                     *,
                                     bike_types_mod (*)
                                 ),
