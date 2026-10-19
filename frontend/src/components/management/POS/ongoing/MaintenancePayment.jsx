@@ -143,59 +143,65 @@ function MaintenancePayment({setMaintenancePayment, maintenancePayment}) {
 
     const onSubmit = async (e) => {
         if (e) e.preventDefault();
+
         setIsLoading(true);
 
         try {
             const transactionId = await insertTransaction();
 
-            if (!transactionId) {
-                setIsLoading(false);
-                return;
-            }
+            if (!transactionId) return;
 
             const maintenance = await insertToMaintenance(transactionId);
-            await updateBike();
 
-            if (!maintenance) {
-                setIsLoading(false);
-                return;
+            if (!maintenance) return;
+
+            if (!maintenancePayment.isOverdue) {
+                await updateBike();
             }
 
             console.log("Transaction ID:", transactionId);
             console.log("Maintenance:", maintenance);
 
             setMaintenancePayment(null);
-            window.location.reload();
+
+            if (maintenancePayment.onMaintenanceSettled) {
+                await maintenancePayment.onMaintenanceSettled();
+            }
         } catch (error) {
             console.error("Submission failed:", error);
+        } finally {
             setIsLoading(false);
         }
     };
 
     const GCashonSubmit = async (reference) => {
-
         setIsLoading(true);
 
         try {
             const transactionId = await insertTransaction(price, reference);
 
-            if (!transactionId) {
-                return;
-            }
+            if (!transactionId) return false;
 
             const maintenance = await insertToMaintenance(transactionId);
 
-            if (!maintenance) {
-                return;
-            }
+            if (!maintenance) return false;
 
-            await updateBike();
+            if (!maintenancePayment.isOverdue) {
+                await updateBike();
+            }
 
             console.log("Transaction ID:", transactionId);
             console.log("Maintenance:", maintenance);
 
-            return true;
+            // Close the maintenance modal
+            setMaintenancePayment(null);
 
+            // Continue to the overdue check, if applicable
+            if (maintenancePayment.onMaintenanceSettled) {
+                await maintenancePayment.onMaintenanceSettled();
+            }
+
+            return true;
         } catch (error) {
             console.error("Submission failed:", error);
             return false;
@@ -229,6 +235,7 @@ function MaintenancePayment({setMaintenancePayment, maintenancePayment}) {
     };
 
     console.log(price)
+
     return (
     <>
 

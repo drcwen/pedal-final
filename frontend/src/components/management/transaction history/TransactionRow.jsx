@@ -54,6 +54,7 @@ function TransactionRow({totalBikes, transactionId, fullName, transactionType, t
             minute: "2-digit",
             hour12: true,
         });
+        
     }
 
   return (
@@ -155,7 +156,7 @@ function TransactionRow({totalBikes, transactionId, fullName, transactionType, t
 
                                             bikeType={originalBikeType?.name}
 
-                                            price={"P" + originalBikeType?.price}
+                                            price={"P" + (originalBikeType?.price * orders?.duration_hours)}
 
                                             unitId={
                                                 originalBike?.code ?? "NOT STARTED"

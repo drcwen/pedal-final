@@ -10,6 +10,7 @@ function TransactionCurrentRow({ bikeCount, date, method, total, status, transac
 
     const [openReceipt, setOpenReceipt] = useState(false);
     console.log(startedBikes)
+    console.log("Transactions", transactions)
 
     function formatTime(time) {
         const [hours, minutes] = time.split(":");

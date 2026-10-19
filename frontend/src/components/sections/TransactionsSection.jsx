@@ -73,6 +73,8 @@ function TransactionsSection() {
                 id,
                 payment_method,
                 amount_paid,
+                total_amount,
+                change_amount,
                 status,
                 created_at,
                 orders_mod!orders_mod_transaction_id_fkey (
@@ -118,6 +120,8 @@ function TransactionsSection() {
                 id,
                 payment_method,
                 amount_paid,
+                total_amount,
+                change_amount,
                 status,
                 created_at,
                 orders_mod!orders_mod_transaction_id_fkey (

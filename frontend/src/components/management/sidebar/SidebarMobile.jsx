@@ -13,6 +13,7 @@ import { PiSignOutBold } from "react-icons/pi";
 import { MdManageAccounts } from "react-icons/md";
 import { IoMdSettings } from "react-icons/io";
 import { TbReportAnalytics } from "react-icons/tb";
+import { TiUser } from "react-icons/ti";
 
 function SidebarMobile({active}) {
 
@@ -88,11 +89,17 @@ function SidebarMobile({active}) {
       route: "/data-reports",
     },
     {
-        name: "Settings",
-        icon: IoMdSettings,
-        key: "settings",
-        route: "/settings",
-      },
+      name: "Settings",
+      icon: IoMdSettings,
+      key: "settings",
+      route: "/settings",
+    },
+    {
+      name: "Profile",
+      icon: TiUser,
+      key: "profile",
+      route: "/prof",
+    },
     {
       name: "Sign out",
       icon: PiSignOutBold,

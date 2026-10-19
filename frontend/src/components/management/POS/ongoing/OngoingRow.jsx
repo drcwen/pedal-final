@@ -1,4 +1,3 @@
-
 import { RiArrowDropDownLine } from "react-icons/ri";
 import { RiArrowDropUpLine } from "react-icons/ri";
 import { motion, AnimatePresence } from "motion/react"
@@ -10,6 +9,10 @@ import ChangeBike from "./ChangeBike"
 import MaintenancePayment from "./MaintenancePayment"
 import { MdOutlineReceiptLong } from "react-icons/md";
 import Receipt from "../../receipt/Receipt"
+import { MdDeleteForever } from "react-icons/md";
+import { useRef } from "react";
+import { IoMdClose } from "react-icons/io";
+import RentalOverdue from "./RentalOverdue"
 
 function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, transaction, transactionDetails }) {
 
@@ -18,6 +21,7 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
     const [extendOrder, setExtendOrder] = useState(null);
     const [changeOrder, setChangeOrder] = useState(null);
     const [maintenancePayment, setMaintenancePayment] = useState(null);
+    const [rentalOverdue, setRentalOverdue] = useState(null);
 
     const [dropdown, setDropdown] = useState(false);
 
@@ -27,10 +31,363 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
 
     const [extendedTotal, setExtendedTotal] = useState(0);
     
+    const [voidConfirmation, setVoidConfirmation] = useState(false);
+
+    const [adminPin, setAdminPin] = useState("");
+    const [pinLoading, setPinLoading] = useState(false);
+    const [pinError, setPinError] = useState("");
+
+    const [maxExtensionHours, setMaxExtensionHours] = useState(0);
+    const [extensionHoursLoading, setExtensionHoursLoading] = useState(false);
+    const [extensionHoursError, setExtensionHoursError] = useState("");
+
+    async function fetchAvailableExtensionHours(endRange) {
+        setExtensionHoursLoading(true);
+        setExtensionHoursError("");
+        setMaxExtensionHours(0);
+
+        try {
+            const match = endRange?.match(/\["([^"]+)","([^"]+)"\)/);
+
+            if (!match) {
+            console.error("Invalid reservation range:", endRange);
+            throw new Error("Invalid rental end time.");
+            }
+
+            const endTimestamp = match[2].trim();
+
+            let normalizedTimestamp = endTimestamp.replace(" ", "T");
+            normalizedTimestamp = normalizedTimestamp.replace(
+            /([+-]\d{2})$/,
+            "$1:00"
+            );
+
+            normalizedTimestamp = normalizedTimestamp.replace(
+            /\.(\d{3})\d+(?=(?:Z|[+-]\d{2}:\d{2})?$)/,
+            ".$1"
+            );
+
+            if (!/(Z|[+-]\d{2}:\d{2})$/i.test(normalizedTimestamp)) {
+            normalizedTimestamp += "Z";
+            }
+
+            const rentalEnd = new Date(normalizedTimestamp);
+
+            if (Number.isNaN(rentalEnd.getTime())) {
+            console.error("Invalid end timestamp:", endTimestamp);
+            throw new Error("Unable to read the rental end time.");
+            }
+
+            const weekday = new Intl.DateTimeFormat("en-US", {
+            timeZone: "Asia/Manila",
+            weekday: "long",
+            }).format(rentalEnd);
+
+            const endHour = Number(
+            new Intl.DateTimeFormat("en-US", {
+                timeZone: "Asia/Manila",
+                hour: "2-digit",
+                hourCycle: "h23",
+            }).format(rentalEnd)
+            );
+
+            const endMinute = Number(
+            new Intl.DateTimeFormat("en-US", {
+                timeZone: "Asia/Manila",
+                minute: "2-digit",
+            }).format(rentalEnd)
+            );
+
+            const { data: schedule, error } = await supabase
+            .from("operating_hours_mod")
+            .select("day, opening, closing, availability, is_whole_day")
+            .eq("day", weekday)
+            .maybeSingle();
+
+            if (error) throw error;
+
+            if (!schedule) {
+            throw new Error(`No operating-hours record found for ${weekday}.`);
+            }
+
+            if (schedule.availability !== true) {
+            setMaxExtensionHours(0);
+            setExtensionHoursError(
+                `The park is closed on ${weekday}. Extensions are unavailable.`
+            );
+            return;
+            }
+
+            const [closingHour, closingMinute] = schedule.closing
+            .split(":")
+            .map(Number);
+
+            const currentEndMinutes = endHour * 60 + endMinute;
+            const closingMinutes = closingHour * 60 + closingMinute;
+
+            const remainingMinutes = closingMinutes - currentEndMinutes;
+
+            const availableHours = Math.max(
+            0,
+            Math.floor(remainingMinutes / 60)
+            );
+
+            const allowedHours = availableHours;
+
+            setMaxExtensionHours(allowedHours);
+
+            if (allowedHours === 0) {
+            setExtensionHoursError(
+                `No additional rental hours are available. The park closes at ${schedule.closing}.`
+            );
+            }
+        } catch (error) {
+            console.error("Error checking extension hours:", error);
+            setMaxExtensionHours(0);
+            setExtensionHoursError(
+            error.message || "Unable to check available extension hours."
+            );
+        } finally {
+            setExtensionHoursLoading(false);
+        }
+        }
+
+    const handlePinChange = (e, index) => {
+        const value = e.target.value;
+
+        if (!/^\d?$/.test(value)) return;
+
+        const currentPin = pinRefs.current.map(
+            (input) => input?.value || ""
+        );
+
+        currentPin[index] = value;
+
+        const newPin = currentPin.join("");
+
+        setAdminPin(newPin);
+        setPinError("");
+
+        if (value && index < 5) {
+            pinRefs.current[index + 1]?.focus();
+        }
+
+        if (newPin.length === 6) {
+            checkAdminPin(newPin);
+        }
+    };
+
+    const checkAdminPin = async (pinCode) => {
+        setPinLoading(true);
+        setPinError("");
+
+        const { data, error } = await supabase
+            .from("pin_mod")
+            .select("id, admin_id")
+            .eq("pin", Number(pinCode))
+            .maybeSingle();
+
+        if (error) {
+            console.error("Error checking admin PIN:", error);
+            setPinError("Something went wrong. Please try again.");
+            setPinLoading(false);
+            return;
+        }
+
+        if (!data) {
+            setPinError("Incorrect admin PIN.");
+            setPinLoading(false);
+            return;
+        }
+
+        // PIN is correct
+        console.log("Correct admin PIN:", data);
+
+        await voidTransaction();
+
+        setPinLoading(false);
+    };
 
     const startedBikes = bikeDetails.filter(
         (bike) => bike.status === "started"
     );
+
+    const pinRefs = useRef([]);
+
+    const handlePinKeyDown = (e, index) => {
+        // Move to previous input when backspacing an empty input
+        if (
+            e.key === "Backspace" &&
+            !e.target.value &&
+            index > 0
+        ) {
+            pinRefs.current[index - 1]?.focus();
+        }
+    };
+
+    const voidTransaction = async () => {
+        try {
+            const orderIds = startedBikes.map((bike) => bike.id);
+
+            // 1. Find extension transactions linked to these orders
+            let extensionTransactionIds = [];
+
+            if (orderIds.length > 0) {
+                const { data, error } = await supabase
+                    .from("extensions_mod")
+                    .select("transaction_id")
+                    .in("order_id", orderIds);
+
+                if (error) throw error;
+
+                extensionTransactionIds = (data ?? [])
+                    .map((item) => item.transaction_id)
+                    .filter((id) => id != null);
+            }
+
+            // 2. Find bike-change transactions linked to these orders
+            let changeTransactionIds = [];
+
+            if (orderIds.length > 0) {
+                const { data, error } = await supabase
+                    .from("change_bikes_mod")
+                    .select("trans_id")
+                    .in("order_id", orderIds);
+
+                if (error) throw error;
+
+                changeTransactionIds = (data ?? [])
+                    .map((item) => item.trans_id)
+                    .filter((id) => id != null);
+            }
+
+            // Include original, extension, and bike-change transactions
+            const transactionIds = [
+                ...new Set([
+                    transaction,
+                    ...extensionTransactionIds,
+                    ...changeTransactionIds,
+                ]),
+            ];
+
+            // 3. Restore bikes and GPS
+            for (const bike of startedBikes) {
+                const bikeId = bike.current_bike?.id ?? bike.bikes_mod?.id;
+                const gpsId = bike.gps_mod?.id;
+
+                if (bikeId) {
+                    const { error } = await supabase
+                        .from("bikes_mod")
+                        .update({ status: "Available" })
+                        .eq("id", bikeId);
+
+                    if (error) throw error;
+                }
+
+                if (gpsId) {
+                    const { error } = await supabase
+                        .from("gps_mod")
+                        .update({ status: "Available" })
+                        .eq("id", gpsId);
+
+                    if (error) throw error;
+                }
+            }
+
+            // 4. Delete overtime records referencing any of these transactions
+            for (const id of transactionIds) {
+                const { error } = await supabase
+                    .from("overtime_mod")
+                    .delete()
+                    .or(
+                        `transaction_id.eq.${id},original_transaction_id.eq.${id}`
+                    );
+
+                if (error) throw error;
+            }
+
+            // 5. Delete maintenance records linked to these transactions
+            const { error: maintenanceError } = await supabase
+                .from("maintenance_mod")
+                .delete()
+                .in("transaction_id", transactionIds);
+
+            if (maintenanceError) throw maintenanceError;
+
+            // 6. Delete extensions linked to these transactions or orders
+            const { error: extensionsByTransactionError } = await supabase
+                .from("extensions_mod")
+                .delete()
+                .in("transaction_id", transactionIds);
+
+            if (extensionsByTransactionError) {
+                throw extensionsByTransactionError;
+            }
+
+            if (orderIds.length > 0) {
+                const { error } = await supabase
+                    .from("extensions_mod")
+                    .delete()
+                    .in("order_id", orderIds);
+
+                if (error) throw error;
+            }
+
+            // 7. Delete bike-change records linked to these transactions or orders
+            const { error: changesByTransactionError } = await supabase
+                .from("change_bikes_mod")
+                .delete()
+                .in("trans_id", transactionIds);
+
+            if (changesByTransactionError) {
+                throw changesByTransactionError;
+            }
+
+            if (orderIds.length > 0) {
+                const { error } = await supabase
+                    .from("change_bikes_mod")
+                    .delete()
+                    .in("order_id", orderIds);
+
+                if (error) throw error;
+            }
+
+            // 8. Delete orders referencing any of these transactions
+            const { error: ordersError } = await supabase
+                .from("orders_mod")
+                .delete()
+                .in("transaction_id", transactionIds);
+
+            if (ordersError) throw ordersError;
+
+            // 9. Delete walk-in users referencing these transactions
+            const { error: walkInError } = await supabase
+                .from("walk_ins_users_mod")
+                .delete()
+                .in("transaction_id", transactionIds);
+
+            if (walkInError) throw walkInError;
+
+            // 10. Delete all transactions last
+            const { error: transactionsError } = await supabase
+                .from("transactions_mod")
+                .delete()
+                .in("id", transactionIds);
+
+            if (transactionsError) throw transactionsError;
+
+            await refreshOngoing();
+
+            setAdminPin("");
+            setPinError("");
+            setVoidConfirmation(false);
+
+            console.log("Transaction and related records voided successfully.");
+        } catch (error) {
+            console.error("Error voiding transaction:", error);
+            alert(`Failed to void transaction: ${error.message}`);
+        }
+    };
 
     async function updateStatus() {
         const transactionId = bikeDetails[0].transaction_id;
@@ -113,6 +470,19 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
         
     }, [startedBikes.length]);
 
+    useEffect(() => {
+        if (!extendOrder) {
+            setMaxExtensionHours(0);
+            setExtensionHoursError("");
+            setUpdatedTime(null);
+            setExtensionClicked(null);
+            setExtendedTotal(0);
+            return;
+        }
+
+        fetchAvailableExtensionHours(extendOrder.end);
+    }, [extendOrder]);
+
   return (
     <>
         <div 
@@ -122,24 +492,10 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
                 <div className='w-full md:grid md:grid-cols-4 gap-5 items-center md:text-center flex flex-row'>
                     <h1 className='font-akagi font-bold text-gray text-lg'>{name}</h1>
                     <h1 className={`${dropdown === true ? "hidden md:block" : "block"} font-akagi font-semibold text-gray text-lg`}>{ordercount}</h1>
-                    <h1 className='hidden md:block font-akagi font-semibold text-gray text-lg'>{start}</h1>
+                    <h1 className='hidden md:block font-akagi font-semibold text-gray text-lg'>{start ? formatTime12Hour(start) : "--:--"}</h1>
 
-                    <AnimatePresence initial={false}>
-                        <motion.div
-                                initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: "auto", opacity: 1 }}
-                                exit={{ height: 0, opacity: 0 }}
-                                transition={{ duration: 0.3, ease: "easeInOut" }} 
-                                className={`md:py-0 ${dropdown === true ? "block py-4" : "hidden"}`}>
-                            <div
-                                className={`w-fit rounded-xl bg-red-500 transition-all duration-300 
-                                    `}
-                            >
-                                <h1 className='font-akagi font-black text-[#ffffff] px-5 py-1 cursor-pointer'>END</h1>
-                            </div>
-                        </motion.div>
-                    </AnimatePresence>
                 </div>
+
                 <div 
                     onClick={() => setDropdown(!dropdown)}
                     className='cursor-pointer'
@@ -166,17 +522,17 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
                             {startedBikes
                                 .map((bikes) => (
                                     <OngoingBikesOrders
-                                        bikeTypeId={bikes.bike_types_mod.id}
-                                        bikeCode={bikes.bikes_mod?.code}
+                                        bikeTypeId={bikes.current_bike?.bike_type_id}
+                                        bikeCode={bikes.current_bike?.code}
                                         gpsId={bikes.gps_mod?.code}
                                         gpsCode={bikes.gps_mod?.id}
-                                        type={bikes.bike_types_mod.name}
-                                        image={bikes.bike_types_mod.image_url}
-                                        price={bikes.bike_types_mod?.price ?? 0}
+                                        type={bikes.current_bike?.bike_types_mod?.name}
+                                        image={bikes.current_bike?.bike_types_mod?.image_url}
+                                        price={bikes.current_bike?.bike_types_mod?.price ?? 0}
                                         duration={
                                             bikes.duration_hours === 1
-                                                ? bikes.duration_hours + " hour"
-                                                : bikes.duration_hours + " hours"
+                                                ? `${bikes.duration_hours} hour`
+                                                : `${bikes.duration_hours} hours`
                                         }
                                         start={bikes.start_time}
                                         end={bikes.reservation_range}
@@ -184,33 +540,151 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
                                         setExtendOrder={setExtendOrder}
                                         setChangeOrder={setChangeOrder}
                                         setMaintenancePayment={setMaintenancePayment}
-                                        pricePerHour={bikes.bike_types_mod.price}
+                                        pricePerHour={bikes.current_bike?.bike_types_mod?.price ?? 0}
                                         transactionId={transaction}
-                                        bikeId={bikes.bikes_mod?.id}
+                                        bikeId={bikes.current_bike?.id}
                                         extensionsDuration={bikes.extensions_mod?.map(
                                             extension => extension.extension_duration
                                         )}
                                         refreshOngoing={refreshOngoing}
+                                        setRentalOverdue={setRentalOverdue}
                                     />
                                 ))
                             }
 
                         </div>
 
-                        <div className='flex justify-end'>
+                        <div className='flex gap-3 justify-end items-center'>
+
+                             <div 
+                                onClick={() => setVoidConfirmation(!voidConfirmation)}
+                                className='flex gap-2 bg-red-400 px-2 py-1 rounded-lg font-akagi font-semibold cursor-pointer text-[#ffffff] text-sm'>
+                                <MdDeleteForever className='text-lg'/>Void
+                            </div>
+
                             <div 
                                 onClick={() => setReceipt(!receipt)}
                                 className='flex gap-2 bg-blue px-2 py-1 rounded-lg font-akagi font-semibold cursor-pointer text-[#ffffff] text-sm'>
                                 <MdOutlineReceiptLong className='text-lg'/>Receipt
                             </div>
+
+                            {voidConfirmation &&
+                                <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-100 p-5">
+                                    <div className="
+                                        bg-[#ffffff]
+                                        p-5 md:p-10
+                                        rounded-xl
+                                        w-full
+                                        max-w-2xl
+                                        max-h-[90vh]
+                                        overflow-y-auto
+                                        scrollbar-thin
+                                        scrollbar-thumb-[#B9B9B9]
+                                        scrollbar-track-[#E2E2E2] flex flex-col gap-5
+                                    ">
+                                        <div className='flex justify-end'>
+                                            <IoMdClose
+                                                onClick={() => {
+                                                    setVoidConfirmation(false);
+                                                    setAdminPin("");
+                                                    setPinError("");
+                                                }}
+                                                className='text-xl text-gray cursor-pointer'
+                                            />
+                                        </div>
+                                        <div className='w-full flex flex-col gap-5 bg-gray/10 border border-gray/30 p-2 py-10 rounded-lg justify-center items-center text-center font-akagi text-2xl font-bold text-blue'>
+                                            Enter admin PIN to void transaction.
+
+                                            <div className='flex gap-3 justify-center'>
+                                                {[0, 1, 2, 3, 4, 5].map((index) => (
+                                                    <input
+                                                        key={index}
+                                                        ref={(el) => (pinRefs.current[index] = el)}
+                                                        type='password'
+                                                        maxLength={1}
+                                                        inputMode='numeric'
+                                                        value={adminPin[index] || ""}
+                                                        onChange={(e) => handlePinChange(e, index)}
+                                                        onKeyDown={(e) => handlePinKeyDown(e, index)}
+                                                        className='
+                                                            w-12 h-14
+                                                            border-2 border-gray/30
+                                                            rounded-lg
+                                                            bg-white
+                                                            text-center
+                                                            text-2xl
+                                                            font-bold
+                                                            text-blue
+                                                            outline-none
+                                                            focus:border-blue
+                                                            focus:ring-2
+                                                            focus:ring-blue/20
+                                                        '
+                                                    />
+                                                ))}
+                                            </div>
+
+                                            <div className='h-8 flex items-center justify-center'>
+                                                {pinLoading && (
+                                                    <p className='text-gray font-akagi text-lg'>
+                                                        Checking PIN...
+                                                    </p>
+                                                )}
+
+                                                {!pinLoading && pinError && (
+                                                    <p className='text-red-500 font-akagi text-lg'>
+                                                        {pinError}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            
                         </div>
 
                         {receipt &&
-                            <Receipt 
-                                setReceipt={setReceipt}
-                                startedBikes={startedBikes}
-                                transaction={transactionDetails}
-                            />
+
+                            <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-100 p-5">
+                                <div className="
+                                    bg-[#ffffff]
+                                    p-5 md:p-10
+                                    rounded-xl
+                                    w-full
+                                    max-w-2xl
+                                    max-h-[90vh]
+                                    overflow-y-auto
+                                    scrollbar-thin
+                                    scrollbar-thumb-[#B9B9B9]
+                                    scrollbar-track-[#E2E2E2] flex flex-col gap-5
+                                    flex flex-col gap-2
+                                "
+                            >
+                                <Receipt 
+                                    startedBikes={startedBikes}
+                                    transaction={transactionDetails}
+                                />
+
+                                <Receipt 
+                                    startedBikes={startedBikes}
+                                    transaction={transactionDetails}
+                                />
+
+                                <div className='flex justify-between'>
+                                    <div 
+                                        onClick={() => setReceipt(false)}
+                                        className='flex gap-2 border border-gray text-gray px-2 py-1 rounded-lg font-akagi font-semibold cursor-pointer text-sm'>
+                                            Close
+                                    </div>
+
+                                    <div 
+                                        className='flex gap-2 bg-blue text-[#ffffff] px-2 py-1 rounded-lg font-akagi font-semibold cursor-pointer text-sm'>
+                                            Print
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         }
                     </motion.div>
                 )}
@@ -221,6 +695,14 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
             <ChangeBike 
                 setChangeOrder={setChangeOrder}
                 changeOrder={changeOrder}
+
+            />
+        }
+
+        { rentalOverdue && 
+            <RentalOverdue 
+                setRentalOverdue={setRentalOverdue}
+                rentalOverdue={rentalOverdue}
 
             />
         }
@@ -254,36 +736,53 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
                     <div className='flex flex-col gap-5 px-10'>
                         <h1>Current End: {getEndTimeOnly(extendOrder.end)}</h1>
 
-                        <div className='grid grid-cols-4 md:gap-5 gap-2'>
-                            <div 
-                                onClick={() => {setUpdatedTime(addHoursToTstzrange(extendOrder.end, 1)), setExtensionClicked(1), setExtendedTotal(extendOrder.pricePerHour * 1)}}
-                                value={1}
-                                className={`border-2 ${extensionClicked === 1 ? "bg-blue text-[#ffffff] border-blue" : undefined} border-[#DBDBDB] rounded-lg flex py-3 justify-center items-center`}>
-                                +1
-                            </div>
+                        {extensionHoursLoading ? (
+                            <p className="col-span-4 text-center text-gray">
+                                Loading park operating hours...
+                            </p>
+                        ) : (
+                            <div className="col-span-4 grid grid-cols-4 gap-2 md:gap-5">
+                                {Array.from(
+                                    { length: maxExtensionHours },
+                                    (_, index) => index + 1
+                                ).map((hours) => (
+                                    <button
+                                        key={hours}
+                                        type="button"
+                                        onClick={() => {
+                                            setUpdatedTime(
+                                                addHoursToTstzrange(
+                                                    extendOrder.end,
+                                                    hours
+                                                )
+                                            );
 
-                            <div 
-                                onClick={() => {setUpdatedTime(addHoursToTstzrange(extendOrder.end, 2)), setExtensionClicked(2), setExtendedTotal(extendOrder.pricePerHour * 2)}}
-                                value={2}
-                                className={`border-2 ${extensionClicked === 2 ? "bg-blue text-[#ffffff] border-blue" : undefined} border-[#DBDBDB] rounded-lg flex py-3 justify-center items-center`}>
-                                +2
-                            </div>
+                                            setExtensionClicked(hours);
 
-                            <div 
-                                onClick={() => {setUpdatedTime(addHoursToTstzrange(extendOrder.end, 3)), setExtensionClicked(3), setExtendedTotal(extendOrder.pricePerHour * 3)}}
-                                value={3}
-                                className={`border-2 ${extensionClicked === 3 ? "bg-blue text-[#ffffff] border-blue" : undefined} cursor-pointer border-[#DBDBDB] rounded-lg flex py-3 justify-center items-center`}>
-                                +3
+                                            setExtendedTotal(
+                                                Number(extendOrder.pricePerHour) * hours
+                                            );
+                                        }}
+                                        className={`border-2 rounded-lg flex py-3 justify-center items-center cursor-pointer
+                                            ${
+                                                extensionClicked === hours
+                                                    ? "bg-blue text-white border-blue"
+                                                    : "border-[#DBDBDB]"
+                                            }`}
+                                    >
+                                        +{hours}
+                                    </button>
+                                ))}
                             </div>
+                        )}
 
-                            <div 
-                                onClick={() => {setUpdatedTime(addHoursToTstzrange(extendOrder.end, 4)), setExtensionClicked(4), setExtendedTotal(extendOrder.pricePerHour * 4)}}
-                                value={4}
-                                className={`border-2 ${extensionClicked === 4 ? "bg-blue text-[#ffffff] border-blue" : undefined} border-[#DBDBDB] cursor-pointer rounded-lg flex py-3 justify-center items-center`}>
-                                +4
-                            </div>
-                        
-                        </div>
+                        {!extensionHoursLoading &&
+                            maxExtensionHours === 0 && (
+                                <p className="col-span-4 text-center text-red-500">
+                                    {extensionHoursError ||
+                                        "No extension hours are available."}
+                                </p>
+                            )}
                         <h1>Updated End: {updatedTime ? getEndTimeOnly(updatedTime) : "--:--"}</h1>
 
                         <div className='flex flex-row gap-2 items-center'>
@@ -301,8 +800,23 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
                             Close
                         </button>
 
-                        <button 
-                            className={`${extendedTotal === 0 ? "pointer-events-none opacity-20" : undefined} bg-green-500 rounded-lg text-[#ffffff] px-3 py-1 cursor-pointer`}
+                        <button
+                            type="button"
+                            disabled={
+                                extensionHoursLoading ||
+                                maxExtensionHours === 0 ||
+                                !extensionClicked ||
+                                extendedTotal <= 0
+                            }
+                            className={`bg-green-500 rounded-lg text-white px-3 py-1
+                                ${
+                                    extensionHoursLoading ||
+                                    maxExtensionHours === 0 ||
+                                    !extensionClicked ||
+                                    extendedTotal <= 0
+                                        ? "opacity-30 cursor-not-allowed"
+                                        : "cursor-pointer"
+                                }`}
                             onClick={() => setPayment(true)}
                         >
                             Payment

@@ -19,6 +19,7 @@ import { useState, useEffect } from 'react';
 function Sidebar({active}) {
 
     const navigate = useNavigate();
+    const [userName, setUserNname] = useState(null);
 
     const [openAlerts, setOpenAlerts] = useState(false);
 
@@ -32,57 +33,85 @@ function Sidebar({active}) {
       navigate("/login");
     }
 
-    const menu = [
-  {
-    name: "Dashboard",
-    icon: MdOutlineDashboard,
-    key: "dashboard",
-    route: "/dashboard",
-  },
-  {
-    name: "POS",
-    icon: MdOutlinePointOfSale,
-    key: "pos",
-    route: "/pos",
-  },
-  {
-    name: "Transaction History",
-    icon: FaHistory,
-    key: "history",
-    route: "/history",
-  },
-  {
-    name: "Monitoring",
-    icon: IoIosPin,
-    key: "monitoring",
-    route: "/monitoring",
-  },
-  {
-    name: "Inventory",
-    icon: MdOutlineInventory,
-    key: "inventory",
-    route: "/inventory",
-  },
-  {
-    name: "Manage Accounts",
-    icon: MdManageAccounts,
-    key: "accounts",
-    route: "/accounts",
-  },
-  {
-    name: "Reports",
-    icon: TbReportAnalytics,
-    key: "datareports",
-    route: "/data-reports",
-  },
-  {
-    name: "Settings",
-    icon: IoMdSettings,
-    key: "settings",
-    route: "/settings",
-  },
+    const fetchUserName = async () => { 
+      const { data: { user }, error: userError } = await supabase.auth.getUser(); 
+        if (userError) 
+          { console.log("Error getting logged in user:", userError.message); 
+            return; 
+          } 
+          
+          if (!user) { 
+            return; 
+          } 
+          
+          const { data, error } = await supabase .from("profiles_mod") 
+            .select("first_name, last_name") .eq("id", user.id) 
+            .maybeSingle(); 
+            
+          if (error) { 
+            console.log("Error fetching user profile:", error.message); 
+            return; 
+          } 
+          
+          if (data) { 
+            setUserNname( `${data.first_name || ""} ${data.last_name || ""}`.trim() ); 
+          } 
+    };
 
-]
+    useEffect(() => { 
+      fetchUserName(); 
+    }, []);
+
+    const menu = [
+      {
+        name: "Dashboard",
+        icon: MdOutlineDashboard,
+        key: "dashboard",
+        route: "/dashboard",
+      },
+      {
+        name: "POS",
+        icon: MdOutlinePointOfSale,
+        key: "pos",
+        route: "/pos",
+      },
+      {
+        name: "Transaction History",
+        icon: FaHistory,
+        key: "history",
+        route: "/history",
+      },
+      {
+        name: "Monitoring",
+        icon: IoIosPin,
+        key: "monitoring",
+        route: "/monitoring",
+      },
+      {
+        name: "Inventory",
+        icon: MdOutlineInventory,
+        key: "inventory",
+        route: "/inventory",
+      },
+      {
+        name: "Manage Accounts",
+        icon: MdManageAccounts,
+        key: "accounts",
+        route: "/accounts",
+      },
+      {
+        name: "Reports",
+        icon: TbReportAnalytics,
+        key: "datareports",
+        route: "/data-reports",
+      },
+      {
+        name: "Settings",
+        icon: IoMdSettings,
+        key: "settings",
+        route: "/settings",
+      },
+    ]
 
   return (
     <>
@@ -121,9 +150,11 @@ function Sidebar({active}) {
               </div>
 
               <div className='flex flex-row justify-between items-center pb-10 px-3 '>
-                <div className='flex flex-row gap-3 items-center'>
+                <div 
+                  onClick={() => {navigate('/prof')}}
+                  className='flex flex-row gap-3 items-center'>
                   <FaUserCircle className='text-lg text-gray hover:text-blue duration-300 transition-all cursor-pointer' />
-                  <h1 className='text-lg font-akagi font-bold text-gray hover:text-blue duration-300 transition-all cursor-pointer'>Wendel</h1>
+                  <h1 className='text-md font-akagi font-bold text-gray hover:text-blue duration-300 transition-all cursor-pointer'>{userName}</h1>
                 </div>
 
                 <PiSignOutBold 

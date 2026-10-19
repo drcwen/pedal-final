@@ -1,8 +1,6 @@
 import { supabase } from "../../../../lib/supabase"
 import Sidebar from "../../sidebar/Sidebar"
 import SidebarMobile from "../../sidebar/SidebarMobile"
-import { FaPlus } from "react-icons/fa6";
-import ReservationRow from "../reservation/ReservationRow"
 import { useState, useEffect } from 'react';
 import { motion } from "motion/react"
 import { IoChevronBack } from "react-icons/io5";
@@ -15,6 +13,23 @@ function WalkInRent() {
     
     const navigate = useNavigate();
     const [info, setInfo] = useState([]);
+    const [proceed, setProceed] = useState(false);
+    const [openBikeId, setOpenBikeId] = useState(null);
+
+    const [bikeData, setBikeData] = useState({});
+    const [cart, setCart] = useState([]);
+
+    const grandTotal = cart.reduce((sum, item) => sum + item.total, 0);
+
+    const [gcashStatus, setGcashStatus] = useState("waiting");
+
+    const [gcash, setGcash] = useState(false);
+    const [cash, setCash] = useState(false);
+
+    const [method, setMethod] = useState(null);
+    const [referenceNo, setReferenceNo] = useState(null);
+
+    const [cashAmount, setCashAmount] = useState(null);
 
     useEffect(() => {
         console.log(cart);
@@ -36,6 +51,167 @@ function WalkInRent() {
         fetchBikes()
 
     }, [])
+
+    //Available Bikes (Status = "Available" and overlapping from reservation)
+    const [availableBikes, setAvailableBikes] = useState({});
+    const [checkingAvailability, setCheckingAvailability] = useState({});
+
+    const checkBikeAvailability = async (bikeTypeId, hours) => {
+        if (!hours || hours <= 0) {
+            setAvailableBikes(prev => ({
+                ...prev,
+                [bikeTypeId]: null
+            }));
+            return;
+        }
+
+        setCheckingAvailability(prev => ({
+            ...prev,
+            [bikeTypeId]: true
+        }));
+
+        try {
+            const now = new Date();
+
+            // Get the current date and time in Philippine time.
+            const formatter = new Intl.DateTimeFormat("en-CA", {
+                timeZone: "Asia/Manila",
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+                hourCycle: "h23"
+            });
+
+            const parts = Object.fromEntries(
+                formatter
+                    .formatToParts(now)
+                    .filter(part => part.type !== "literal")
+                    .map(part => [part.type, part.value])
+            );
+
+            const rentalDate =
+                `${parts.year}-${parts.month}-${parts.day}`;
+
+            const rentalTime =
+                `${parts.hour}:${parts.minute}:${parts.second}`;
+
+            const { data, error } = await supabase.rpc(
+                "get_walkin_available_bikes",
+                {
+                    p_bike_type_id: bikeTypeId,
+                    p_date: rentalDate,
+                    p_time: rentalTime,
+                    p_hours: Number(hours)
+                }
+            );
+
+            if (error) throw error;
+
+            setAvailableBikes(prev => ({
+                ...prev,
+                [bikeTypeId]: Number(data)
+            }));
+        } catch (error) {
+            console.error("Failed to check bike availability:", error);
+
+            setAvailableBikes(prev => ({
+                ...prev,
+                [bikeTypeId]: null
+            }));
+        } finally {
+            setCheckingAvailability(prev => ({
+                ...prev,
+                [bikeTypeId]: false
+            }));
+        }
+    };
+
+    //Maximum hours based on the park's closing
+    const [maxRentalHours, setMaxRentalHours] = useState(0);
+    const [parkHours, setParkHours] = useState(null);
+
+    useEffect(() => {
+        let interval;
+
+        const checkParkHours = async () => {
+            try {
+                const now = new Date();
+
+                const parts = Object.fromEntries(
+                    new Intl.DateTimeFormat("en-US", {
+                        timeZone: "Asia/Manila",
+                        weekday: "long",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hourCycle: "h23"
+                    })
+                        .formatToParts(now)
+                        .filter(part => part.type !== "literal")
+                        .map(part => [part.type, part.value])
+                );
+
+                const currentMinutes =
+                    Number(parts.hour) * 60 + Number(parts.minute);
+
+                const { data, error } = await supabase
+                    .from("operating_hours_mod")
+                    .select("day, opening, closing, availability")
+                    .eq("day", parts.weekday)
+                    .maybeSingle();
+
+                if (error) throw error;
+
+                if (!data || !data.availability) {
+                    setParkHours(null);
+                    setMaxRentalHours(0);
+                    return;
+                }
+
+                setParkHours(data);
+
+                const [openHour, openMinute] = data.opening
+                    .split(":")
+                    .map(Number);
+
+                const [closeHour, closeMinute] = data.closing
+                    .split(":")
+                    .map(Number);
+
+                const openingMinutes = openHour * 60 + openMinute;
+                const closingMinutes = closeHour * 60 + closeMinute;
+
+                // No rentals before opening or at/after the last-transaction cutoff.
+                const lastTransactionMinutes = closingMinutes - 60;
+
+                if (
+                    currentMinutes < openingMinutes ||
+                    currentMinutes >= lastTransactionMinutes
+                ) {
+                    setMaxRentalHours(0);
+                    return;
+                }
+
+                // Rental must finish by the park's actual closing time.
+                const hoursRemaining = Math.floor(
+                    (closingMinutes - currentMinutes) / 60
+                );
+
+                setMaxRentalHours(Math.max(0, hoursRemaining));
+            } catch (error) {
+                console.error("Failed to fetch operating hours:", error);
+                setParkHours(null);
+                setMaxRentalHours(0);
+            }
+        };
+
+        checkParkHours();
+        interval = setInterval(checkParkHours, 60_000);
+
+        return () => clearInterval(interval);
+    }, []);
 
     const handleDelete = (cartId) => {
         setCart(prev => prev.filter(item => item.cartId !== cartId));
@@ -64,6 +240,10 @@ function WalkInRent() {
         }, 2000);
     };
 
+    const handleBikeClick = (bikeId) => {
+        setOpenBikeId(bikeId);
+    };
+
   return (
     <>
 
@@ -82,28 +262,15 @@ function WalkInRent() {
                         className='md:p-10 p-2 py-8 bg-[#ffffff] rounded-xl flex flex-col gap-12'
                     >
                         <div 
-                            onClick={() => navigate("/pos")}
                             className='flex flex-row items-center gap-2 cursor-pointer'
                         >
-                            <IoChevronBack className='text-3xl text-gray'/>
+                            <IoChevronBack 
+                                onClick={() => navigate("/pos")}
+                                className='text-3xl text-gray'/>
                             <h1 className='text-4xl font-akagi font-black tracking-wide text-blue'>Bikes</h1>
                         </div>
 
                         <div className='h-full flex flex-col gap-7 md:px-5 px-3'>
-                            
-                            <div className='grid md:grid-cols-3 grid-cols-1 gap-3'>
-                                <div className='rounded-xl bg-blue px-6 py-2 text-center cursor-pointer'>
-                                    <h1 className='font-akagi font-bold text-[#ffffff] '>All</h1>
-                                </div>
-
-                                <div className='rounded-xl bg-[#DBDBDB] px-6 py-2 text-center cursor-pointer'>
-                                    <h1 className='font-akagi font-bold text-[#505050] '>Family Bikes</h1>
-                                </div>
-
-                                <div className='rounded-xl bg-[#DBDBDB] px-6 py-2 text-center cursor-pointer'>
-                                    <h1 className='font-akagi font-bold text-[#505050] '>Solo Bikes</h1>
-                                </div>
-                            </div>
 
                             <div className='grid md:grid-cols-3 grid-cols-2 gap-3'>
                                 
@@ -117,19 +284,25 @@ function WalkInRent() {
                                             exit={{ height: 0, opacity: 0 }}
                                             transition={{ duration: 0.3, ease: "easeInOut" }}
                                         >
-                                            <BikesTile 
-                                                key={bike.id}
-                                                bikeId={bike.id}
-                                                name={bike.name}
-                                                availableBikes={bike.bikes_mod.length}
+                                            <BikesTile
                                                 image={bike.image_url}
-                                                isOpen={openBikeId === bike.id}
-                                                onClick={() => setOpenBikeId(bike.id)}
+                                                price={bike.price}
+                                                name={bike.name}
+                                                bikeId={bike.id}
+                                                maxRentalHours={maxRentalHours}
+                                                availableBikes={
+                                                    bikeData[bike.id]?.hours > 0
+                                                        ? availableBikes[bike.id] ?? null
+                                                        : null
+                                                }
+                                                checkingAvailability={checkingAvailability[bike.id] || false}
                                                 bikeData={bikeData}
                                                 setBikeData={setBikeData}
-                                                setCart={setCart}
-                                                price={bike.price}
                                                 cart={cart}
+                                                setCart={setCart}
+                                                isOpen={openBikeId === bike.id}
+                                                onClick={() => handleBikeClick(bike.id)}
+                                                onHoursChange={(hours) => checkBikeAvailability(bike.id, hours)}
                                             />
                                         </motion.div>
                                     </>

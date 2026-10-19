@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { IoChevronBack } from "react-icons/io5";
 import { supabase } from "../../../lib/supabase"
 import { RiArrowDropDownLine } from "react-icons/ri";
+import { IoCloseSharp } from "react-icons/io5";
 
 function ManageAccount() {
 
@@ -19,6 +20,7 @@ function ManageAccount() {
     const [addAccount, setAddAccount] = useState(false);
 
     const [adminAccounts, setAdminAccounts] = useState([]);
+    const [archiveAccounts, setArchiveAccounts] = useState([]);
     const [cashierAccounts, setCashierAccounts] = useState([]);
 
     const [roleDropDown, setRoleDropDown]= useState(false);
@@ -45,6 +47,20 @@ function ManageAccount() {
         }
 
         setAdminAccounts(data || []);
+    };
+
+    const fetchArchiveAccounts = async () => {
+        const { data, error } = await supabase
+            .from("profiles_mod")
+            .select("*")
+            .eq("role", "archive");
+
+        if (error) {
+            console.error("Error fetching archive accounts:", error);
+            return;
+        }
+
+        setArchiveAccounts(data || []);
     };
 
     const fetchCashierAccounts = async () => {
@@ -98,6 +114,9 @@ function ManageAccount() {
     useEffect(() => {
         fetchAdminAccounts();
         fetchCashierAccounts();
+        fetchArchiveAccounts();
+
+        console.log(archiveAccounts);
     }, []);
   return (
     <>
@@ -220,16 +239,36 @@ function ManageAccount() {
                     {/*Archive*/}
                     {archive === true &&
                         <>
-                            <div className='fixed inset-0 bg-black/60 flex flex-col items-center justify-center p-10 xl:p-30'>
+                            <div className='fixed inset-0 bg-black/60 z-100 flex flex-col items-center justify-center p-10 xl:p-30'>
 
-                                <div className='w-full h-full rounded-xl p-5 bg-[#ffffff] pt-7'>
-                                    <div className='flex flex-row gap-1'>
-                                        <IoChevronBack 
+                                <div className='w-full h-full rounded-xl p-8 bg-[#ffffff] flex flex-col gap-7'>
+                                    <div className='flex justify-between'>
+                                        <h1 className='md:text-3xl text-2xl font-akagi font-bold tracking-wide text-blue'>Archived Accounts</h1>
+                                        <IoCloseSharp 
                                             onClick={() => setArchive(false)}
                                             className='text-3xl text-gray cursor-pointer'
                                         />
-                                        {activeTab === 'Cashier' ? <h1 className='md:text-4xl text-2xl font-akagi font-bold tracking-wide text-blue'>Cashier Archive</h1> : <h1 className='md:text-4xl text-2xl font-akagi font-bold tracking-wide text-blue'>Admin Archive</h1>}
                                     </div>
+
+                                    <motion.div
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: "auto", opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        transition={{ duration: 0.25, ease: "easeInOut" }}  
+                                        className='w-full grid grid-cols-2 xl:grid-cols-5 lg:grid-cols-4 md:grid-cols-3 gap-5 text-center'
+                                    >
+
+                                        {archiveAccounts.map((archive) => (
+                                            <AccountCard
+                                                onClick={() => navigate(`/accounts/${archive.id}`)}
+                                                key={archive.id}
+                                                fullName={archive.first_name + " " + archive.last_name}
+                                                firstName={archive.first_name}
+                                                lastName={archive.last_name}
+                                            />
+                                        ))}
+                                        
+                                    </motion.div>
                                 </div>
                                 
                                 
@@ -240,7 +279,7 @@ function ManageAccount() {
                     {/*Archive*/}
                     {addAccount === true &&
                         <>
-                            <div className='fixed inset-0 bg-black/60 flex flex-col items-center justify-center p-10 xl:p-30'>
+                            <div className='fixed inset-0 z-100 bg-black/60 flex flex-col items-center justify-center p-10 xl:p-30'>
 
                                 <div className='w-fit rounded-xl p-5 md:p-10 bg-[#ffffff] pt-7 flex flex-col gap-7'>
                                     <div className='flex flex-row gap-1'>

@@ -245,7 +245,7 @@ export function printReceipt({
                 Number(bike.bike_types_mod?.price ?? 0);
 
             const total =
-                price * quantity;
+                price * quantity * bike.duration_hours;
 
             doc.setFontSize(9);
             doc.setFont("helvetica", "bold");

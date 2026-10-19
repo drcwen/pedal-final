@@ -1,6 +1,6 @@
 import Sidebar from "../sidebar/Sidebar"
 import SidebarMobile from "../sidebar/SidebarMobile"
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "motion/react"
 import { IoChevronBack } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
@@ -31,6 +31,55 @@ function AccountDetails({ fullName, role, email, contact, id, branch, firstName,
     const [roleDropDown, setRoleDropDown] = useState(false);
     const [isResettingPassword, setIsResettingPassword] = useState(false);
     const [loading, setLoading] = useState(false);
+
+    const [currentUserId, setCurrentUserId] = useState(null);
+    const [currentUserRole, setCurrentUserRole] = useState(null);
+    const [authLoaded, setAuthLoaded] = useState(false);
+
+    useEffect(() => {
+        const getCurrentUser = async () => {
+            try {
+                const { data: { user }, error } =
+                    await supabase.auth.getUser();
+
+                if (error || !user) {
+                    console.error("Error getting current user:", error);
+                    return;
+                }
+
+                setCurrentUserId(user.id);
+
+                const { data, error: profileError } = await supabase
+                    .from("profiles_mod")
+                    .select("role")
+                    .eq("id", user.id)
+                    .single();
+
+                if (profileError) {
+                    console.error("Error getting user role:", profileError);
+                    return;
+                }
+
+                setCurrentUserRole(data.role);
+            } finally {
+                setAuthLoaded(true);
+            }
+        };
+
+        getCurrentUser();
+    }, []);
+
+    const isOwnProfile = currentUserId === id;
+
+    const isAdminViewingOtherAdmin =
+        authLoaded &&
+        !isOwnProfile &&
+        currentUserRole === "admin" &&
+        role?.toLowerCase() === "admin";
+
+    const canEditProfile =
+        authLoaded &&
+        (isOwnProfile || !isAdminViewingOtherAdmin);
 
     const handleResetPassword = async () => {
         if (!editPassword) return;
@@ -137,8 +186,12 @@ function AccountDetails({ fullName, role, email, contact, id, branch, firstName,
 
                             </div>
 
-                            <div 
+                            <button
+                                type="button"
+                                disabled={!canEditProfile}
                                 onClick={() => {
+                                    if (!canEditProfile) return;
+
                                     if (edit) {
                                         setEditFirstName(firstName);
                                         setEditLastName(lastName);
@@ -146,16 +199,36 @@ function AccountDetails({ fullName, role, email, contact, id, branch, firstName,
                                         setEditEmail(email);
                                         setEditContact(contact);
                                         setEditUsername(username);
-
                                         setEdit(false);
                                     } else {
                                         setEdit(true);
                                     }
                                 }}
-                                className={`w-fit h-fit flex cursor-pointer gap-3 px-3 py-2 border-2 ${edit ? "border-red-500 text-red-500" : "border-blue text-[#148BB8]"} items-center font-akagi font-bold md:text-xl rounded-xl`}>
-                                {!edit ? <RiEdit2Line className='md:text-xl text-lg'/> : <IoCloseSharp className='md:text-xl text-lg'/>}
-                                    {!edit ? <h1 className='text-md md:flex md:flex-row hidden'>Edit Profile</h1> : <h1 className='text-md md:flex md:flex-row hidden'>Cancel</h1>}
-                            </div>
+                                title={
+                                    !authLoaded
+                                        ? "Checking permissions..."
+                                        : isAdminViewingOtherAdmin
+                                            ? "You cannot edit another admin's profile"
+                                            : ""
+                                }
+                                className={`w-fit h-fit flex gap-3 px-3 py-2 border-2 items-center font-akagi font-bold md:text-xl rounded-xl transition-colors ${
+                                    !canEditProfile
+                                        ? "border-gray/40 text-gray/50 cursor-not-allowed opacity-50"
+                                        : edit
+                                            ? "border-red-500 text-red-500 cursor-pointer"
+                                            : "border-blue text-[#148BB8] cursor-pointer"
+                                }`}
+                            >
+                                {!edit ? (
+                                    <RiEdit2Line className="md:text-xl text-lg" />
+                                ) : (
+                                    <IoCloseSharp className="md:text-xl text-lg" />
+                                )}
+
+                                <h1 className="text-md md:flex md:flex-row hidden">
+                                    {!edit ? "Edit Profile" : "Cancel"}
+                                </h1>
+                            </button>
                         </div>
 
                     </div>
@@ -319,6 +392,12 @@ function AccountDetails({ fullName, role, email, contact, id, branch, firstName,
                                                             onClick={() => {setEditRole("admin")}}
                                                             className='px-3 py-1 hover:bg-gray/70 hover:text-[#ffffff] rounded-md'>
                                                             Admin
+                                                        </div>
+
+                                                        <div 
+                                                            onClick={() => {setEditRole("archive")}}
+                                                            className='px-3 py-1 hover:bg-gray/70 hover:text-[#ffffff] rounded-md'>
+                                                            Archive
                                                         </div>
                                                     </div> : undefined}
 

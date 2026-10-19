@@ -1,6 +1,6 @@
 import Sidebar from "../sidebar/Sidebar"
 import SidebarMobile from "../sidebar/SidebarMobile"
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import TransactionRow from "./TransactionRow"
 import { Calendar } from 'primereact/calendar';
 import "primereact/resources/themes/lara-light-cyan/theme.css";
@@ -30,7 +30,30 @@ function TransactionHistory() {
 
     const [transactionData, setTransactionData] = useState([]);
     const [loading, setLoading] = useState(true);
-    
+
+    const [searchTerm, setSearchTerm] = useState("");
+    const [appliedSearch, setAppliedSearch] = useState("");
+    const [searchMessage, setSearchMessage] = useState("");
+
+    const handleSearch = () => {
+        const search = searchTerm.trim().toLowerCase();
+
+        if (!search) {
+            setSearchMessage("Please enter a customer name or transaction ID.");
+            setAppliedSearch("");
+            return;
+        }
+
+        setSearchMessage("");
+        setAppliedSearch(search);
+    };
+
+    const handleClearSearch = () => {
+        setSearchTerm("");
+        setAppliedSearch("");
+        setSearchMessage("");
+    };
+        
     const getAssistedByFullName = async (userId) => {
         if (!userId) return "Unknown";
 
@@ -47,6 +70,66 @@ function TransactionHistory() {
 
         return data?.full_name ?? "Unknown";
     };
+    
+    const filteredTransactions = transactionData.filter((transaction) => {
+        if (!appliedSearch) return true;
+
+        const search = appliedSearch;
+
+        // Get the related transaction for extension, change, and maintenance records.
+        const extensionTransaction =
+            transaction.type === "extend"
+                ? transaction.extensions_mod?.[0]?.orders_mod?.transaction
+                : null;
+
+        const changeTransaction =
+            transaction.type === "change"
+                ? transaction.change_bikes_mod?.[0]?.orders_mod?.transaction
+                : null;
+
+        const maintenanceTransaction =
+            transaction.type === "maintenance"
+                ? transaction.maintenance_mod?.[0]?.orders_mod?.transaction
+                : null;
+
+        const overtimeTransaction =
+            transaction.type === "overtime"
+                ? transaction.overtime_mod?.[0]?.original_transaction
+                : null;
+
+        const relatedTransaction =
+            extensionTransaction ||
+            changeTransaction ||
+            maintenanceTransaction ||
+            overtimeTransaction;
+
+        // Determine which customer information to use.
+        const profile =
+            relatedTransaction?.profile || transaction.profile;
+
+        const walkIn =
+            relatedTransaction?.walk_in || transaction.walk_in;
+
+        const customerName = profile
+            ? (
+                profile.full_name ||
+                `${profile.first_name || ""} ${profile.last_name || ""}`.trim()
+            )
+            : (
+                walkIn?.[0]?.full_name ||
+                (transaction.type === "maintenance" ? "Management" : "")
+            );
+
+        const nameMatches = customerName
+            .toLowerCase()
+            .includes(search);
+
+        const transactionIdMatches = String(transaction.id)
+            .toLowerCase()
+            .includes(search);
+
+        return nameMatches || transactionIdMatches;
+    });
 
     function formatDate(timestamp) {
         return new Intl.DateTimeFormat("en-PH", {
@@ -93,7 +176,7 @@ function TransactionHistory() {
                         orders_mod (
                             *,
                             bike_types_mod (*),
-                            bikes_mod (*),
+                            bikes_mod!orders_mod_bike_id_fkey (*),
                             gps_mod (*)
                         ),
                         extensions_mod (
@@ -106,7 +189,7 @@ function TransactionHistory() {
                             ),
                             orders_mod (
                                 *,
-                                bikes_mod (
+                                bikes_mod!orders_mod_bike_id_fkey (
                                     *,
                                     bike_types_mod (
                                         *
@@ -123,7 +206,7 @@ function TransactionHistory() {
                             *,
                             orders_mod (
                                 *,
-                                bikes_mod (
+                                bikes_mod!orders_mod_bike_id_fkey (
                                     *,
                                     bike_types_mod (
                                         *
@@ -162,7 +245,11 @@ function TransactionHistory() {
 
                             orders_mod (
                                 *,
-                                bikes_mod (
+                                current_bike:bikes_mod!orders_mod_bike_id_fkey (
+                                    *,
+                                    bike_types_mod (*)
+                                ),
+                                original_bike:bikes_mod!orders_mod_initial_bike_id_fkey(
                                     *,
                                     bike_types_mod (*)
                                 ),
@@ -172,8 +259,20 @@ function TransactionHistory() {
                                     walk_in:walk_ins_users_mod (*)
                                 )
                             )
+                        ),
+                        overtime_mod!overtime_mod_transaction_id_fkey (
+                            *,
+                            original_transaction:transactions_mod!overtime_mod_original_transaction_id_fkey (
+                                *,
+                                profile:profiles_mod!transactions_mod_user_id_fkey1 (
+                                    *
+                                ),
+                                walk_in:walk_ins_users_mod (
+                                    *
+                                )
+                            )
                         )
-                    `)
+                        `)
                     .gte("created_at", start.toISOString())
                     .lte("created_at", end.toISOString())
                     .order("created_at", { ascending: false });
@@ -343,11 +442,45 @@ function TransactionHistory() {
                             }} 
                         />
 
-                        <div className='pr-10'>
-                            <input 
-                                placeholder='Search'
-                                className='bg-[#DBDBDB] focus:outline-none rounded-xl px-2 py-2 font-akagi font-bold text-[#505050]'/>
-                            
+                        <div className="flex flex-col gap-2 pr-10">
+                            <div className="flex items-center gap-2 rounded-xl bg-gray/40 px-3 py-2">
+                                <input
+                                    type="text"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                            handleSearch();
+                                        }
+                                    }}
+                                    placeholder="Search customer name or transaction ID"
+                                    className="min-w-0 flex-1 bg-transparent px-1 py-1 font-akagi font-bold text-[#505050] outline-none"
+                                />
+
+                                <button
+                                    type="button"
+                                    onClick={handleSearch}
+                                    className="rounded-lg bg-blue px-3 py-1 font-akagi font-bold text-[#ffffff] hover:opacity-80"
+                                >
+                                    Search
+                                </button>
+                            </div>
+
+                            {searchMessage && (
+                                <p className="font-akagi text-sm text-red-500">
+                                    {searchMessage}
+                                </p>
+                            )}
+
+                            {appliedSearch && (
+                                <button
+                                    type="button"
+                                    onClick={handleClearSearch}
+                                    className="self-start font-akagi text-sm text-blue hover:underline"
+                                >
+                                    Clear search
+                                </button>
+                            )}
                         </div>
                     </div>
 
@@ -385,7 +518,7 @@ function TransactionHistory() {
                                     </h1>
                                 </div>
                             ) : (
-                                transactionData.map((transaction) => {
+                                filteredTransactions.map((transaction) => {
 
                                     const extensionTransaction =
                                         transaction.type === "extend"
@@ -402,6 +535,11 @@ function TransactionHistory() {
                                             ? transaction.maintenance_mod?.[0]?.orders_mod?.transaction
                                             : null;
 
+                                    const overtimeTransaction =
+                                        transaction.type === "overtime"
+                                            ? transaction.overtime_mod?.[0]?.original_transaction
+                                            : null;
+
                                     const profile =
                                         transaction.type === "extend"
                                             ? extensionTransaction?.profile
@@ -409,7 +547,9 @@ function TransactionHistory() {
                                                 ? changeTransaction?.profile
                                                 : transaction.type === "maintenance"
                                                     ? maintenanceTransaction?.profile
-                                                    : transaction.profile;
+                                                    : transaction.type === "overtime"
+                                                        ? overtimeTransaction?.profile
+                                                        : transaction.profile;
 
                                     const walkIn =
                                         transaction.type === "extend"
@@ -418,7 +558,9 @@ function TransactionHistory() {
                                                 ? changeTransaction?.walk_in
                                                 : transaction.type === "maintenance"
                                                     ? maintenanceTransaction?.walk_in
-                                                    : transaction.walk_in;
+                                                    : transaction.type === "overtime"
+                                                        ? overtimeTransaction?.walk_in
+                                                        : transaction.walk_in;
 
                                     const customerName =
                                         transaction.type === "maintenance"
@@ -446,27 +588,27 @@ function TransactionHistory() {
 
                                     return (
                                         <TransactionRow
-                                        key={transaction.id}
-                                        totalBikes={
-                                            transaction.type === "walk-in" ||
-                                            transaction.type === "reservation"
-                                                ? transaction.orders_mod.length
-                                                : transaction.type === "change"
-                                                    ? "C"
-                                                    : "E"
-                                        }
-                                        transactionId={transaction.id}
-                                        fullName={customerName}
-                                        transactionType={transaction.type}
-                                        timeAdded={formatDate(transaction.created_at)}
-                                        status={transaction.status}
-                                        transactionData={transaction.orders_mod}
-                                        transactionPayment={transaction}
-                                        extensionsData={extensionData}
-                                        changeBikesData={changedBikesData}
-                                        maintenanceData={maintenanceData}
-                                        assistedBy={transaction?.assisted_by_profile?.full_name ?? "Unknown"}
-                                    />
+                                            key={transaction.id}
+                                            totalBikes={
+                                                transaction.type === "walk-in" ||
+                                                transaction.type === "reservation"
+                                                    ? transaction.orders_mod.length
+                                                    : transaction.type === "change"
+                                                        ? "C"
+                                                        : "E"
+                                            }
+                                            transactionId={transaction.id}
+                                            fullName={customerName}
+                                            transactionType={transaction.type}
+                                            timeAdded={formatDate(transaction.created_at)}
+                                            status={transaction.status}
+                                            transactionData={transaction.orders_mod}
+                                            transactionPayment={transaction}
+                                            extensionsData={extensionData}
+                                            changeBikesData={changedBikesData}
+                                            maintenanceData={maintenanceData}
+                                            assistedBy={transaction?.assisted_by_profile?.full_name ?? "Unknown"}
+                                        />
                                     );
                                 })
 

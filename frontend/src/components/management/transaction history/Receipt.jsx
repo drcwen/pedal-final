@@ -221,7 +221,7 @@ function Receipt({ setReceipt, startedBikes, transaction, maintenanceData, fullN
                                         </div>
 
                                         <h1>
-                                            P{(bike.bike_types_mod?.price ?? 0) * bike.quantity}
+                                            P{(bike.bike_types_mod?.price ?? 0) * bike.duration_hours * bike.quantity}
                                         </h1>
                                     </div>
                                 ))}

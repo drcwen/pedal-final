@@ -25,7 +25,8 @@ function OngoingBikesOrders({
     setChangeOrder, 
     pricePerHour, 
     transactionId,
-    refreshOngoing
+    refreshOngoing,
+    setRentalOverdue
 }) {
 
     const [dot, setDot] = useState(false);
@@ -34,6 +35,62 @@ function OngoingBikesOrders({
 
     const [dropDown, setDropDown] = useState(false);
     const [dropDownValue, setDropDownValue] = useState("Set Return Status");
+
+    const numericDuration = parseFloat(duration) || 0;
+    const total = Number(pricePerHour) * numericDuration;
+
+    const isRentalOverdue = () => {
+        const endDate = getEndDate(end);
+
+        if (!endDate) return false;
+
+        const gracePeriod = 15 * 60 * 1000; // 15 minutes in milliseconds
+
+        return Date.now() > endDate.getTime() + gracePeriod;
+    };
+
+    const getOvertimeHours = (startTime, endRange) => {
+        const startDate = getEndDateStart(endRange);
+        const endDate = getEndDate(endRange);
+
+        if (!startDate || !endDate || startDate >= endDate) {
+            return 0;
+        }
+
+        const now = Date.now();
+        const gracePeriod = 15 * 60 * 1000;
+        const oneHour = 60 * 60 * 1000;
+
+        const overtimeMs = now - endDate.getTime();
+
+        // Still within the grace period
+        if (overtimeMs <= gracePeriod) {
+            return 0;
+        }
+
+        // Round up to the next whole hour
+        return Math.ceil(overtimeMs / oneHour);
+    };
+
+    const getEndDateStart = (tstzrange) => {
+        const match = tstzrange.match(
+            /^\["([^"]+)","([^"]+)"\)$/
+        );
+
+        if (!match) return null;
+
+        return new Date(
+            match[1].replace(" ", "T").replace("+00", "Z")
+        );
+    };
+
+    const overtimeHours = getOvertimeHours(start, end);
+    const overtimePayment = overtimeHours * price;
+
+    console.log("Overtime hours:", overtimeHours);
+    console.log("Overtime payment:", overtimePayment);
+
+    console.log(isRentalOverdue());
 
     function getEndTimeOnly(tstzrange) {
         const match = tstzrange.match(/\["[^"]+","([^"]+)"\)/);
@@ -158,9 +215,10 @@ function OngoingBikesOrders({
         }
     }
 
+    
     const handleReturn = async () => {
-
         if (dropDownValue === "Under Maintenance") {
+            const overdue = isRentalOverdue();
 
             setMaintenancePayment({
                 orderId,
@@ -174,15 +232,92 @@ function OngoingBikesOrders({
                 bikeTypeId,
                 bikeId,
                 gpsId,
-                gpsCode
+                gpsCode,
+
+                isOverdue: overdue,
+
+                onMaintenanceSettled: async () => {
+                    if (overdue) {
+                        setRentalOverdue({
+                            orderId,
+                            bikeCode,
+                            type,
+                            duration,
+                            end,
+                            image,
+                            start,
+                            pricePerHour,
+                            bikeTypeId,
+                            bikeId,
+                            gpsId,
+                            gpsCode,
+                            overtimePayment,
+                            overtimeHours,
+                            transactionId,
+
+                            isMaintenance: true,
+                            
+                            onOvertimeSettled: async () => {
+                                await returnBike();
+                                await returnGps();
+                                await setReturn();
+                                await refreshOngoing();
+                            },
+
+                            onVoidSettled: async () => {
+                                await refreshOngoing();
+                            },
+                        });
+
+                        return;
+                    }
+
+                    // Not overdue: finish the return process
+                    await returnBike();
+                    await returnGps();
+                    await setReturn();
+                    await refreshOngoing();
+                }
             });
 
         } else if (dropDownValue === "Available") {
+            if (isRentalOverdue()) {
+                setRentalOverdue({
+                    orderId,
+                    bikeCode,
+                    type,
+                    duration,
+                    end,
+                    image,
+                    start,
+                    pricePerHour,
+                    bikeTypeId,
+                    bikeId,
+                    gpsId,
+                    gpsCode,
+                    overtimePayment,
+                    overtimeHours,
+                    transactionId,
+
+                    
+                    onOvertimeSettled: async () => {
+                        await returnBike();
+                        await returnGps();
+                        await setReturn();
+                        await refreshOngoing();
+                    },
+
+                    onVoidSettled: async () => {
+                        await refreshOngoing();
+                    },
+                });
+
+                return;
+            }
 
             await returnBike();
             await returnGps();
             await setReturn();
-
             await refreshOngoing();
         }
     };
@@ -244,7 +379,7 @@ function OngoingBikesOrders({
                   <div className='bg-blue rounded-lg px-2 text-[#ffffff] py-0.5 font-akagi text-sm font-bold'>{bikeCode}</div>
               </div>
 
-              <h1 className='text-md font-akagi font-bold text-gray'>{price}</h1>
+              <h1 className='text-md font-akagi font-bold text-gray'>{"₱" + total}</h1>
           </div>
 
           <div className='w-full grid grid-cols-3 gap-2'>
@@ -393,6 +528,8 @@ function OngoingBikesOrders({
 
                         </div>
                     }
+
+                    
                 </div>
             </div>
 

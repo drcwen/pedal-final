@@ -4,7 +4,7 @@ import SidebarMobile from "../sidebar/SidebarMobile"
 import { FaPlus } from "react-icons/fa6";
 import ReservationRow from "./reservation/ReservationRow"
 import OngoingRow from "./ongoing/OngoingRow"
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from "motion/react"
 import { useNavigate } from "react-router-dom";
 import { TbHistory } from "react-icons/tb";
@@ -22,6 +22,187 @@ function POS() {
 
     const [history, setHistory] = useState(false);
 
+    const [searchTerm, setSearchTerm] = useState("");
+    const [highlightedTransactionId, setHighlightedTransactionId] = useState(null);
+    const [searchMessage, setSearchMessage] = useState("");
+
+    const ongoingRowRefs = useRef({});
+
+    const handleSearch = () => {
+        const search = searchTerm.trim().toLowerCase();
+
+        if (!search) {
+            setSearchMessage("Please enter a name or bike ID.");
+            setHighlightedTransactionId(null);
+            return;
+        }
+
+        // Search through ongoing transactions
+        const matchedTransaction = ongoing.find((trans) => {
+            const customerName = trans.profile
+                ? (
+                    trans.profile.full_name ||
+                    `${trans.profile.first_name || ""} ${trans.profile.last_name || ""}`
+                )
+                : (
+                    trans.walk_in?.[0]?.full_name || ""
+                );
+
+            // Search customer name
+            const nameMatches = customerName
+                .toLowerCase()
+                .includes(search);
+
+            // Search bike IDs/codes attached to the transaction
+            const bikeMatches = trans.orders_mod?.some((order) => {
+                const bike = order.bikes_mod;
+
+                const bikeIdentifiers = [
+                    bike?.code,
+                    bike?.id,
+                    order.bike_id,
+                ];
+
+                return bikeIdentifiers.some((identifier) =>
+                    String(identifier ?? "")
+                        .toLowerCase()
+                        .includes(search)
+                );
+            });
+
+            return nameMatches || bikeMatches;
+        });
+
+        if (!matchedTransaction) {
+            setHighlightedTransactionId(null);
+            setSearchMessage("No matching ongoing transaction found.");
+            return;
+        }
+
+        setSearchMessage("");
+        setActiveTab("ongoing");
+        setHighlightedTransactionId(matchedTransaction.id);
+    };
+
+    const fetchTransactions = async () => {
+        // Get reservations that have not reached their end time.
+        const { data: activeReservations, error: rpcError } =
+            await supabase.rpc("get_active_pending_reservations");
+
+        if (rpcError) {
+            console.error("Error fetching active reservations:", rpcError);
+            return;
+        }
+
+        const transactionIds = (activeReservations || []).map(
+            (transaction) => transaction.id
+        );
+
+        if (transactionIds.length === 0) {
+            setTransactions([]);
+            return;
+        }
+
+        // Fetch the full reservation details for the active transactions.
+        const { data, error } = await supabase
+            .from("transactions_mod")
+            .select(`
+                *,
+                customer:profiles_mod!transactions_mod_user_id_fkey1 (
+                    *
+                ),
+                walk_in:walk_ins_users_mod (*),
+                orders_mod!inner (
+                    *,
+                    current_bike:bikes_mod!orders_mod_bike_id_fkey (
+                        *,
+                        bike_types_mod (*)
+                    ),
+                    original_bike:bikes_mod!orders_mod_initial_bike_id_fkey (
+                        *,
+                        bike_types_mod (*)
+                    ),
+                    bike_types_mod (
+                        *
+                    )
+                )
+            `)
+            .in("id", transactionIds);
+
+        if (error) {
+            console.error("Error fetching reservation details:", error);
+            return;
+        }
+
+        console.log("Fetched transactions:", data);
+
+        if (error) {
+            console.error("Error fetching reservation details:", error);
+            return;
+        }
+
+        setTransactions(data || []);
+    };
+
+    const fetchHistory = async () => {
+        const { data: expiredReservations, error: rpcError } =
+            await supabase.rpc("get_expired_pending_reservations");
+
+        if (rpcError) {
+            console.error("Error fetching expired reservations:", rpcError);
+            return;
+        }
+
+        const transactionIds = (expiredReservations || []).map(
+            (transaction) => transaction.id
+        );
+
+        if (transactionIds.length === 0) {
+            setReservationHistory([]);
+            return;
+        }
+
+        const { data, error } = await supabase
+            .from("transactions_mod")
+            .select(`
+                *,
+                customer:profiles_mod!transactions_mod_user_id_fkey1 (
+                    *
+                ),
+                orders_mod!inner (
+                    *,
+                    bike_types_mod (
+                        *
+                    )
+                )
+            `)
+            .in("id", transactionIds);
+
+        if (error) {
+            console.error("Error fetching reservation history details:", error);
+            return;
+        }
+
+        setReservationHistory(data || []);
+    };
+
+    
+    useEffect(() => {
+        if (activeTab !== "reservation") return;
+
+        // Fetch both lists immediately.
+        fetchTransactions();
+        fetchHistory();
+
+        // Keep both lists updated while Reservations is selected.
+        const interval = setInterval(() => {
+            fetchTransactions();
+            fetchHistory();
+        }, 15000);
+
+        return () => clearInterval(interval);
+    }, [activeTab]);
+
     useEffect(() => {
         fetchTransactions();
         fetchOngoing();
@@ -36,101 +217,38 @@ function POS() {
         return () => clearInterval(interval);
     }, []);
 
-    const fetchTransactions = async () => {
-        const today = new Intl.DateTimeFormat("en-CA", {
-            timeZone: "Asia/Manila",
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit"
-        }).format(new Date());
-
-        const { data, error } = await supabase
-            .from("transactions_mod")
-            .select(`
-                *,
-                customer:profiles_mod!transactions_mod_user_id_fkey1 (
-                    *
-                ),
-                orders_mod!inner (
-                    *,
-                    bike_types_mod (
-                        *
-                    )
-                )
-            `)
-            .eq("type", "reservation")
-            .eq("status", "pending")
-            .gte("orders_mod.reservation_date", today);
-
-        if (error) {
-            console.error("Error fetching reservations:", error);
-            return;
-        }
-
-        setTransactions(data || []);
-    };
-
-    const fetchHistory = async () => {
-        const today = new Intl.DateTimeFormat("en-CA", {
-            timeZone: "Asia/Manila",
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit"
-        }).format(new Date());
-
-        const { data, error } = await supabase
-            .from("transactions_mod")
-            .select(`
-                *,
-                customer:profiles_mod!transactions_mod_user_id_fkey1 (
-                    *
-                ),
-                orders_mod!inner (
-                    *,
-                    bike_types_mod (
-                        *
-                    )
-                )
-            `)
-            .eq("type", "reservation")
-            .eq("status", "pending")
-            .lt("orders_mod.reservation_date", today);
-
-        if (error) {
-            console.error("Error fetching reservations:", error);
-            return;
-        }
-
-        setReservationHistory(data || []);
-    };
-
     const fetchOngoing = async () => {
         const { data, error } = await supabase
             .from("transactions_mod")
             .select(`
                 *,
-                profile:profiles_mod!transactions_mod_user_id_fkey1 (
-                    *
-                ),
-                walk_in:walk_ins_users_mod (
-                    *
-                ),
+                profile:profiles_mod!transactions_mod_user_id_fkey1 (*),
+                walk_in:walk_ins_users_mod (*),
                 orders_mod (
                     *,
                     bike_types_mod (*),
-                    bikes_mod (*),
+                    current_bike:bikes_mod!orders_mod_bike_id_fkey (
+                        *,
+                        bike_types_mod (*)
+                    ),
+                    original_bike:bikes_mod!orders_mod_initial_bike_id_fkey (
+                        *,
+                        bike_types_mod (*)
+                    ),
                     gps_mod (*),
                     extensions_mod (*)
                 ),
-                assisted_by_profile:profiles_mod!transactions_mod_assisted_by_fkey (
-                    *
-                )
+                assisted_by_profile:profiles_mod!transactions_mod_assisted_by_fkey (*)
             `)
             .eq("status", "started");
-            
 
-        setOngoing(data);        
-    }
+        if (error) {
+            console.error("Error fetching ongoing transactions:", error);
+            return;
+        }
+
+        setOngoing(data ?? []);
+    };
 
     const handleTabChange = async (tab) => {
         setActiveTab(tab);
@@ -197,6 +315,16 @@ function POS() {
         return `${hours}:${minute} ${ampm}`;
     };
 
+    useEffect(() => {
+        if (!highlightedTransactionId) return;
+
+        const timeout = setTimeout(() => {
+            setHighlightedTransactionId(null);
+        }, 5000);
+
+        return () => clearTimeout(timeout);
+    }, [highlightedTransactionId]);
+
 
   return (
     <>
@@ -216,13 +344,40 @@ function POS() {
                 <SidebarMobile active={'pos'}/>
                 
                     
-                <div className='w-full h-full p-10 bg-[#ffffff] rounded-xl flex flex-col gap-12 overflow-y-scroll scrollbar-thin scrollbar-thumb-[#B9B9B9] scrollbar-track-[#E2E2E2]'>
+                <div className='w-full h-full p-10 bg-[#ffffff] rounded-xl flex flex-col gap-12 overflow-y-scroll scrollbar-thin scrollbar-none scrollbar-thumb-[#B9B9B9] scrollbar-track-[#E2E2E2]'>
                     
                     <div className='flex flex-col gap-12'>
                         <div className='flex flex-row gap-5'>
-                            {/*Search*/}
-                            <div className='rounded-lg bg-[#DBDBDB] lg:px-3 lg:py-2 px-2 py-1'>
-                                <input className='text-md lg:text-xl font-akagi font-bold text-[#9E9E9E]' placeholder='Search'></input>
+                            {/* Search */}
+                            <div className="flex flex-col gap-2">
+                                <div className="flex items-center gap-2 rounded-xl bg-gray/20 px-3 py-2">
+                                    <input
+                                        type="text"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter") {
+                                                handleSearch();
+                                            }
+                                        }}
+                                        placeholder="Search name or bike ID"
+                                        className="min-w-0 flex-1 bg-transparent text-md lg:text-lg font-akagi font-medium text-gray outline-none"
+                                    />
+
+                                    <button
+                                        type="button"
+                                        onClick={handleSearch}
+                                        className="rounded-lg bg-blue px-4 py-1 font-akagi font-bold text-[#ffffff] transition hover:opacity-80"
+                                    >
+                                        Search
+                                    </button>
+                                </div>
+
+                                {searchMessage && (
+                                    <p className="font-akagi text-sm text-red-500">
+                                        {searchMessage}
+                                    </p>
+                                )}
                             </div>
                         </div>
 
@@ -340,14 +495,12 @@ function POS() {
                                                             )
                                                             : "Unknown Customer"
                                                     }
-                                                    ordercount={
-                                                        trans.orders_mod.length === 1
-                                                            ? `${trans.orders_mod.length} Bike`
-                                                            : `${trans.orders_mod.length} Bikes`
-                                                    }
+                                                    ordercount={`${(trans.orders_mod ?? []).length} ${
+                                                        (trans.orders_mod ?? []).length === 1 ? "Bike" : "Bikes"
+                                                    }`}
                                                     type={trans.type}
                                                     start={formatTime(trans.orders_mod?.[0]?.start_time)}
-                                                    bikeDetails={trans.orders_mod}
+                                                    bikeDetails={trans.orders_mod ?? []}
                                                     customer={trans.customer}
                                                     transaction={trans}
                                                 />
@@ -386,20 +539,33 @@ function POS() {
                                                 )
                                                 : trans.walk_in?.[0]?.full_name;
 
+                                        const orders = trans.orders_mod ?? [];
+
                                         return (
-                                            <OngoingRow
+                                            <div
                                                 key={trans.id}
-                                                name={customerName}
-                                                ordercount={`${trans.orders_mod.length} ${
-                                                    trans.orders_mod.length === 1 ? "Bike" : "Bikes"
+                                                ref={(element) => {
+                                                    ongoingRowRefs.current[trans.id] = element;
+                                                }}
+                                                className={`rounded-lg transition-all duration-500 ${
+                                                    highlightedTransactionId === trans.id
+                                                        ? "ring-3 ring-blue/50 bg-blue/5 shadow-lg"
+                                                        : ""
                                                 }`}
-                                                type={trans.type}
-                                                start={trans.orders_mod[0].start_time}
-                                                bikeDetails={trans.orders_mod}
-                                                refreshOngoing={fetchOngoing}
-                                                transaction={trans.id}
-                                                transactionDetails={trans}
-                                            />
+                                            >
+                                                <OngoingRow
+                                                    name={customerName}
+                                                    ordercount={`${orders.length} ${
+                                                        orders.length === 1 ? "Bike" : "Bikes"
+                                                    }`}
+                                                    type={trans.type}
+                                                    start={orders[0]?.start_time}
+                                                    bikeDetails={orders}
+                                                    refreshOngoing={fetchOngoing}
+                                                    transaction={trans.id}
+                                                    transactionDetails={trans}
+                                                />
+                                            </div>
                                         );
                                     })
                                 )}
@@ -449,7 +615,9 @@ function POS() {
                                         </h1>
                                     </div>
                                 ) : (
-                                    Object.entries(groupedHistory).map(([date, reservations]) => (
+                                    Object.entries(groupedHistory)
+                                        .sort(([dateA], [dateB]) => new Date(dateB) - new Date(dateA))
+                                        .map(([date, reservations]) => (
                                         <div key={date} className="flex flex-col gap-3 pb-8">
 
                                             {/* Date heading */}
@@ -470,14 +638,12 @@ function POS() {
                                                             )
                                                             : "Unknown Customer"
                                                     }
-                                                    ordercount={
-                                                        trans.orders_mod.length === 1
-                                                            ? `${trans.orders_mod.length} Bike`
-                                                            : `${trans.orders_mod.length} Bikes`
-                                                    }
+                                                    ordercount={`${(trans.orders_mod ?? []).length} ${
+                                                        (trans.orders_mod ?? []).length === 1 ? "Bike" : "Bikes"
+                                                    }`}
                                                     type={trans.type}
                                                     start={formatTime(trans.orders_mod?.[0]?.start_time)}
-                                                    bikeDetails={trans.orders_mod}
+                                                    bikeDetails={trans.orders_mod ?? []}
                                                     customer={trans.customer}
                                                     transaction={trans}
                                                 />
