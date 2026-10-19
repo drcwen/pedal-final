@@ -144,7 +144,7 @@ function Receipt({ startedBikes, transaction }) {
                                     </div>
 
                                     <h1>
-                                        P{(bike.bike_types_mod?.price ?? 0) * bike.duration_hours * bike.quantity}
+                                        P{(bike.original_bike?.bike_types_mod?.price ?? 0) * bike.duration_hours * bike.quantity}
                                     </h1>
                                 </div>
                             ))}
