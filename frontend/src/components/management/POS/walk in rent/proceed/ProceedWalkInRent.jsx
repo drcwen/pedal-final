@@ -120,6 +120,7 @@ function ProceedWalkInRent({onClose, cart, cartTotal, cashTendered, paymentMetho
             bike_type_id: item.bikeId,
             bike_id: selectedItems[item.cartId]?.bike,
             gps_id: selectedItems[item.cartId]?.gps,
+            initial_bike_id: selectedItems[item.cartId]?.bike,
             transaction_id: transactionId,
             reservation_date: today,
             start_time: start,

@@ -142,7 +142,8 @@ function DataReports() {
         "walk-in",
         "reservation",
         "extend",
-        "change"
+        "change",
+        "overtime",
     ]);
 
     const handleTypeCheckbox = (type) => {
@@ -318,7 +319,7 @@ function DataReports() {
                     orders_mod (
                         *,
                         bike_types_mod (*),
-                        bikes_mod (*),
+                        bikes_mod!orders_mod_bike_id_fkey (*),
                         gps_mod (*)
                     ),
                     extensions_mod (
@@ -331,7 +332,7 @@ function DataReports() {
                         ),
                         orders_mod (
                             *,
-                            bikes_mod (
+                            bikes_mod!orders_mod_bike_id_fkey (
                                 *,
                                 bike_types_mod (
                                     *
@@ -348,7 +349,7 @@ function DataReports() {
                         *,
                         orders_mod (
                             *,
-                            bikes_mod (
+                            bikes_mod!orders_mod_bike_id_fkey (
                                 *,
                                 bike_types_mod (
                                     *
@@ -360,6 +361,12 @@ function DataReports() {
                             transaction:transactions_mod (
                                 profile:profiles_mod!transactions_mod_user_id_fkey1 (*),
                                 walk_in:walk_ins_users_mod (*)
+                            )
+                        ),
+                        bikes_mod (
+                            *,
+                            bike_types_mod(
+                                *
                             )
                         )
                     ),
@@ -381,7 +388,11 @@ function DataReports() {
 
                         orders_mod (
                             *,
-                            bikes_mod (
+                            current_bike:bikes_mod!orders_mod_bike_id_fkey (
+                                *,
+                                bike_types_mod (*)
+                            ),
+                            original_bike:bikes_mod!orders_mod_initial_bike_id_fkey(
                                 *,
                                 bike_types_mod (*)
                             ),
@@ -391,8 +402,20 @@ function DataReports() {
                                 walk_in:walk_ins_users_mod (*)
                             )
                         )
+                    ),
+                    overtime_mod!overtime_mod_transaction_id_fkey (
+                        *,
+                        original_transaction:transactions_mod!overtime_mod_original_transaction_id_fkey (
+                            *,
+                            profile:profiles_mod!transactions_mod_user_id_fkey1 (
+                                *
+                            ),
+                            walk_in:walk_ins_users_mod (
+                                *
+                            )
+                        )
                     )
-                `)
+                    `)
                 .gte("created_at", start.toISOString())
                 .lte("created_at", end.toISOString())
                 .order("created_at", { ascending: false });
@@ -877,6 +900,17 @@ function DataReports() {
                                                 <h1>Changed Bikes</h1>
                                             </label>
 
+                                            {/* Overtime */}
+                                            <label className="flex flex-row gap-2 font-akagi font-bold text-gray cursor-pointer items-center">
+                                                <input
+                                                    type="checkbox"
+                                                    className="cursor-pointer"
+                                                    checked={selectedTypes.includes("overtime")}
+                                                    onChange={() => handleTypeCheckbox("overtime")}
+                                                />
+                                                <h1>Overtime</h1>
+                                            </label>
+
                                             {/* Maintenance */}
                                             <label className="flex flex-row gap-2 font-akagi font-bold text-gray cursor-pointer items-center">
                                                 <input
@@ -887,7 +921,6 @@ function DataReports() {
                                                 />
                                                 <h1>Maintenance</h1>
                                             </label>
-
                                         </div>
 
                                         </div>
@@ -937,6 +970,11 @@ function DataReports() {
                                                     ? transaction.maintenance_mod?.[0]?.orders_mod?.transaction
                                                     : null;
 
+                                            const overtimeTransaction =
+                                                transaction.type === "overtime"
+                                                    ? transaction.overtime_mod?.[0]?.original_transaction
+                                                    : null;
+
                                             const profile =
                                                 transaction.type === "extend"
                                                     ? extensionTransaction?.profile
@@ -944,7 +982,9 @@ function DataReports() {
                                                         ? changeTransaction?.profile
                                                         : transaction.type === "maintenance"
                                                             ? maintenanceTransaction?.profile
-                                                            : transaction.profile;
+                                                            : transaction.type === "overtime"
+                                                                ? overtimeTransaction?.profile
+                                                                : transaction.profile;
 
                                             const walkIn =
                                                 transaction.type === "extend"
@@ -953,7 +993,9 @@ function DataReports() {
                                                         ? changeTransaction?.walk_in
                                                         : transaction.type === "maintenance"
                                                             ? maintenanceTransaction?.walk_in
-                                                            : transaction.walk_in;
+                                                            : transaction.type === "overtime"
+                                                                ? overtimeTransaction?.walk_in
+                                                                : transaction.walk_in;
 
                                             const customerName =
                                                 transaction.type === "maintenance"
@@ -990,6 +1032,8 @@ function DataReports() {
                                                 totalBikes = "C";
                                             } else if (transaction.type === "extend") {
                                                 totalBikes = "E";
+                                            } else if (transaction.type === "overtime") {
+                                                totalBikes = "OT";
                                             } else if (transaction.type === "maintenance") {
                                                 totalBikes = "M";
                                             } else {

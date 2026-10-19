@@ -3,7 +3,7 @@ import { IoIosArrowBack } from "react-icons/io";
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from "motion/react"
 
-function Receipt({ setReceipt, startedBikes, transaction }) {
+function Receipt({ startedBikes, transaction }) {
 
     function formatDate(dateString) {
         if (!dateString) return "-";
@@ -78,19 +78,6 @@ function Receipt({ setReceipt, startedBikes, transaction }) {
     return (
     <>
 
-        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-100 p-5">
-            <div className="
-                bg-[#ffffff]
-                p-5 md:p-10
-                rounded-xl
-                w-full
-                max-w-2xl
-                max-h-[90vh]
-                overflow-y-auto
-                scrollbar-thin
-                scrollbar-thumb-[#B9B9B9]
-                scrollbar-track-[#E2E2E2] flex flex-col gap-5
-            ">
                 <div className='w-full flex flex-col gap-5 bg-gray/10 border border-gray/30 p-2 py-10 rounded-lg'>
                     <div className='flex flex-col items-center justify-center font-akagi font-bold text-gray'>
                         <h1 className='text-lg text-blue'>3Jremy's Rent A Bike!</h1>
@@ -139,7 +126,7 @@ function Receipt({ setReceipt, startedBikes, transaction }) {
                                     <div className='flex flex-col'>
                                         <div className='flex flex-row gap-2'>
                                             <h1>
-                                                {bike.bike_types_mod?.name ?? "Unknown Bike"}
+                                                {bike.original_bike?.bike_types_mod?.name ?? "Unknown Bike"}
                                             </h1>
 
                                             <h1>
@@ -194,20 +181,7 @@ function Receipt({ setReceipt, startedBikes, transaction }) {
                     </div>
                 </div>
 
-                <div className='flex justify-between'>
-                    <div 
-                        onClick={() => setReceipt(false)}
-                        className='flex gap-2 border border-gray text-gray px-2 py-1 rounded-lg font-akagi font-semibold cursor-pointer text-sm'>
-                            Close
-                    </div>
-
-                    <div 
-                        className='flex gap-2 bg-blue text-[#ffffff] px-2 py-1 rounded-lg font-akagi font-semibold cursor-pointer text-sm'>
-                            Print
-                    </div>
-                </div>
-            </div>
-        </div>
+            
     </>
   )
 }

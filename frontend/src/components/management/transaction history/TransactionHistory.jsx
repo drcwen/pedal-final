@@ -245,7 +245,11 @@ function TransactionHistory() {
 
                             orders_mod (
                                 *,
-                                bikes_mod!orders_mod_bike_id_fkey (
+                                current_bike:bikes_mod!orders_mod_bike_id_fkey (
+                                    *,
+                                    bike_types_mod (*)
+                                ),
+                                original_bike:bikes_mod!orders_mod_initial_bike_id_fkey(
                                     *,
                                     bike_types_mod (*)
                                 ),

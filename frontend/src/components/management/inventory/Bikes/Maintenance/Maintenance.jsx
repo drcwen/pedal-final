@@ -40,14 +40,16 @@ function Maintenance( {setMaintenance }) {
                     *,
                     bikes_mod (
                         *,
-                        bike_types_mod (
-                            *
-                        )
+                        bike_types_mod (*)
                     ),
                     orders_mod (
                         *,
-                        transactions_mod(*),
-                        bikes_mod (
+                        transaction:transactions_mod (*),
+                        current_bike:bikes_mod!orders_mod_bike_id_fkey (
+                            *,
+                            bike_types_mod (*)
+                        ),
+                        original_bike:bikes_mod!orders_mod_initial_bike_id_fkey (
                             *,
                             bike_types_mod (*)
                         )
@@ -166,18 +168,21 @@ function Maintenance( {setMaintenance }) {
                             </div>
                         ) : (
                             maintenanceInfo.map((info) => (
-                                <MaintenanceRow 
+                                <MaintenanceRow
                                     key={info.id}
-                                    bikeId={info.orders_mod?.bikes_mod?.code}
-                                    bikeCode={info.orders_mod?.bikes_mod?.id}
-                                    bikeTypeId={info.orders_mod?.bikes_mod?.bike_types_mod?.name}
 
+                                    // Rental/order-related maintenance
+                                    bikeId={info.orders_mod?.current_bike?.code}
+                                    bikeCode={info.orders_mod?.current_bike?.id}
+                                    bikeTypeId={info.orders_mod?.current_bike?.bike_types_mod?.name}
+
+                                    // Management/inventory-related maintenance
                                     managementBikeId={info.bike_id}
                                     managementBikeCode={info.bikes_mod?.code}
                                     managementBikeTypeId={info.bikes_mod?.bike_types_mod?.name}
 
-                                    inventoryBikeCode={info.bikes_mod?.bike_types_mod?.name}
-                                    inventoryBikeId={info.bikes_mod?.code}
+                                    inventoryBikeCode={info.bikes_mod?.code}
+                                    inventoryBikeId={info.bike_id}
 
                                     date={convertToPhilippineDate(info.created_at)}
                                     time={convertToPhilippineTime(info.created_at)}

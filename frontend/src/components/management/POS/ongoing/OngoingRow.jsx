@@ -229,72 +229,152 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
         try {
             const orderIds = startedBikes.map((bike) => bike.id);
 
-            const walkInUserId = transactionDetails?.walk_in?.[0]?.id;
+            // 1. Find extension transactions linked to these orders
+            let extensionTransactionIds = [];
 
+            if (orderIds.length > 0) {
+                const { data, error } = await supabase
+                    .from("extensions_mod")
+                    .select("transaction_id")
+                    .in("order_id", orderIds);
+
+                if (error) throw error;
+
+                extensionTransactionIds = (data ?? [])
+                    .map((item) => item.transaction_id)
+                    .filter((id) => id != null);
+            }
+
+            // 2. Find bike-change transactions linked to these orders
+            let changeTransactionIds = [];
+
+            if (orderIds.length > 0) {
+                const { data, error } = await supabase
+                    .from("change_bikes_mod")
+                    .select("trans_id")
+                    .in("order_id", orderIds);
+
+                if (error) throw error;
+
+                changeTransactionIds = (data ?? [])
+                    .map((item) => item.trans_id)
+                    .filter((id) => id != null);
+            }
+
+            // Include original, extension, and bike-change transactions
+            const transactionIds = [
+                ...new Set([
+                    transaction,
+                    ...extensionTransactionIds,
+                    ...changeTransactionIds,
+                ]),
+            ];
+
+            // 3. Restore bikes and GPS
             for (const bike of startedBikes) {
+                const bikeId = bike.current_bike?.id ?? bike.bikes_mod?.id;
+                const gpsId = bike.gps_mod?.id;
 
-                if (bike.bikes_mod?.id) {
-                    const { error: bikeError } = await supabase
+                if (bikeId) {
+                    const { error } = await supabase
                         .from("bikes_mod")
-                        .update({
-                            status: "Available",
-                        })
-                        .eq("id", bike.bikes_mod.id);
+                        .update({ status: "Available" })
+                        .eq("id", bikeId);
 
-                    if (bikeError) {
-                        console.error("Error updating bike:", bikeError);
-                        return;
-                    }
+                    if (error) throw error;
                 }
 
-                if (bike.gps_mod?.id) {
-                    const { error: gpsError } = await supabase
+                if (gpsId) {
+                    const { error } = await supabase
                         .from("gps_mod")
-                        .update({
-                            status: "Available",
-                        })
-                        .eq("id", bike.gps_mod.id);
+                        .update({ status: "Available" })
+                        .eq("id", gpsId);
 
-                    if (gpsError) {
-                        console.error("Error updating GPS:", gpsError);
-                        return;
-                    }
+                    if (error) throw error;
                 }
+            }
+
+            // 4. Delete overtime records referencing any of these transactions
+            for (const id of transactionIds) {
+                const { error } = await supabase
+                    .from("overtime_mod")
+                    .delete()
+                    .or(
+                        `transaction_id.eq.${id},original_transaction_id.eq.${id}`
+                    );
+
+                if (error) throw error;
+            }
+
+            // 5. Delete maintenance records linked to these transactions
+            const { error: maintenanceError } = await supabase
+                .from("maintenance_mod")
+                .delete()
+                .in("transaction_id", transactionIds);
+
+            if (maintenanceError) throw maintenanceError;
+
+            // 6. Delete extensions linked to these transactions or orders
+            const { error: extensionsByTransactionError } = await supabase
+                .from("extensions_mod")
+                .delete()
+                .in("transaction_id", transactionIds);
+
+            if (extensionsByTransactionError) {
+                throw extensionsByTransactionError;
             }
 
             if (orderIds.length > 0) {
-                const { error: ordersError } = await supabase
-                    .from("orders_mod")
+                const { error } = await supabase
+                    .from("extensions_mod")
                     .delete()
-                    .in("id", orderIds);
+                    .in("order_id", orderIds);
 
-                if (ordersError) {
-                    console.error("Error deleting orders:", ordersError);
-                    return;
-                }
+                if (error) throw error;
             }
 
-            if (walkInUserId) {
-                const { error: walkInError } = await supabase
-                    .from("walk_ins_users_mod")
-                    .delete()
-                    .eq("id", walkInUserId);
+            // 7. Delete bike-change records linked to these transactions or orders
+            const { error: changesByTransactionError } = await supabase
+                .from("change_bikes_mod")
+                .delete()
+                .in("trans_id", transactionIds);
 
-                if (walkInError) {
-                    console.error("Error deleting walk-in user:", walkInError);
-                    return;
-                }
+            if (changesByTransactionError) {
+                throw changesByTransactionError;
             }
 
-            const { error: transactionError } = await supabase
+            if (orderIds.length > 0) {
+                const { error } = await supabase
+                    .from("change_bikes_mod")
+                    .delete()
+                    .in("order_id", orderIds);
+
+                if (error) throw error;
+            }
+
+            // 8. Delete orders referencing any of these transactions
+            const { error: ordersError } = await supabase
+                .from("orders_mod")
+                .delete()
+                .in("transaction_id", transactionIds);
+
+            if (ordersError) throw ordersError;
+
+            // 9. Delete walk-in users referencing these transactions
+            const { error: walkInError } = await supabase
+                .from("walk_ins_users_mod")
+                .delete()
+                .in("transaction_id", transactionIds);
+
+            if (walkInError) throw walkInError;
+
+            // 10. Delete all transactions last
+            const { error: transactionsError } = await supabase
                 .from("transactions_mod")
                 .delete()
-                .eq("id", transaction);
+                .in("id", transactionIds);
 
-            if (transactionError) {
-                console.error("Error deleting transaction:", transactionError);
-                return;
-            }
+            if (transactionsError) throw transactionsError;
 
             await refreshOngoing();
 
@@ -302,12 +382,11 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
             setPinError("");
             setVoidConfirmation(false);
 
-            console.log("Transaction voided successfully.");
-
+            console.log("Transaction and related records voided successfully.");
         } catch (error) {
             console.error("Error voiding transaction:", error);
+            alert(`Failed to void transaction: ${error.message}`);
         }
-        
     };
 
     async function updateStatus() {
@@ -443,17 +522,17 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
                             {startedBikes
                                 .map((bikes) => (
                                     <OngoingBikesOrders
-                                        bikeTypeId={bikes.bike_types_mod.id}
-                                        bikeCode={bikes.bikes_mod?.code}
+                                        bikeTypeId={bikes.current_bike?.bike_type_id}
+                                        bikeCode={bikes.current_bike?.code}
                                         gpsId={bikes.gps_mod?.code}
                                         gpsCode={bikes.gps_mod?.id}
-                                        type={bikes.bike_types_mod.name}
-                                        image={bikes.bike_types_mod.image_url}
-                                        price={bikes.bike_types_mod?.price ?? 0}
+                                        type={bikes.current_bike?.bike_types_mod?.name}
+                                        image={bikes.current_bike?.bike_types_mod?.image_url}
+                                        price={bikes.current_bike?.bike_types_mod?.price ?? 0}
                                         duration={
                                             bikes.duration_hours === 1
-                                                ? bikes.duration_hours + " hour"
-                                                : bikes.duration_hours + " hours"
+                                                ? `${bikes.duration_hours} hour`
+                                                : `${bikes.duration_hours} hours`
                                         }
                                         start={bikes.start_time}
                                         end={bikes.reservation_range}
@@ -461,9 +540,9 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
                                         setExtendOrder={setExtendOrder}
                                         setChangeOrder={setChangeOrder}
                                         setMaintenancePayment={setMaintenancePayment}
-                                        pricePerHour={bikes.bike_types_mod.price}
+                                        pricePerHour={bikes.current_bike?.bike_types_mod?.price ?? 0}
                                         transactionId={transaction}
-                                        bikeId={bikes.bikes_mod?.id}
+                                        bikeId={bikes.current_bike?.id}
                                         extensionsDuration={bikes.extensions_mod?.map(
                                             extension => extension.extension_duration
                                         )}
@@ -566,11 +645,46 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
                         </div>
 
                         {receipt &&
-                            <Receipt 
-                                setReceipt={setReceipt}
-                                startedBikes={startedBikes}
-                                transaction={transactionDetails}
-                            />
+
+                            <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-100 p-5">
+                                <div className="
+                                    bg-[#ffffff]
+                                    p-5 md:p-10
+                                    rounded-xl
+                                    w-full
+                                    max-w-2xl
+                                    max-h-[90vh]
+                                    overflow-y-auto
+                                    scrollbar-thin
+                                    scrollbar-thumb-[#B9B9B9]
+                                    scrollbar-track-[#E2E2E2] flex flex-col gap-5
+                                    flex flex-col gap-2
+                                "
+                            >
+                                <Receipt 
+                                    startedBikes={startedBikes}
+                                    transaction={transactionDetails}
+                                />
+
+                                <Receipt 
+                                    startedBikes={startedBikes}
+                                    transaction={transactionDetails}
+                                />
+
+                                <div className='flex justify-between'>
+                                    <div 
+                                        onClick={() => setReceipt(false)}
+                                        className='flex gap-2 border border-gray text-gray px-2 py-1 rounded-lg font-akagi font-semibold cursor-pointer text-sm'>
+                                            Close
+                                    </div>
+
+                                    <div 
+                                        className='flex gap-2 bg-blue text-[#ffffff] px-2 py-1 rounded-lg font-akagi font-semibold cursor-pointer text-sm'>
+                                            Print
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         }
                     </motion.div>
                 )}
