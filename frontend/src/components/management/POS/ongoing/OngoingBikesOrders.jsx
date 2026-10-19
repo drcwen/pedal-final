@@ -87,11 +87,6 @@ function OngoingBikesOrders({
     const overtimeHours = getOvertimeHours(start, end);
     const overtimePayment = overtimeHours * price;
 
-    console.log("Overtime hours:", overtimeHours);
-    console.log("Overtime payment:", overtimePayment);
-
-    console.log(isRentalOverdue());
-
     function getEndTimeOnly(tstzrange) {
         const match = tstzrange.match(/\["[^"]+","([^"]+)"\)/);
 

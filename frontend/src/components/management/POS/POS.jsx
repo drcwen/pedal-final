@@ -134,8 +134,6 @@ function POS() {
             return;
         }
 
-        console.log("Fetched transactions:", data);
-
         if (error) {
             console.error("Error fetching reservation details:", error);
             return;

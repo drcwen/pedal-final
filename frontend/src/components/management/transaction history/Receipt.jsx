@@ -148,7 +148,7 @@ function Receipt({ setReceipt, startedBikes, transaction, maintenanceData, fullN
                         {/*Receipt No*/}
                         <div className='flex flex-row justify-between'>
                             <h1>Receipt No:</h1>
-                            <h1>#{transaction.id}</h1>
+                            <h1>#{transaction?.id}</h1>
                         </div>
 
                         {/*Customer*/}
@@ -160,19 +160,19 @@ function Receipt({ setReceipt, startedBikes, transaction, maintenanceData, fullN
                         {/*Type*/}
                         <div className={`${transaction?.type === undefined ? "hidden" : "block"} flex flex-row justify-between`}>
                             <h1>Type:</h1>
-                            <h1>{transaction.type}</h1>
+                            <h1>{transaction?.type}</h1>
                         </div>
 
                         {/*Date and Time*/}
                         <div className='flex flex-col py-2'>
                             <div className='flex flex-row justify-between'>
                                 <h1>Transaction Date:</h1>
-                                <h1>{formatDatePH(transaction.created_at)}</h1>
+                                <h1>{formatDatePH(transaction?.created_at)}</h1>
                             </div>
 
                             <div className='flex flex-row justify-between'>
                                 <h1>Transaction Time:</h1>
-                                <h1>{formatTimePH(transaction.created_at)}</h1>
+                                <h1>{formatTimePH(transaction?.created_at)}</h1>
                             </div>
                         </div>
 
@@ -229,7 +229,7 @@ function Receipt({ setReceipt, startedBikes, transaction, maintenanceData, fullN
                         }
 
                         {/*Maintenance */}
-                        {transaction.type === "maintenance" &&
+                        {transaction?.type === "maintenance" &&
                             <div
                                 className='flex flex-row justify-between py-2 items-center'
                             >
@@ -260,7 +260,7 @@ function Receipt({ setReceipt, startedBikes, transaction, maintenanceData, fullN
                         }
 
                         {/*Extension */}
-                        {transaction.type === "extend" &&
+                        {transaction?.type === "extend" &&
                             <div
                                 className='flex flex-row justify-between py-2 items-center'
                             >
@@ -299,7 +299,7 @@ function Receipt({ setReceipt, startedBikes, transaction, maintenanceData, fullN
                         }
 
                         {/*Changed Bikes */}
-                        {transaction.type === "change" &&
+                        {transaction?.type === "change" &&
                         <>
                             <div
                                 className='flex flex-row justify-between py-2 items-center'
@@ -380,22 +380,22 @@ function Receipt({ setReceipt, startedBikes, transaction, maintenanceData, fullN
 
                         <div className='flex flex-row justify-between'>
                             <h1>Total:</h1>
-                            <h1>P{transaction.total_amount}</h1>
+                            <h1>P{transaction?.total_amount}</h1>
                         </div>
 
                         <div className='flex flex-row justify-between'>
                             <h1>Tendered Amount:</h1>
-                            <h1>P{transaction.amount_paid}</h1>
+                            <h1>P{transaction?.amount_paid}</h1>
                         </div>
 
                         <div className='flex flex-row justify-between'>
                             <h1>Change:</h1>
-                            <h1>P{transaction.change_amount}</h1>
+                            <h1>P{transaction?.change_amount}</h1>
                         </div>
 
                         <div className='flex flex-row justify-between'>
                             <h1>Method:</h1>
-                            <h1>{transaction.payment_method}</h1>
+                            <h1>{transaction?.payment_method}</h1>
                         </div>
 
                         <div className={`${transaction?.type === undefined ? "hidden" : "block"} flex flex-row justify-between`}>

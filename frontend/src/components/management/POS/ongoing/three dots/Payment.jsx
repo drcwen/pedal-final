@@ -3,7 +3,7 @@ import {supabase } from "../../../../../lib/supabase"
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { useNavigate } from "react-router-dom";
 
-function Payment({total, setPayment, bikeId, bikeType, orderId, extensionClicked, updatedTime, bikeCode, bikeTypeId}) {
+function Payment({total, setPayment, bikeId, bikeType, orderId, extensionClicked, updatedTime, bikeCode, bikeTypeId, originalTransactionId}) {
 
     const [active, setActive] = useState("Cash");
     const [cashAmount, setCashAmount] = useState(null);
@@ -78,7 +78,8 @@ function Payment({total, setPayment, bikeId, bikeType, orderId, extensionClicked
                     transaction_id: transactionId,
                     new_reservation_range: updatedTime,
                     bikes_id: bikeId,
-                    bikes_type_id: bikeTypeId
+                    bikes_type_id: bikeTypeId,
+                    original_transaction_id: originalTransactionId
                 });
 
             if (orderError) {
