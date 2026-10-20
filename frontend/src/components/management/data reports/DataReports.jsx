@@ -22,8 +22,8 @@ import {
     BarChart,
     Bar
 } from "recharts";
-import { RiArrowDropDownLine, RiArrowDropUpLine } from "react-icons/ri";
 import { FaPrint } from "react-icons/fa6";
+import MaintenanceRow from "../inventory/Bikes/Maintenance/MaintenanceRow"
 
 function DataReports() {
 
@@ -35,6 +35,8 @@ function DataReports() {
     const [changeGross, setChangeGross] = useState("...");
     const [deductions, setDeductions] = useState([]);
 
+    const [maintenanceInfo, setMaintenanceInfo] = useState([]);
+
     //NET SALES
     const [gross, setGross] = useState("...");
     const [netSales, setNetSales] = useState({
@@ -42,6 +44,25 @@ function DataReports() {
         total_deductions: 0,
         net_sales: 0
     });
+
+    const convertToPhilippineDate = (timestamp) => {
+        return new Date(timestamp).toLocaleDateString("en-PH", {
+            timeZone: "Asia/Manila",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit"
+        });
+    };
+
+    const convertToPhilippineTime = (timestamp) => {
+        return new Date(timestamp).toLocaleTimeString("en-PH", {
+            timeZone: "Asia/Manila",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: true
+        });
+    };
 
     const fetchDateDeductions = async (startDate, endDate) => {
         try {
@@ -153,6 +174,18 @@ function DataReports() {
                     : [...current, type]
         );
     };
+
+    const groupedMaintenance = maintenanceInfo.reduce((groups, maintenance) => {
+        const date = convertToPhilippineDate(maintenance?.created_at);
+
+        if (!groups[date]) {
+            groups[date] = [];
+        }
+
+        groups[date].push(maintenance);
+
+        return groups;
+    }, {});
 
     useEffect(() => {
         const fetchData = async () => {
@@ -282,6 +315,59 @@ function DataReports() {
             formatDate(dates[1])
         );
     }, [dates]);
+
+    useEffect(() => {
+        const fetchMaintenanceBikes = async () => {
+            if (!dates?.[0] || !dates?.[1]) {
+                setMaintenanceInfo([]);
+                return;
+            }
+
+            const startDate = new Date(dates[0]);
+            startDate.setHours(0, 0, 0, 0);
+
+            const endDate = new Date(dates[1]);
+            endDate.setHours(23, 59, 59, 999);
+
+            const { data, error } = await supabase
+                .from("maintenance_mod")
+                .select(`
+                    *,
+                    bikes_mod (
+                        *,
+                        bike_types_mod (*)
+                    ),
+                    orders_mod (
+                        *,
+                        transaction:transactions_mod (*),
+                        current_bike:bikes_mod!orders_mod_bike_id_fkey (
+                            *,
+                            bike_types_mod (*)
+                        ),
+                        original_bike:bikes_mod!orders_mod_initial_bike_id_fkey (
+                            *,
+                            bike_types_mod (*)
+                        )
+                    ),
+                    transactions_mod (*)
+                `)
+                .gte("created_at", startDate.toISOString())
+                .lte("created_at", endDate.toISOString())
+                .order("created_at", { ascending: false });
+
+            if (error) {
+                console.error("Error fetching maintenance bikes:", error);
+                setMaintenanceInfo([]);
+                return;
+            }
+
+            setMaintenanceInfo(data || []);
+        };
+
+        fetchMaintenanceBikes();
+    }, [dates]);
+
+    console.log("Maintenance", maintenanceInfo);
 
     useEffect(() => {
         const getTransactions = async () => {
@@ -595,6 +681,17 @@ function DataReports() {
                             }`}
                         >
                             Maintenance
+                        </h1>
+
+                        <h1
+                            onClick={() => setActiveTab("Bikes")}
+                            className={`font-akagi font-medium cursor-pointer flex-shrink-0 ${
+                                activeTab === "Bikes"
+                                    ? "text-blue hover:underline"
+                                    : "text-gray"
+                            }`}
+                        >
+                            Bikes
                         </h1>
 
                     </div>
@@ -1248,14 +1345,14 @@ function DataReports() {
                         <div className='bg-gradient-to-t from-blue to-blue/65 shadow-md rounded-xl px-4 py-4 flex flex-col gap-2 font-akagi font-bold text-[#ffffff]'>
                             <div className='w-full h-full lg:h-27 flex flex-col justify-between'>
                                 <div className='flex flex-row justify-between'>
-                                    <h1 className='font-medium text-sm md:text-lg'>Management Maintenance</h1>
+                                    <h1 className='font-medium text-sm md:text-lg'>Total Maintenance</h1>
                                 </div>
 
                                 <div className='flex flex-col'>
                                     <h1 className='text-xl lg:text-3xl'>
                                         ₱{Number(netSales.gross_sales).toLocaleString()}
                                     </h1>
-                                    <h1 className='text-xs lg:text-sm font-medium'>Maintenance paid by management</h1>
+                                    <h1 className='text-xs lg:text-sm font-medium'>Maintenance from management and customer</h1>
                                 </div>
                             </div>
                         </div>  
@@ -1263,14 +1360,14 @@ function DataReports() {
                         <div className='bg-[#ffffff] shadow-md rounded-xl px-4 py-4 flex flex-col gap-2 font-akagi font-bold text-gray'>
                             <div className='w-full h-full flex flex-col justify-between'>
                                 <div className='flex flex-row justify-between'>
-                                    <h1 className='font-medium text-sm md:text-lg'>Customer Maintenance</h1>
+                                    <h1 className='font-medium text-sm md:text-lg'>Management Maintenance</h1>
                                 </div>
 
                                 <div className='flex flex-col'>
                                     <h1 className='text-xl lg:text-3xl'>
                                         ₱{Number(netSales.total_deductions).toLocaleString()}
                                     </h1>
-                                    <h1 className='text-xs lg:text-sm font-medium'>Maintenance paid by customers</h1>
+                                    <h1 className='text-xs lg:text-sm font-medium'>Maintenance paid by management</h1>
                                 </div>
                             </div>
                         </div>
@@ -1278,14 +1375,14 @@ function DataReports() {
                         <div className='bg-[#ffffff] shadow-md  rounded-xl px-4 py-4 flex flex-col gap-2 font-akagi font-bold text-gray'>
                             <div className='w-full h-full flex flex-col justify-between'>
                                 <div className='flex flex-row justify-between'>
-                                    <h1 className='font-medium text-sm md:text-lg'>Total Maintenance</h1>
+                                    <h1 className='font-medium text-sm md:text-lg'>Customer Maintenance</h1>
                                 </div>
 
                                 <div className='flex flex-col'>
                                     <h1 className='text-xl lg:text-3xl'>
                                         ₱{Number(netSales.net_sales).toLocaleString()}
                                     </h1>
-                                    <h1 className='text-xs lg:text-sm font-medium'>Maintenance from management and customer</h1>
+                                    <h1 className='text-xs lg:text-sm font-medium'>Maintenance paid by management</h1>
                                 </div>
                             </div>
                         </div>
@@ -1297,7 +1394,7 @@ function DataReports() {
 
                         <div className='flex flex-row justify-between items-center gap-5'>
                             <h1 className='font-akagi font-bold text-lg text-gray'>
-                                Deductions
+                                Maintenance
                             </h1>
 
                             <h1 className='font-akagi font-medium text-sm text-gray'>
@@ -1308,82 +1405,169 @@ function DataReports() {
                             </h1>
                         </div>
 
-                        {deductions.length === 0 ? (
+                        <div className="flex flex-col gap-6">
 
-                            <div className='flex justify-center py-6'>
-                                <h1 className='font-akagi text-gray'>
-                                    No deductions for the selected dates.
-                                </h1>
+                            {/* Customer-Paid Maintenance */}
+                            <div className="flex flex-col gap-3 bg-gray/15 rounded-lg p-3 shadow-lg py-5">
+                                <h2 className="font-akagi font-medium text-md text-gray">
+                                    Customer
+                                </h2>
+
+                                <div className="flex flex-col gap-2">
+                                    {maintenanceInfo
+                                        .filter(
+                                            (maintenance) =>
+                                                maintenance.payment_by?.toLowerCase() === "customer"
+                                        )
+                                        .map((maintenance) => (
+                                            <MaintenanceRow
+                                                key={maintenance.id}
+                                                bikeId={maintenance?.orders_mod?.current_bike?.code}
+                                                bikeTypeId={maintenance?.orders_mod?.current_bike?.bike_types_mod?.name}
+                                                reason={maintenance?.reason}
+                                                status={maintenance?.status}
+                                                price={maintenance?.price}
+                                                paidBy={maintenance?.payment_by}
+                                                payment={maintenance?.transactions_mod?.total_amount}
+                                                change={maintenance?.transactions_mod?.change_amount}
+                                                method={maintenance?.transactions_mod?.payment_method}
+                                                bikeCode={maintenance?.orders_mod?.code}
+                                                maintenanceId={maintenance?.id}
+                                                date={convertToPhilippineDate(maintenance?.created_at)}
+                                                time={convertToPhilippineTime(maintenance?.created_at)}
+                                                managementBikeId={maintenance?.bike_id}
+                                                managementBikeCode={maintenance?.bikes_mod?.code}
+                                                managementBikeTypeId={maintenance?.bikes_mod?.bike_types_mod?.name}
+                                                inventoryBikeCode={maintenance?.bikes_mod?.code}
+                                                inventoryBikeId={maintenance?.bike_id}
+                                            />
+                                        ))}
+                                </div>
                             </div>
 
-                        ) : (
+                            {/* Management-Paid Maintenance */}
+                            <div className="flex flex-col gap-3 bg-gray/15 rounded-lg p-3 shadow-lg py-5">
+                                <h2 className="font-akagi font-medium text-md text-gray">
+                                    Management
+                                </h2>
 
-                            <div className='flex flex-col divide-y divide-[#E5E5E5]'>
-
-                                {deductions.map((deduction) => (
-
-                                    <div
-                                        key={deduction.id}
-                                        className='py-4 flex flex-row justify-between items-center gap-5'
-                                    >
-
-                                        <div className='flex flex-col'>
-
-                                            <h1 className='font-akagi font-bold text-gray'>
-                                                {deduction.type}
-                                            </h1>
-
-                                            <h1 className='font-akagi text-sm text-[#777777]'>
-                                                {deduction.calculation} • {deduction.value}
-                                                {deduction.calculation?.toLowerCase() === "percentage"
-                                                    ? "%"
-                                                    : ""
-                                                }
-                                            </h1>
-
-                                            {deduction.occurence ? (
-
-                                                <h1 className='font-akagi text-xs text-[#999999]'>
-                                                    {deduction.occurence}
-                                                </h1>
-
-                                            ) : deduction.deadline ? (
-
-                                                <h1 className='font-akagi text-xs text-[#999999]'>
-                                                    Deadline:{" "}
-                                                    {new Date(deduction.deadline).toLocaleDateString(
-                                                        "en-US",
-                                                        {
-                                                            month: "long",
-                                                            day: "numeric",
-                                                            year: "numeric"
-                                                        }
-                                                    )}
-                                                </h1>
-
-                                            ) : null}
-
-                                        </div>
-
-                                        <h1 className='font-akagi font-bold text-gray text-lg whitespace-nowrap'>
-                                            − ₱
-                                            {Number(
-                                                deduction.deduction_amount
-                                            ).toLocaleString("en-PH", {
-                                                minimumFractionDigits: 2,
-                                                maximumFractionDigits: 2
-                                            })}
-                                        </h1>
-
-                                    </div>
-
-                                ))}
-
+                                <div className="flex flex-col gap-2">
+                                    {maintenanceInfo
+                                        .filter(
+                                            (maintenance) =>
+                                                maintenance.payment_by?.toLowerCase() === "management"
+                                        )
+                                        .map((maintenance) => (
+                                            <MaintenanceRow
+                                                key={maintenance.id}
+                                                bikeId={maintenance?.orders_mod?.current_bike?.code}
+                                                bikeTypeId={maintenance?.orders_mod?.current_bike?.bike_types_mod?.name}
+                                                reason={maintenance?.reason}
+                                                status={maintenance?.status}
+                                                price={maintenance?.price}
+                                                paidBy={maintenance?.payment_by}
+                                                payment={maintenance?.transactions_mod?.total_amount}
+                                                change={maintenance?.transactions_mod?.change_amount}
+                                                method={maintenance?.transactions_mod?.payment_method}
+                                                bikeCode={maintenance?.orders_mod?.code}
+                                                maintenanceId={maintenance?.id}
+                                                date={convertToPhilippineDate(maintenance?.created_at)}
+                                                time={convertToPhilippineTime(maintenance?.created_at)}
+                                                managementBikeId={maintenance?.bike_id}
+                                                managementBikeCode={maintenance?.bikes_mod?.code}
+                                                managementBikeTypeId={maintenance?.bikes_mod?.bike_types_mod?.name}
+                                                inventoryBikeCode={maintenance?.bikes_mod?.code}
+                                                inventoryBikeId={maintenance?.bike_id}
+                                            />
+                                        ))}
+                                </div>
                             </div>
 
-                        )}
+                        </div>
+                    </div>
+                    </>
+                }
+
+                {activeTab === "Bikes" &&
+                    <>
+                    <div className='xl:grid-cols-4 grid grid-cols-2 gap-5'>
+                        <div className='bg-gradient-to-t from-blue to-blue/65 shadow-md rounded-xl px-4 py-4 flex flex-col gap-2 font-akagi font-bold text-[#ffffff]'>
+                            <div className='w-full h-full lg:h-27 flex flex-col justify-between'>
+                                <div className='flex flex-row justify-between'>
+                                    <h1 className='font-medium text-sm md:text-lg'>Total Bikes</h1>
+                                </div>
+
+                                <div className='flex flex-col'>
+                                    <h1 className='text-xl lg:text-3xl'>
+                                        ₱{Number(netSales.gross_sales).toLocaleString()}
+                                    </h1>
+                                    <h1 className='text-xs lg:text-sm font-medium'>All bikes</h1>
+                                </div>
+                            </div>
+                        </div>  
+
+                        <div className='bg-[#ffffff] shadow-md rounded-xl px-4 py-4 flex flex-col gap-2 font-akagi font-bold text-gray'>
+                            <div className='w-full h-full flex flex-col justify-between'>
+                                <div className='flex flex-row justify-between'>
+                                    <h1 className='font-medium text-sm md:text-lg'>Rented</h1>
+                                </div>
+
+                                <div className='flex flex-col'>
+                                    <h1 className='text-xl lg:text-3xl'>
+                                        ₱{Number(netSales.total_deductions).toLocaleString()}
+                                    </h1>
+                                    <h1 className='text-xs lg:text-sm font-medium'>Currently in use</h1>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className='bg-[#ffffff] shadow-md  rounded-xl px-4 py-4 flex flex-col gap-2 font-akagi font-bold text-gray'>
+                            <div className='w-full h-full flex flex-col justify-between'>
+                                <div className='flex flex-row justify-between'>
+                                    <h1 className='font-medium text-sm md:text-lg'>Available</h1>
+                                </div>
+
+                                <div className='flex flex-col'>
+                                    <h1 className='text-xl lg:text-3xl'>
+                                        ₱{Number(netSales.net_sales).toLocaleString()}
+                                    </h1>
+                                    <h1 className='text-xs lg:text-sm font-medium'>Available bikes</h1>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className='bg-[#ffffff] shadow-md  rounded-xl px-4 py-4 flex flex-col gap-2 font-akagi font-bold text-gray'>
+                            <div className='w-full h-full flex flex-col justify-between'>
+                                <div className='flex flex-row justify-between'>
+                                    <h1 className='font-medium text-sm md:text-lg'>Under Maintenance</h1>
+                                </div>
+
+                                <div className='flex flex-col'>
+                                    <h1 className='text-xl lg:text-3xl'>
+                                        ₱{Number(netSales.net_sales).toLocaleString()}
+                                    </h1>
+                                    <h1 className='text-xs lg:text-sm font-medium'>Maintenance bikes</h1>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className='bg-[#ffffff] shadow-md rounded-xl p-5 flex flex-col gap-4'>
+
+                        <div className='flex flex-row justify-between items-center gap-5'>
+                            <h1 className='font-akagi font-bold text-lg text-gray'>
+                                Maintenance
+                            </h1>
+
+                            <h1 className='font-akagi font-medium text-sm text-gray'>
+                                {dates?.[0] && dates?.[1]
+                                    ? `${formatDisplayDate(dates[0])} – ${formatDisplayDate(dates[1])}`
+                                    : ""
+                                }
+                            </h1>
+                        </div>
+
                         
-
                     </div>
                     </>
                 }

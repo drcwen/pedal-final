@@ -30,11 +30,8 @@ function MaintenanceRow({
     const [dropDown, setDropDown] = useState(false);
     const [statusDropDown, setStatusDropDown] = useState(false);
 
-    console.log("bike code", bikeCode)
-    console.log("bike id", bikeId)
-
     return (
-        <div className='bg-[#F2F2F2] w-full rounded-lg px-3 py-2 border border-[#c9c9c9]'>
+        <div className='bg-[#F2F2F2] w-full rounded-lg px-3 py-2 border border-gray/30'>
 
             <div className='flex flex-row justify-between font-akagi font-bold text-gray items-center'>
 

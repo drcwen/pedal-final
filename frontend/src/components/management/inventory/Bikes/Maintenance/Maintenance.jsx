@@ -171,12 +171,10 @@ function Maintenance( {setMaintenance }) {
                                 <MaintenanceRow
                                     key={info.id}
 
-                                    // Rental/order-related maintenance
                                     bikeId={info.orders_mod?.current_bike?.code}
                                     bikeCode={info.orders_mod?.current_bike?.id}
                                     bikeTypeId={info.orders_mod?.current_bike?.bike_types_mod?.name}
 
-                                    // Management/inventory-related maintenance
                                     managementBikeId={info.bike_id}
                                     managementBikeCode={info.bikes_mod?.code}
                                     managementBikeTypeId={info.bikes_mod?.bike_types_mod?.name}
