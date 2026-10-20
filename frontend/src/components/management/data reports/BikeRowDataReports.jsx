@@ -1,12 +1,9 @@
-import { MdModeEditOutline } from "react-icons/md";
 import { RiArrowDropDownLine, RiArrowDropUpLine } from "react-icons/ri";
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react"
 import BikeInventoryInfoDataReports from "./BikeInventoryInfoDataReports"
-import { FaPlus } from "react-icons/fa";
-import { RiImageAddFill } from "react-icons/ri";
 
-function BikeRowDataReports({bikeType, capacity, price, image, bikes, bikeTypeId, setBikeEdit, setBikeTypes, setFetchBikeCode, setFetchBikeId, setFetchType, setFetchImage, setFetchBikeStatus, setEditBikeType, setEditBikeImage, setBikeType, setPrice, setEditBikeTypeId, setBikeCapacity}) {
+function BikeRowDataReports({bikeType, capacity, price, image, bikes}) {
 
     const [dropDown, setDropDown] = useState(false);
     const [addBike, setAddBike] = useState(false);
@@ -37,7 +34,7 @@ function BikeRowDataReports({bikeType, capacity, price, image, bikes, bikeTypeId
 
   return (
     <>
-            <div className='bg-[#EBEBEB] w-full rounded-lg px-3 py-2 border border-[#c9c9c9]'>
+            <div className='bg-[#EBEBEB] w-full rounded-lg px-3 py-2 border border-gray/20'>
                 <div className='grid md:grid-cols-[70px_1fr_1fr_1fr_1fr_20px] grid-cols-[1fr_1fr_20px] gap-4 items-center md:text-center font-akagi text-md lg:text-md font-bold text-gray'>
                     <div className='hidden md:flex items-center justify-center'>
                         <img 
@@ -108,17 +105,13 @@ function BikeRowDataReports({bikeType, capacity, price, image, bikes, bikeTypeId
                                 </div>
 
                                 <div className='flex flex-col gap-3'>
-                                    <div className='hidden px-3 md:grid md:grid-cols-[1fr_1fr_1fr_1fr_1fr_30px] gap-2 font-akagi font-bold text-gray/50 text-md text-center'>
+                                    <div className='hidden px-3 md:grid md:grid-cols-[1fr_1fr_1fr_1fr_30px] gap-2 font-akagi font-bold text-gray/50 text-md text-center'>
                                         <div className=''>
                                             ID
                                         </div>
 
                                         <div className=''>
                                             Times Rented
-                                        </div>
-
-                                        <div className=''>
-                                            Date Added
                                         </div>
 
                                         <div className=''>
@@ -192,21 +185,6 @@ function BikeRowDataReports({bikeType, capacity, price, image, bikes, bikeTypeId
                                             {bikeIdError}
                                         </p>
                                     )}
-                                </div>
-
-                                <div className='w-full flex flex-row gap-2 justify-end'>
-                                    <div 
-                                        onClick={() => {setAddBike(false)}}
-                                        className='bg-red-500 rounded-lg px-2 py-1 text-[#ffffff] transition-all duration-300 hover:scale-103 cursor-pointer'>
-                                        Cancel
-                                    </div>
-
-                                    <div 
-                                        onClick={isLoading ? undefined : handleNewBikeSubmit}
-                                        className={`${isLoading ? 'bg-green-300 cursor-not-allowed' : 'bg-green-500 hover:scale-103 cursor-pointer'} rounded-lg px-2 py-1 text-[#ffffff] transition-all duration-300`}
-                                    >
-                                        {isLoading ? 'Saving...' : 'Save'}
-                                    </div>
                                 </div>
 
                             </div>
