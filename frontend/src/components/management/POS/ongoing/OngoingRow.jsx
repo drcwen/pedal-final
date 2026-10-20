@@ -490,7 +490,10 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
                 changed_bike:bikes_mod!change_bikes_mod_changed_bike_id_fkey(*),
                 changed_bike_type:bike_types_mod!change_bikes_mod_changed_bike_type_id_fkey(*),
                 orders_mod(*),
-                transaction:transactions_mod!change_bikes_mod_trans_id_fkey(*)
+                transaction:transactions_mod!change_bikes_mod_trans_id_fkey(
+                    *,
+                    profile:profiles_mod!transactions_mod_assisted_by_fkey(*)
+                )
             `)
             .eq("original_transaction_id", transaction);
 
@@ -502,7 +505,10 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
                 bikes_mod(*),
                 bike_types_mod(*),
                 orders_mod(*),
-                transaction:transactions_mod!extensions_mod_transaction_id_fkey(*)
+                transaction:transactions_mod!extensions_mod_transaction_id_fkey(
+                    *,
+                    profile:profiles_mod!transactions_mod_assisted_by_fkey(*)
+                )
             `)
             .eq("original_transaction_id", transaction);
 
@@ -561,7 +567,8 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
         fetchAvailableExtensionHours(extendOrder.end);
     }, [extendOrder]);
 
-
+console.log(changeBikes);
+    console.log(extensions);
   return (
     <>
         <div 

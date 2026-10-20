@@ -1,9 +1,7 @@
 
-import { IoIosArrowBack } from "react-icons/io";
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from "motion/react"
+import { printReceipt } from "./printReceipt"
 
-function ExtendBikeReceipt({ setReceipt, transaction, fullName, extensionsData }) {
+function ExtendBikeReceipt({ transaction, fullName, extensionsData }) {
     
     function getStartTimePH(range) {
         if (!range) return "-";
@@ -188,6 +186,19 @@ function ExtendBikeReceipt({ setReceipt, transaction, fullName, extensionsData }
                         <div className={`${transaction?.type === undefined ? "hidden" : "block"} flex flex-row justify-between`}>
                             <h1>Assisted by:</h1>
                             <h1>{transaction?.assisted_by_profile?.full_name}</h1>
+                        </div>
+                    </div>
+
+                    <div className='flex justify-end lg:px-10 px-2'>
+                        <div 
+                            onClick={() => {
+                            printReceipt({
+                                transaction,
+                                extensionsData
+                            });
+                        }}
+                            className='cursor-pointer bg-blue rounded-lg px-3 py-0.5 font-akagi font-bold text-[#ffffff] text-xs'>
+                            Print
                         </div>
                     </div>
                 </div>

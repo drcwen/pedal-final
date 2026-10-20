@@ -2,6 +2,7 @@
 import { IoIosArrowBack } from "react-icons/io";
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from "motion/react"
+import { printReceipt } from "./printReceipt"
 
 function Receipt({ startedBikes, transaction }) {
 
@@ -177,6 +178,19 @@ function Receipt({ startedBikes, transaction }) {
                         <div className='flex flex-row justify-between'>
                             <h1>Assisted by:</h1>
                             <h1>{transaction?.assisted_by_profile?.full_name}</h1>
+                        </div>
+                    </div>
+
+                    <div className='flex justify-end lg:px-10 px-2'>
+                        <div 
+                            onClick={() => {
+                            printReceipt({
+                                transaction,
+                                startedBikes
+                            });
+                        }}
+                            className='cursor-pointer bg-blue rounded-lg px-3 py-0.5 font-akagi font-bold text-[#ffffff] text-xs'>
+                            Print
                         </div>
                     </div>
                 </div>
