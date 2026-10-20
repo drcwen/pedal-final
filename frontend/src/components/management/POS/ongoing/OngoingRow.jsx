@@ -748,7 +748,7 @@ console.log(changeBikes);
                                 "
                             >
                                 <Receipt 
-                                    startedBikes={startedBikes}
+                                    startedBikes={bikeDetails}
                                     transaction={transactionDetails}
                                 />
 
