@@ -146,7 +146,7 @@ function MaintenanceRow({
 
                         <div className='md:grid xl:grid-cols-3 mt-5 md:grid-cols-2 flex flex-col gap-3'>
 
-                            <div className={`${bikeId === undefined ? "hidden" : "block"} flex flex-col gap-3 bg-[#ffffff]  p-4 rounded-lg border border-[#c9c9c9] font-akagi font-bold text-md text-black/50`}>
+                            <div className={`${bikeId === undefined ? "hidden" : "block"} flex flex-col gap-3 bg-[#ffffff]  p-4 rounded-lg border border-gray/30 font-akagi font-bold text-md text-gray`}>
 
                                 <h1 className='text-gray text-lg'>
                                     Customer Details
@@ -173,7 +173,7 @@ function MaintenanceRow({
                             </div>
 
 
-                            <div className='flex flex-col gap-3 bg-[#ffffff] p-4 rounded-lg border border-[#c9c9c9] font-akagi font-bold text-md text-black/50'>
+                            <div className='flex flex-col gap-3 bg-[#ffffff] p-4 rounded-lg border border-gray/30 font-akagi font-bold text-md text-gray'>
 
                                 <h1 className='text-gray text-lg'>
                                     Maintenance Details
@@ -200,7 +200,7 @@ function MaintenanceRow({
                             </div>
 
 
-                            <div className='flex flex-col gap-3 bg-[#ffffff] p-4 rounded-lg border border-[#c9c9c9] font-akagi font-bold text-md text-black/50'>
+                            <div className='flex flex-col gap-3 bg-[#ffffff] p-4 rounded-lg border border-gray/30 font-akagi font-bold text-md text-gray'>
 
                                 <h1 className='text-gray text-lg'>
                                     Transaction Details

@@ -24,6 +24,7 @@ import {
 } from "recharts";
 import { FaPrint } from "react-icons/fa6";
 import MaintenanceRow from "../inventory/Bikes/Maintenance/MaintenanceRow"
+import BikeRowDataReports from "./BikeRowDataReports"
 
 function DataReports() {
 
@@ -36,6 +37,8 @@ function DataReports() {
     const [deductions, setDeductions] = useState([]);
 
     const [maintenanceInfo, setMaintenanceInfo] = useState([]);
+
+    const [bikeTypes, setBikeTypes] = useState([]);
 
     //NET SALES
     const [gross, setGross] = useState("...");
@@ -175,17 +178,25 @@ function DataReports() {
         );
     };
 
-    const groupedMaintenance = maintenanceInfo.reduce((groups, maintenance) => {
-        const date = convertToPhilippineDate(maintenance?.created_at);
+    const fetchBikes = async () => {
+        const { data, error } = await supabase
+            .from("bike_types_mod")
+            .select(`
+                *,
+                bikes_mod (
+                    id,
+                    code,
+                    bike_type_id,
+                    status
+                )
+            `);
 
-        if (!groups[date]) {
-            groups[date] = [];
+        if (!error) {
+            setBikeTypes(data || []);
+        } else {
+            console.error("Error fetching bikes:", error);
         }
-
-        groups[date].push(maintenance);
-
-        return groups;
-    }, {});
+    };
 
     useEffect(() => {
         const fetchData = async () => {
@@ -201,8 +212,6 @@ function DataReports() {
                 console.error(error);
                 return;
             }
-
-            console.log("datas", data);
 
             setDashboardData(data);
         };
@@ -314,6 +323,8 @@ function DataReports() {
             formatDate(dates[0]),
             formatDate(dates[1])
         );
+
+        fetchBikes();
     }, [dates]);
 
     useEffect(() => {
@@ -1556,7 +1567,7 @@ function DataReports() {
 
                         <div className='flex flex-row justify-between items-center gap-5'>
                             <h1 className='font-akagi font-bold text-lg text-gray'>
-                                Maintenance
+                                Bikes
                             </h1>
 
                             <h1 className='font-akagi font-medium text-sm text-gray'>
@@ -1567,7 +1578,21 @@ function DataReports() {
                             </h1>
                         </div>
 
-                        
+                        <div className='flex flex-col gap-2'>
+                            {bikeTypes.map((bikes) => (
+
+                                
+                                <BikeRowDataReports 
+                                    bikeType={bikes?.name}
+                                    capacity={bikes?.capacity}
+                                    price={bikes?.price}
+                                    image={bikes?.image_url}
+                                    bikes={bikes?.bikes_mod}
+                                    bikeTypeId={bikes?.id}
+                                />
+                                
+                            ))}
+                        </div>
                     </div>
                     </>
                 }
