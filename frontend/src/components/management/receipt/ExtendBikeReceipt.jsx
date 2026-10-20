@@ -185,7 +185,7 @@ function ExtendBikeReceipt({ transaction, fullName, extensionsData }) {
 
                         <div className={`${transaction?.type === undefined ? "hidden" : "block"} flex flex-row justify-between`}>
                             <h1>Assisted by:</h1>
-                            <h1>{transaction?.assisted_by_profile?.full_name}</h1>
+                            <h1>{transaction?.profile?.full_name}</h1>
                         </div>
                     </div>
 
