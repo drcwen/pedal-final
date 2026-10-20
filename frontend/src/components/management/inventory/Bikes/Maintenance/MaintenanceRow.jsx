@@ -24,7 +24,9 @@ function MaintenanceRow({
     managementBikeCode,
 
     inventoryBikeCode,
+    inventoryBikeTypeId,
     inventoryBikeId
+    
 }) {
 
     const [dropDown, setDropDown] = useState(false);
@@ -36,14 +38,14 @@ function MaintenanceRow({
             <div className='flex flex-row justify-between font-akagi font-bold text-gray items-center'>
 
                 <div className='bg-blue py-0.5 px-2 rounded-lg text-[#ffffff] flex items-center'>
-                    {bikeId === undefined ? inventoryBikeId : bikeId}
+                    {bikeId === undefined ? inventoryBikeCode : bikeId}
                 </div>
 
                 <div className='w-full grid md:grid-cols-[1fr_1fr_1fr] grid-cols-[1fr_1fr] items-center'>
 
                     <div className='w-full justify-center text-center'>
                         <div>
-                            {bikeTypeId === undefined ? inventoryBikeCode : bikeTypeId}
+                            {bikeTypeId === undefined ? inventoryBikeTypeId : bikeTypeId}
                         </div>
                     </div>
 

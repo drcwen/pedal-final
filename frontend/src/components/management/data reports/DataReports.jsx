@@ -1488,7 +1488,7 @@ function DataReports() {
                                                 managementBikeCode={maintenance?.bikes_mod?.code}
                                                 managementBikeTypeId={maintenance?.bikes_mod?.bike_types_mod?.name}
                                                 inventoryBikeCode={maintenance?.bikes_mod?.code}
-                                                inventoryBikeId={maintenance?.bike_id}
+                                                inventoryBikeTypeId={maintenance?.bikes_mod?.bike_types_mod?.name}
                                             />
                                         ))}
                                 </div>

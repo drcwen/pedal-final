@@ -1,7 +1,5 @@
-import { MdModeEditOutline } from "react-icons/md";
-import { useState, useEffect } from "react";
 
-function BikeInventoryInfo({ bikeCode, status }) {
+function BikeInventoryInfoDataReports({ bikeCode, status }) {
 
   return (
     <>
@@ -35,4 +33,4 @@ function BikeInventoryInfo({ bikeCode, status }) {
   )
 }
 
-export default BikeInventoryInfo
+export default BikeInventoryInfoDataReports
