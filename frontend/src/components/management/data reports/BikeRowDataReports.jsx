@@ -3,7 +3,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react"
 import BikeInventoryInfoDataReports from "./BikeInventoryInfoDataReports"
 
-function BikeRowDataReports({bikeType, capacity, price, image, bikes}) {
+function BikeRowDataReports({bikeType, capacity, price, image, bikes, startDate, endDate}) {
 
     const [dropDown, setDropDown] = useState(false);
     const [addBike, setAddBike] = useState(false);
@@ -30,7 +30,7 @@ function BikeRowDataReports({bikeType, capacity, price, image, bikes}) {
         bike => bike.status === "Lost"
     ).length;
 
-
+    console.log(bikes);
 
   return (
     <>
@@ -137,6 +137,8 @@ function BikeRowDataReports({bikeType, capacity, price, image, bikes}) {
                                                     image={image}
                                                     type={bikeType}
                                                     status={bike.status}
+                                                    startDate={startDate}
+                                                    endDate={endDate}
                                                 />
                                             ))
                                         }

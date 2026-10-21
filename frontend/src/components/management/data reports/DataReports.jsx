@@ -40,6 +40,58 @@ function DataReports() {
 
     const [bikeTypes, setBikeTypes] = useState([]);
 
+    const [inventoryCounts, setInventoryCounts] = useState({
+        total_bikes: 0,
+        available_bikes: 0,
+        rented_bikes: 0,
+        maintenance_bikes: 0,
+    });
+
+    const [loading, setLoading] = useState(true);
+
+    const fetchBikeInventoryCounts = async () => {
+        const { data, error } = await supabase.rpc(
+            "get_bike_inventory_counts"
+        );
+
+        if (error) {
+            console.error("Error fetching bike inventory counts:", error);
+            return null;
+        }
+
+        return data?.[0] ?? {
+            total_bikes: 0,
+            available_bikes: 0,
+            rented_bikes: 0,
+            maintenance_bikes: 0,
+        };
+    };
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const loadInventoryCounts = async () => {
+            setLoading(true);
+
+            const counts = await fetchBikeInventoryCounts();
+
+            if (isMounted) {
+                if (counts) {
+                    setInventoryCounts(counts);
+                }
+
+                setLoading(false);
+            }
+        };
+
+        loadInventoryCounts();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
+
+
     //NET SALES
     const [gross, setGross] = useState("...");
     const [netSales, setNetSales] = useState({
@@ -160,7 +212,6 @@ function DataReports() {
 
     const [dates, setDates] = useState([firstDay, lastDay]);
     const [transactionData, setTransactionData] = useState([]);
-    const [loading, setLoading] = useState(true);
 
     const [selectedTypes, setSelectedTypes] = useState([
         "walk-in",
@@ -703,6 +754,17 @@ function DataReports() {
                             }`}
                         >
                             Bikes
+                        </h1>
+
+                        <h1
+                            onClick={() => setActiveTab("GPS")}
+                            className={`font-akagi font-medium cursor-pointer flex-shrink-0 ${
+                                activeTab === "GPS"
+                                    ? "text-blue hover:underline"
+                                    : "text-gray"
+                            }`}
+                        >
+                            GPS
                         </h1>
 
                     </div>
@@ -1510,7 +1572,7 @@ function DataReports() {
 
                                 <div className='flex flex-col'>
                                     <h1 className='text-xl lg:text-3xl'>
-                                        ₱{Number(netSales.gross_sales).toLocaleString()}
+                                        {loading ? "Loading..." : inventoryCounts.total_bikes}
                                     </h1>
                                     <h1 className='text-xs lg:text-sm font-medium'>All bikes</h1>
                                 </div>
@@ -1525,7 +1587,7 @@ function DataReports() {
 
                                 <div className='flex flex-col'>
                                     <h1 className='text-xl lg:text-3xl'>
-                                        ₱{Number(netSales.total_deductions).toLocaleString()}
+                                        {loading ? "Loading..." : inventoryCounts.rented_bikes}
                                     </h1>
                                     <h1 className='text-xs lg:text-sm font-medium'>Currently in use</h1>
                                 </div>
@@ -1540,7 +1602,7 @@ function DataReports() {
 
                                 <div className='flex flex-col'>
                                     <h1 className='text-xl lg:text-3xl'>
-                                        ₱{Number(netSales.net_sales).toLocaleString()}
+                                        {loading ? "Loading..." : inventoryCounts.available_bikes}
                                     </h1>
                                     <h1 className='text-xs lg:text-sm font-medium'>Available bikes</h1>
                                 </div>
@@ -1555,7 +1617,7 @@ function DataReports() {
 
                                 <div className='flex flex-col'>
                                     <h1 className='text-xl lg:text-3xl'>
-                                        ₱{Number(netSales.net_sales).toLocaleString()}
+                                        {loading ? "Loading..." : inventoryCounts.maintenance_bikes}
                                     </h1>
                                     <h1 className='text-xs lg:text-sm font-medium'>Maintenance bikes</h1>
                                 </div>
@@ -1589,6 +1651,108 @@ function DataReports() {
                                     image={bikes?.image_url}
                                     bikes={bikes?.bikes_mod}
                                     bikeTypeId={bikes?.id}
+                                    startDate={formatDate(dates[0])}
+                                    endDate={formatDate(dates[1])}
+                                />
+                                
+                            ))}
+                        </div>
+                    </div>
+                    </>
+                }
+
+                {activeTab === "GPS" &&
+                    <>
+                    <div className='xl:grid-cols-4 grid grid-cols-2 gap-5'>
+                        <div className='bg-gradient-to-t from-blue to-blue/65 shadow-md rounded-xl px-4 py-4 flex flex-col gap-2 font-akagi font-bold text-[#ffffff]'>
+                            <div className='w-full h-full lg:h-27 flex flex-col justify-between'>
+                                <div className='flex flex-row justify-between'>
+                                    <h1 className='font-medium text-sm md:text-lg'>Total GPS</h1>
+                                </div>
+
+                                <div className='flex flex-col'>
+                                    <h1 className='text-xl lg:text-3xl'>
+                                        {loading ? "Loading..." : inventoryCounts.total_bikes}
+                                    </h1>
+                                    <h1 className='text-xs lg:text-sm font-medium'>All GPS</h1>
+                                </div>
+                            </div>
+                        </div>  
+
+                        <div className='bg-[#ffffff] shadow-md rounded-xl px-4 py-4 flex flex-col gap-2 font-akagi font-bold text-gray'>
+                            <div className='w-full h-full flex flex-col justify-between'>
+                                <div className='flex flex-row justify-between'>
+                                    <h1 className='font-medium text-sm md:text-lg'>Assigned</h1>
+                                </div>
+
+                                <div className='flex flex-col'>
+                                    <h1 className='text-xl lg:text-3xl'>
+                                        {loading ? "Loading..." : inventoryCounts.rented_bikes}
+                                    </h1>
+                                    <h1 className='text-xs lg:text-sm font-medium'>Currently assigned</h1>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className='bg-[#ffffff] shadow-md  rounded-xl px-4 py-4 flex flex-col gap-2 font-akagi font-bold text-gray'>
+                            <div className='w-full h-full flex flex-col justify-between'>
+                                <div className='flex flex-row justify-between'>
+                                    <h1 className='font-medium text-sm md:text-lg'>Available</h1>
+                                </div>
+
+                                <div className='flex flex-col'>
+                                    <h1 className='text-xl lg:text-3xl'>
+                                        {loading ? "Loading..." : inventoryCounts.available_bikes}
+                                    </h1>
+                                    <h1 className='text-xs lg:text-sm font-medium'>Available GPS</h1>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className='bg-[#ffffff] shadow-md  rounded-xl px-4 py-4 flex flex-col gap-2 font-akagi font-bold text-gray'>
+                            <div className='w-full h-full flex flex-col justify-between'>
+                                <div className='flex flex-row justify-between'>
+                                    <h1 className='font-medium text-sm md:text-lg'>Under Maintenance</h1>
+                                </div>
+
+                                <div className='flex flex-col'>
+                                    <h1 className='text-xl lg:text-3xl'>
+                                        {loading ? "Loading..." : inventoryCounts.maintenance_bikes}
+                                    </h1>
+                                    <h1 className='text-xs lg:text-sm font-medium'>Maintenance GPS</h1>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className='bg-[#ffffff] shadow-md rounded-xl p-5 flex flex-col gap-4'>
+
+                        <div className='flex flex-row justify-between items-center gap-5'>
+                            <h1 className='font-akagi font-bold text-lg text-gray'>
+                                Bikes
+                            </h1>
+
+                            <h1 className='font-akagi font-medium text-sm text-gray'>
+                                {dates?.[0] && dates?.[1]
+                                    ? `${formatDisplayDate(dates[0])} – ${formatDisplayDate(dates[1])}`
+                                    : ""
+                                }
+                            </h1>
+                        </div>
+
+                        <div className='flex flex-col gap-2'>
+                            {bikeTypes.map((bikes) => (
+
+                                
+                                <BikeRowDataReports 
+                                    bikeType={bikes?.name}
+                                    capacity={bikes?.capacity}
+                                    price={bikes?.price}
+                                    image={bikes?.image_url}
+                                    bikes={bikes?.bikes_mod}
+                                    bikeTypeId={bikes?.id}
+                                    startDate={formatDate(dates[0])}
+                                    endDate={formatDate(dates[1])}
                                 />
                                 
                             ))}

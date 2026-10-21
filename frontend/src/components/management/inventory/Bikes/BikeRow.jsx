@@ -187,13 +187,9 @@ function BikeRow({bikeType, capacity, price, image, bikes, bikeTypeId, setBikeEd
                                 </div>
 
                                 <div className='flex flex-col gap-3'>
-                                    <div className='hidden px-3 md:grid md:grid-cols-[1fr_1fr_1fr_1fr_1fr_30px] gap-2 font-akagi font-bold text-gray/50 text-md text-center'>
+                                    <div className='hidden px-3 md:grid md:grid-cols-[1fr_1fr_1fr_1fr_30px] gap-2 font-akagi font-bold text-gray/50 text-md text-center'>
                                         <div className=''>
                                             ID
-                                        </div>
-
-                                        <div className=''>
-                                            Times Rented
                                         </div>
 
                                         <div className=''>
@@ -201,7 +197,7 @@ function BikeRow({bikeType, capacity, price, image, bikes, bikeTypeId, setBikeEd
                                         </div>
 
                                         <div className=''>
-                                            Earnings
+                                            QR
                                         </div>
 
                                         <div className=''>
