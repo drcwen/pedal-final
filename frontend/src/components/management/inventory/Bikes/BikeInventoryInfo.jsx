@@ -219,6 +219,22 @@ function BikeInventoryInfo({
         }
     };
 
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+
+console.log("Cloudinary configuration:", {
+    cloudNameExists: Boolean(cloudName),
+    uploadPresetExists: Boolean(uploadPreset),
+});
+
+if (!cloudName || !uploadPreset) {
+    throw new Error(
+        `Missing Cloudinary configuration: ${
+            !cloudName ? "cloud name " : ""
+        }${!uploadPreset ? "upload preset" : ""}`.trim()
+    );
+}
+
     return (
         <>
             <div className="md:px-3 px-6 bg-[#ffffff] items-center border border-[#C9C9C9] rounded-lg py-2 flex flex-row justify-between md:grid md:grid-cols-[1fr_1fr_1fr_1fr_30px] gap-2 font-akagi font-bold text-gray text-md text-center">
