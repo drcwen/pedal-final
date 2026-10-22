@@ -220,20 +220,20 @@ function BikeInventoryInfo({
     };
 
     const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+    const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
-console.log("Cloudinary configuration:", {
-    cloudNameExists: Boolean(cloudName),
-    uploadPresetExists: Boolean(uploadPreset),
-});
+    console.log("Cloudinary configuration:", {
+        cloudNameExists: Boolean(cloudName),
+        uploadPresetExists: Boolean(uploadPreset),
+    });
 
-if (!cloudName || !uploadPreset) {
-    throw new Error(
-        `Missing Cloudinary configuration: ${
-            !cloudName ? "cloud name " : ""
-        }${!uploadPreset ? "upload preset" : ""}`.trim()
-    );
-}
+    if (!cloudName || !uploadPreset) {
+        throw new Error(
+            `Missing Cloudinary configuration: ${
+                !cloudName ? "cloud name " : ""
+            }${!uploadPreset ? "upload preset" : ""}`.trim()
+        );
+    }
 
     return (
         <>
