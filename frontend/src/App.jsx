@@ -225,6 +225,8 @@
         {session && role === "cashier" && (
           <>
             <Route path="/" element={<Dashboard />} />
+            <Route path="/monitoring" element={<Monitoring />} />
+            <Route path="/monitoring/:gpsId" element={<Monitoring />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/pos" element={<POS />} />
             <Route path="/transactions" element={<Transactions />} />
@@ -258,6 +260,8 @@
         {session && role === "admin" && (
           <>
             <Route path="/" element={<Dashboard />} />
+            <Route path="/monitoring" element={<Monitoring />} />
+            <Route path="/monitoring/:gpsId" element={<Monitoring />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/pos" element={<POS />} />
             <Route path="/transactions" element={<Transactions />} />
