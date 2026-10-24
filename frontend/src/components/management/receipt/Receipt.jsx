@@ -76,6 +76,9 @@ function Receipt({ startedBikes, transaction }) {
         }, {})
     );
 
+    console.log(startedBikes)
+    console.log(transaction)
+
     return (
     <>
 
@@ -127,7 +130,7 @@ function Receipt({ startedBikes, transaction }) {
                                     <div className='flex flex-col'>
                                         <div className='flex flex-row gap-2'>
                                             <h1>
-                                                {bike.original_bike?.bike_types_mod?.name ?? "Unknown Bike"}
+                                                {bike.original_bike?.bike_types_mod?.name ?? bike?.bike_types_mod?.name}
                                             </h1>
 
                                             <h1>
@@ -145,7 +148,7 @@ function Receipt({ startedBikes, transaction }) {
                                     </div>
 
                                     <h1>
-                                        P{(bike.original_bike?.bike_types_mod?.price ?? 0) * bike.duration_hours * bike.quantity}
+                                        P{((bike.original_bike?.bike_types_mod?.price ?? bike?.bike_types_mod?.price ?? 0) * bike.duration_hours * bike.quantity)}
                                     </h1>
                                 </div>
                             ))}

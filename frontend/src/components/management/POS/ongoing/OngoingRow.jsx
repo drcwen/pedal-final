@@ -567,8 +567,6 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
         fetchAvailableExtensionHours(extendOrder.end);
     }, [extendOrder]);
 
-console.log(changeBikes);
-    console.log(extensions);
   return (
     <>
         <div 

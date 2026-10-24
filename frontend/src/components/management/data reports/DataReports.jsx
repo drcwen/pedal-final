@@ -34,6 +34,7 @@ function DataReports() {
     const [walkInGross , setWalkInGross] = useState("...");
     const [extensionsGross, setExtensionsGross] = useState("...");
     const [changeGross, setChangeGross] = useState("...");
+    const [overtimeGross, setOvertimeGross] = useState("...");
     const [deductions, setDeductions] = useState([]);
 
     const [maintenanceInfo, setMaintenanceInfo] = useState([]);
@@ -362,6 +363,25 @@ function DataReports() {
             setChangeGross(data);
         };
 
+        const fetchOvertime = async () => {
+            const { data, error } = await supabase.rpc(
+                "get_date_overtime_gross_revenue",
+                {
+                    start_date: formatDate(dates[0]),
+                    end_date: formatDate(dates[1])
+                }
+            );
+
+            if (error) {
+                console.error(error);
+                return;
+            }
+
+            console.log("overtime",data);
+
+            setOvertimeGross(data);
+        };
+
         fetchData();
         fetchGross();
         fetchReservationGross();
@@ -369,6 +389,7 @@ function DataReports() {
         fetchExtensions();
         fetchChange();
         fetchNetSales();
+        fetchOvertime();
 
         fetchDateDeductions(
             formatDate(dates[0]),
@@ -1026,6 +1047,29 @@ function DataReports() {
                                         </BarChart>
                                     </ResponsiveContainer>
                                 </div>
+
+                                
+                            </div>
+
+                            <div className='bg-[#ffffff] p-5 font-akagi font-bold text-gray rounded-xl flex flex-col gap-2 shadow-md'>
+                                <h1 className='font-medium'>Overtime Bikes Gross Revenue</h1>
+                                <h1 className='lg:text-4xl text-2xl'>P{overtimeGross}</h1>
+                                <div className="w-full h-[70px]">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart
+                                            data={dashboardData}
+                                            margin={{ top: 5, right: 0, left: 0, bottom: 0 }}
+                                        >
+                                            <Bar
+                                                dataKey="revenue"
+                                                radius={[3, 3, 3, 3]}
+                                                fill="#979B9D"
+                                            />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+
+                                
                             </div>
 
                         </div>

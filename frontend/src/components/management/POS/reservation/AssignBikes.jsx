@@ -36,6 +36,24 @@ function AssignBikes({onClose, fullName, bikeDetails, transaction}) {
         }
     }
 
+    const updateGPS = async () => {
+        for (const [orderId, selection] of Object.entries(selectedItems)) {
+            if (!selection.gpsId) continue;
+
+            const { error } = await supabase
+                .from("gps_mod")
+                .update({
+                    status: "Rented"
+                })
+                .eq("id", selection.gpsId);
+
+            if (error) {
+                console.error("Error updating GPS:", error);
+                throw error;
+            }
+        }
+    };
+
     const updateBike = async () => {
         for(const [orderId, selection] of Object.entries(selectedItems)) {
             const {error} = await supabase
@@ -67,6 +85,7 @@ function AssignBikes({onClose, fullName, bikeDetails, transaction}) {
         await assignBikes();
         await updateTransaction();
         await updateBike();
+        await updateGPS();
         
         window.location.reload();
     };
