@@ -8,6 +8,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion } from "motion/react"
 import { useNavigate } from "react-router-dom";
 import { TbHistory } from "react-icons/tb";
+import { IoMdClose } from "react-icons/io";
 
 function POS() {
 
@@ -590,12 +591,19 @@ function POS() {
                     overflow-y-auto
                     scrollbar-thin
                     scrollbar-thumb-[#B9B9B9]
-                    scrollbar-track-[#E2E2E2] flex flex-col gap-5
+                    scrollbar-track-[#E2E2E2] 
+                    scrollbar-none flex flex-col gap-5
                     font-akagi
                     font-bold
                     text-blue
                 ">
-                    <h1 className='text-2xl text-blue'>Reservation History</h1>
+                    <div className='flex flex-row justify-between items-center'>
+                        <h1 className='text-2xl text-blue'>Reservation History</h1>
+                        <IoMdClose 
+                            onClick={() => {setHistory(false)}}
+                            className='text-xl text-gray'/>
+                    </div>
+                
 
                     <div className=''>
                         <motion.div 

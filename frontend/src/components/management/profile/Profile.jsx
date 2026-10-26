@@ -121,7 +121,7 @@ function Profile({ fullName, role, email, contact, id, branch, firstName, lastNa
 
                 <SidebarMobile active={'dashboard'}/>
                 
-                <div className='flex flex-col bg-[#ffffff] w-full h-full rounded-xl md:p-10 md:px-3 py-15 px-7 md:py-7 gap-6 overflow-y-scroll scrollbar-none scrollbar-thumb-[#B9B9B9] scrollbar-track-[#E2E2E2]'>
+                <div className='flex flex-col bg-[#ffffff] w-full h-full rounded-xl md:p-15 md:px-10 py-15 px-7 gap-6 overflow-y-scroll scrollbar-none scrollbar-thumb-[#B9B9B9] scrollbar-track-[#E2E2E2]'>
                                         
                     <div className='flex flex-row justify-between md:items-center'>
                         <div className='w-full flex flex-row justify-between gap-5 items-center'>
@@ -404,11 +404,6 @@ function Profile({ fullName, role, email, contact, id, branch, firstName, lastNa
                                         }
                                     </div>
                                 
-                            </div>
-
-                            <div className='flex flex-col'>
-                                <h1 className='font-medium'>Branch/Location</h1>
-                                <h1 className='font-bold'>{branch}</h1>
                             </div>
 
                         </div>

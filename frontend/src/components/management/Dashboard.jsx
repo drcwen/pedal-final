@@ -117,7 +117,7 @@ function Dashboard() {
                 animate={{ height: "auto", opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
                 transition={{ duration: 0.25, ease: "easeInOut" }} 
-                className='flex flex-col flex-1 min-w-0 lg:h-screen lg:overflow-hidden lg:py-15 lg:px-10 p-5 md:p-7 gap-5'>
+                className='flex flex-col flex-1 min-w-0 lg:h-screen lg:overflow-hidden lg:py-15 lg:px-10 p-5 py-10 px-8 md:p-7 gap-5'>
 
                 <SidebarMobile active={'dashboard'}/>
 

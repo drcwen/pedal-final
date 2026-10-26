@@ -41,6 +41,12 @@ function Settings() {
 
     const [dropDown, setDropDown] = useState(false);
 
+    const [savingSchedule, setSavingSchedule] = useState(false);
+    const [scheduleMessage, setScheduleMessage] = useState({
+        type: "",
+        text: ""
+    });
+
     const periodicOccurenceOption = [
         "Every transaction",
         "Annually",
@@ -126,7 +132,12 @@ function Settings() {
     };
 
     const saveSchedule = async () => {
+        if (savingSchedule) return;
+
         try {
+            setSavingSchedule(true);
+            setScheduleMessage({ type: "", text: "" });
+
             for (const sched of schedule) {
                 const { error } = await supabase
                     .from("operating_hours_mod")
@@ -143,11 +154,20 @@ function Settings() {
             }
 
             await fetchSchedule();
-            alert("Operating hours saved successfully!");
 
+            setScheduleMessage({
+                type: "success",
+                text: "Operating hours saved successfully!"
+            });
         } catch (error) {
             console.error("Error saving schedule:", error);
-            alert("Failed to save operating hours.");
+
+            setScheduleMessage({
+                type: "error",
+                text: "Failed to save operating hours. Please try again."
+            });
+        } finally {
+            setSavingSchedule(false);
         }
     };
 
@@ -341,12 +361,41 @@ function Settings() {
                                     </div>
                                 ))}
 
-                                <div 
-                                    onClick={saveSchedule}
-                                    className='w-fit rounded-lg bg-yellow px-4 py-1 font-akagi font-bold text-navyblue'>
-                                    Save
-                                </div>
+                                <div className="flex flex-col items-start gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={saveSchedule}
+                                        disabled={savingSchedule}
+                                        className={`w-fit rounded-lg px-4 py-2 font-akagi font-bold text-navyblue transition-all ${
+                                            savingSchedule
+                                                ? "bg-yellow/50 cursor-not-allowed"
+                                                : "bg-yellow hover:opacity-80 cursor-pointer"
+                                        }`}
+                                    >
+                                        {savingSchedule ? (
+                                            <span className="flex items-center gap-2">
+                                                <span className="w-4 h-4 border-2 border-navyblue/30 border-t-navyblue rounded-full animate-spin" />
+                                                Saving...
+                                            </span>
+                                        ) : (
+                                            "Save"
+                                        )}
+                                    </button>
 
+                                    {scheduleMessage.text && (
+                                        <div
+                                            role="status"
+                                            aria-live="polite"
+                                            className={`w-full rounded-lg border px-3 py-2 font-akagi text-sm font-medium ${
+                                                scheduleMessage.type === "success"
+                                                    ? "bg-blue/10 border-blue text-blue"
+                                                    : "bg-red-50 border-red-200 text-red-700"
+                                            }`}
+                                        >
+                                            {scheduleMessage.text}
+                                        </div>
+                                    )}
+                                </div>
                                 <div className='block md:hidden w-full h-0.5 bg-black/20 rounded-xl'/>
                             </div>
 

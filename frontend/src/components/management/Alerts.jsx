@@ -15,32 +15,89 @@ function Alerts() {
     const [updating, setUpdating] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
 
+    const getAlertDateGroup = (timestamp) => {
+        if (!timestamp) return "Unknown Date";
+
+        const date = new Date(timestamp);
+        if (Number.isNaN(date.getTime())) return "Unknown Date";
+
+        const dateString = new Intl.DateTimeFormat("en-CA", {
+            timeZone: "Asia/Manila",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+        }).format(date);
+
+        const today = new Intl.DateTimeFormat("en-CA", {
+            timeZone: "Asia/Manila",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+        }).format(new Date());
+
+        const yesterdayDate = new Date(`${today}T00:00:00Z`);
+        yesterdayDate.setUTCDate(yesterdayDate.getUTCDate() - 1);
+        const yesterday = yesterdayDate.toISOString().slice(0, 10);
+
+        if (dateString === today) return "Today";
+        if (dateString === yesterday) return "Yesterday";
+
+        const [year, month, day] = dateString.split("-");
+        return `${month}/${day}/${year}`;
+    };
+
+    const groupedAlerts = Object.entries(
+        [...activeAlerts]
+            .sort((a, b) => {
+                // Dismissed alerts always go to the bottom.
+                const aDismissed = a.status === "Dismissed";
+                const bDismissed = b.status === "Dismissed";
+
+                if (aDismissed !== bDismissed) {
+                    return aDismissed ? 1 : -1;
+                }
+
+                // Within each status group, newest alerts first.
+                return new Date(b.created_at) - new Date(a.created_at);
+            })
+            .reduce((groups, alert) => {
+                const dateGroup = getAlertDateGroup(alert.created_at);
+
+                if (!groups[dateGroup]) {
+                    groups[dateGroup] = [];
+                }
+
+                groups[dateGroup].push(alert);
+                return groups;
+            }, {})
+    );
+
     const formatRelativeDate = (timestamp) => {
         if (!timestamp) return "";
 
-        const date = new Date(timestamp);
-        if (Number.isNaN(date.getTime())) return "";
+        const createdAt = new Date(timestamp);
+        if (Number.isNaN(createdAt.getTime())) return "";
 
-        const getPHDate = (value) =>
-            new Intl.DateTimeFormat("en-CA", {
-                timeZone: "Asia/Manila",
-                year: "numeric",
-                month: "2-digit",
-                day: "2-digit",
-            }).format(value);
+        const now = new Date();
+        const diffMs = Math.max(0, now.getTime() - createdAt.getTime());
 
-        const givenDate = getPHDate(date);
-        const todayDate = getPHDate(new Date());
+        const seconds = Math.floor(diffMs / 1000);
+        const minutes = Math.floor(seconds / 60);
+        const hours = Math.floor(minutes / 60);
+        const days = Math.floor(hours / 24);
 
-        const yesterday = new Date(`${todayDate}T00:00:00Z`);
-        yesterday.setUTCDate(yesterday.getUTCDate() - 1);
-        const yesterdayDate = yesterday.toISOString().slice(0, 10);
+        if (seconds < 60) return `${seconds}s`;
+        if (minutes < 60) return `${minutes}m`;
+        if (hours < 24) return `${hours}h`;
+        if (days < 7) return `${days}d`;
 
-        if (givenDate === todayDate) return "Today";
-        if (givenDate === yesterdayDate) return "Yesterday";
-
-        const [year, month, day] = givenDate.split("-");
-        return `${month}/${day}/${year}`;
+        // For alerts older than 7 days, show the actual date in Philippine time.
+        return new Intl.DateTimeFormat("en-US", {
+            timeZone: "Asia/Manila",
+            month: "2-digit",
+            day: "2-digit",
+            year: "numeric",
+        }).format(createdAt);
     };
 
     const formatTime = (timestamp) => {
@@ -135,7 +192,7 @@ function Alerts() {
 
     return (
         <>
-            <div className="w-full min-h-screen bg-[#F2F2F2] flex">
+            <div className="w-full h-screen overflow-hidden bg-[#F2F2F2] flex">
                 <Sidebar active="" />
                 <SidebarMobile active="" />
 
@@ -147,7 +204,7 @@ function Alerts() {
                         duration: 0.25,
                         ease: "easeInOut",
                     }}
-                    className="flex flex-col flex-1 min-w-0 lg:h-screen lg:py-15 lg:px-10 p-5 md:p-7 gap-5"
+                    className="flex flex-col flex-1 min-w-0 min-h-0 lg:h-screen lg:py-15 lg:px-10 p-5 md:p-7 gap-5"
                 >
                     <div className="flex flex-col gap-1 font-akagi">
                         <h1 className="md:text-4xl text-2xl font-bold tracking-wide text-blue">
@@ -158,7 +215,7 @@ function Alerts() {
                         </h1>
                     </div>
 
-                    <div className="w-full h-full bg-[#ffffff] rounded-xl p-5 overflow-y-auto flex flex-col">
+                    <div className="w-full flex-1 min-h-0 min-w-0 bg-[#ffffff] rounded-xl p-5 overflow-y-auto flex flex-col">
                         <div className="flex flex-col gap-3">
                             {loading && (
                                 <div className="flex justify-center items-center py-10 font-akagi text-gray">
@@ -189,80 +246,93 @@ function Alerts() {
                                 </div>
                             )}
 
-                            {!loading && activeAlerts.map((active) => (
-                                <div
-                                    key={active.id}
-                                    className="grid grid-cols-2 border border-gray/15 md:grid-cols-[1fr_1fr_1fr_120px_120px] bg-gray/10 p-3 rounded-lg gap-2"
-                                >
-                                    <div className="flex gap-3 items-center min-w-0">
-                                        <div className="bg-yellow rounded-lg p-1 shrink-0">
-                                            <img
-                                                src="https://res.cloudinary.com/dp3vkgxtb/image/upload/v1775884918/family_bike_hkm9lu.png"
-                                                className="w-10"
-                                                alt="Bike"
-                                            />
-                                        </div>
+                            {!loading && groupedAlerts.map(([dateGroup, alerts]) => (
+                                <div key={dateGroup} className="flex flex-col gap-3">
+                                    {/* Date heading */}
+                                    <h2 className="font-akagi font-medium text-gray/70 text-lg mt-3">
+                                        {dateGroup}
+                                    </h2>
 
-                                        <div className="flex flex-col font-akagi font-bold text-gray justify-center min-w-0">
-                                            <h1 className="text-blue">
-                                                {active?.bikes_mod?.code || "Unknown Bike"}
-                                            </h1>
-                                            <h1 className="font-medium truncate">
-                                                {active?.bike_types_mod?.name || "Unknown Type"}
-                                            </h1>
-                                        </div>
-                                    </div>
-
-                                    <div className="hidden md:flex w-full text-center flex-col font-akagi font-bold text-gray justify-center min-w-0">
-                                        <h1 className="text-blue truncate">
-                                            {active?.concern || "No concern specified"}
-                                        </h1>
-                                    </div>
-
-                                    <div className="hidden md:flex w-full justify-center text-center flex-col font-akagi font-bold text-gray">
-                                        <h1 className="text-blue">
-                                            {formatTime(active?.created_at)}
-                                        </h1>
-                                        <h1 className="font-medium">
-                                            {formatRelativeDate(active?.created_at)}
-                                        </h1>
-                                    </div>
-
-                                    <div className="justify-end w-full flex items-center md:justify-center">
-                                        <button
-                                            type="button"
-                                            onClick={() => openDetails(active)}
-                                            className={`cursor-pointer rounded-lg px-3 py-1 font-akagi font-bold text-[#ffffff] transition hover:opacity-80 ${
-                                                active.status === "Resolved"
-                                                    ? "bg-green-500"
-                                                    : active.status === "Dismissed"
-                                                    ? "bg-gray"
-                                                    : "bg-red-400"
+                                    {alerts.map((active) => (
+                                        <div
+                                            key={active.id}
+                                            className={`grid grid-cols-2 border border-gray/15 md:grid-cols-[1fr_1fr_1fr_120px_120px] p-3 rounded-lg gap-2 ${
+                                                active.status === "Dismissed"
+                                                    ? "bg-gray/5 opacity-70"
+                                                    : "bg-gray/10"
                                             }`}
                                         >
-                                            {active.status || "Resolve"}
-                                        </button>
-                                    </div>
+                                            <div className="flex gap-3 items-center min-w-0">
+                                                <div className="bg-yellow rounded-lg p-1 shrink-0">
+                                                    <img
+                                                        src="https://res.cloudinary.com/dp3vkgxtb/image/upload/v1775884918/family_bike_hkm9lu.png"
+                                                        className="w-10"
+                                                        alt="Bike"
+                                                    />
+                                                </div>
 
-                                    <div className="hidden md:flex w-full items-center justify-end">
-                                        <button
-                                            type="button"
-                                            onClick={() => openDetails(active)}
-                                            className="cursor-pointer rounded-lg px-3 py-1 border border-gray font-akagi font-bold text-gray hover:bg-gray/10 transition"
-                                        >
-                                            View Details
-                                        </button>
-                                    </div>
+                                                <div className="flex flex-col font-akagi font-bold text-gray justify-center min-w-0">
+                                                    <h1 className="text-blue">
+                                                        {active?.bikes_mod?.code || "Unknown Bike"}
+                                                    </h1>
+                                                    <h1 className="font-medium truncate">
+                                                        {active?.bike_types_mod?.name || "Unknown Type"}
+                                                    </h1>
+                                                </div>
+                                            </div>
 
-                                    <div className="flex md:hidden items-center justify-end col-span-2">
-                                        <button
-                                            type="button"
-                                            onClick={() => openDetails(active)}
-                                            className="cursor-pointer rounded-lg px-3 py-1 border border-gray font-akagi font-bold text-gray text-sm hover:bg-gray/10 transition"
-                                        >
-                                            View Details
-                                        </button>
-                                    </div>
+                                            <div className="hidden md:flex w-full text-center flex-col font-akagi font-bold text-gray justify-center min-w-0">
+                                                <h1 className="text-blue truncate">
+                                                    {active?.concern || "No concern specified"}
+                                                </h1>
+                                            </div>
+
+                                            <div className="hidden md:flex w-full justify-center text-center flex-col font-akagi font-bold text-gray">
+                                                <h1 className="text-blue">
+                                                    {formatTime(active?.created_at)}
+                                                </h1>
+                                                <h1 className="font-medium">
+                                                    {formatRelativeDate(active?.created_at)}
+                                                </h1>
+                                            </div>
+
+                                            <div className="justify-end w-full flex items-center md:justify-center">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => openDetails(active)}
+                                                    className={`cursor-pointer rounded-lg px-3 py-1 font-akagi font-bold text-[#ffffff] transition hover:opacity-80 ${
+                                                        active.status === "Resolved"
+                                                            ? "bg-green-500"
+                                                            : active.status === "Dismissed"
+                                                            ? "bg-gray"
+                                                            : "bg-red-400"
+                                                    }`}
+                                                >
+                                                    {active.status || "Pending"}
+                                                </button>
+                                            </div>
+
+                                            <div className="hidden md:flex w-full items-center justify-end">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => openDetails(active)}
+                                                    className="cursor-pointer rounded-lg px-3 py-1 border border-gray font-akagi font-bold text-gray hover:bg-gray/10 transition"
+                                                >
+                                                    View Details
+                                                </button>
+                                            </div>
+
+                                            <div className="flex md:hidden items-center justify-end col-span-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => openDetails(active)}
+                                                    className="cursor-pointer rounded-lg px-3 py-1 border border-gray font-akagi font-bold text-gray text-sm hover:bg-gray/10 transition"
+                                                >
+                                                    View Details
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             ))}
                         </div>

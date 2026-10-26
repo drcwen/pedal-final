@@ -21,6 +21,8 @@ function Sidebar({active}) {
     const navigate = useNavigate();
     const [userName, setUserNname] = useState(null);
 
+    const [pendingAlertsCount, setPendingAlertsCount] = useState(0);
+
     const [openAlerts, setOpenAlerts] = useState(false);
 
     const handleLogout = async () => {
@@ -61,6 +63,64 @@ function Sidebar({active}) {
     useEffect(() => { 
       fetchUserName(); 
     }, []);
+
+    useEffect(() => {
+      let isMounted = true;
+
+      const fetchPendingAlertsCount = async () => {
+          const { data, error } = await supabase
+              .from("alerts_mod")
+              .select("id, status");
+
+          if (error) {
+              console.error("Error fetching alerts:", error.message);
+              return;
+          }
+
+          console.log("Alerts visible to this user:", data);
+          console.log(
+              "Pending alerts:",
+              data.filter(
+                  (alert) =>
+                      alert.status?.trim().toLowerCase() === "ongoing"
+              ).length
+          );
+
+          const count = data.filter(
+              (alert) =>
+                  alert.status?.trim().toLowerCase() === "ongoing"
+          ).length;
+
+          if (isMounted) {
+              setPendingAlertsCount(count);
+          }
+      };
+
+      fetchPendingAlertsCount();
+
+      const channel = supabase
+          .channel("sidebar-pending-alerts")
+          .on(
+              "postgres_changes",
+              {
+                  event: "*",
+                  schema: "public",
+                  table: "alerts_mod",
+              },
+              (payload) => {
+                  console.log("Realtime alert change:", payload);
+                  fetchPendingAlertsCount();
+              }
+          )
+          .subscribe((status) => {
+              console.log("Alerts Realtime status:", status);
+          });
+
+      return () => {
+          isMounted = false;
+          supabase.removeChannel(channel);
+      };
+  }, []);
 
     const menu = [
       {
@@ -129,10 +189,11 @@ function Sidebar({active}) {
                       >
                         <HiMiniBellAlert className="text-2xl text-darkblue" />
 
-                        <div 
-                          className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-yellow flex items-center justify-center font-akagi font-bold text-red-600 text-xs">
-                            1
-                        </div>
+                        {pendingAlertsCount > 0 && (
+                          <div className="absolute -top-2 -right-2 min-w-5 h-5 px-1 rounded-full bg-yellow flex items-center justify-center font-akagi font-bold text-red-600 text-xs">
+                              {pendingAlertsCount > 99 ? "99+" : pendingAlertsCount}
+                          </div>
+                        )}
                     </div>
                   </div>
 
