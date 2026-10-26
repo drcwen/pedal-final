@@ -932,6 +932,8 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
                                 bikeCode={extendOrder.bikeCode}
                                 bikeTypeId={extendOrder.bikeTypeId}
                                 originalTransactionId={transaction}
+                                refreshOngoing={refreshOngoing}
+                                setExtendOrder={setExtendOrder}
                             />
                         }
                     </div>

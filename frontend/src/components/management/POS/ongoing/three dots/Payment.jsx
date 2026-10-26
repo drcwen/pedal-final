@@ -3,7 +3,7 @@ import {supabase } from "../../../../../lib/supabase"
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { useNavigate } from "react-router-dom";
 
-function Payment({total, setPayment, bikeId, bikeType, orderId, extensionClicked, updatedTime, bikeCode, bikeTypeId, originalTransactionId}) {
+function Payment({total, setPayment, bikeId, bikeType, orderId, extensionClicked, updatedTime, bikeCode, bikeTypeId, originalTransactionId, refreshOngoing, setExtendOrder}) {
 
     const [active, setActive] = useState("Cash");
     const [cashAmount, setCashAmount] = useState(null);
@@ -43,11 +43,11 @@ function Payment({total, setPayment, bikeId, bikeType, orderId, extensionClicked
     };
 
     async function handleSubmit() {
+        if (loading) return;
 
         setLoading(true);
 
         try {
-
             const { data: transaction, error: transactionError } = await supabase
                 .from("transactions_mod")
                 .insert({
@@ -64,13 +64,13 @@ function Payment({total, setPayment, bikeId, bikeType, orderId, extensionClicked
                 .single();
 
             if (transactionError) {
-                console.error(transactionError);
+                console.error("Transaction error:", transactionError);
                 return;
             }
 
-            const transactionId = transaction.id
+            const transactionId = transaction.id;
 
-            const { error: orderError } = await supabase
+            const { error: extensionError } = await supabase
                 .from("extensions_mod")
                 .insert({
                     order_id: orderId,
@@ -79,31 +79,40 @@ function Payment({total, setPayment, bikeId, bikeType, orderId, extensionClicked
                     new_reservation_range: updatedTime,
                     bikes_id: bikeId,
                     bikes_type_id: bikeTypeId,
-                    original_transaction_id: originalTransactionId
+                    original_transaction_id: originalTransactionId,
                 });
 
-            if (orderError) {
-                console.error(orderError);
+            if (extensionError) {
+                console.error("Extension error:", extensionError);
                 return;
             }
 
-            const { error } = await supabase
+            const { error: orderError } = await supabase
                 .from("orders_mod")
                 .update({
-                    reservation_range: updatedTime
+                    reservation_range: updatedTime,
                 })
-                .eq("id", orderId)
-            if(error){
-                console.log(error);
+                .eq("id", orderId);
+
+            if (orderError) {
+                console.error("Order update error:", orderError);
+                return;
             }
 
-        } catch(error) {
-            console.error(error);
+            setConfirm(false);
+            setGcashStatus("waiting");
+            setPayment(false);
+            setExtendOrder(null);
+
+            if (refreshOngoing) {
+                await refreshOngoing();
+            }
+
+        } catch (error) {
+            console.error("Payment submission error:", error);
         } finally {
             setLoading(false);
-            //window.location.reload();
         }
-
     }
 
     console.log(bikeId)
