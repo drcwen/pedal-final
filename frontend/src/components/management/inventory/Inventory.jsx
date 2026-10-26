@@ -22,6 +22,13 @@ function Inventory() {
     const [bikeTypes, setBikeTypes] = useState([]);
     const [gps, setGPS] = useState([]);
 
+    const [gpsEdit, setGpsEdit] = useState(false);
+    const [selectedGpsId, setSelectedGpsId] = useState(null);
+    const [selectedGpsName, setSelectedGpsName] = useState("");
+    const [selectedGpsStatus, setSelectedGpsStatus] = useState("");
+    const [gpsStatusLoading, setGpsStatusLoading] = useState(false);
+    const [gpsStatusError, setGpsStatusError] = useState("");
+
     const [maintenance, setMaintenance] = useState(false);
     const [maintenanceModal, setMaintenanceModal] = useState(false);
 
@@ -510,6 +517,48 @@ function Inventory() {
         }
     };
 
+    const gpsStatuses = [
+        "Available",
+        "Rented",
+        "Under Maintenance",
+        "Lost",
+        "Disposed",
+        "Offline"
+    ];
+
+    const handleGpsStatusUpdate = async () => {
+        if (!selectedGpsId || !selectedGpsStatus) {
+            setGpsStatusError("Please select a GPS status.");
+            return;
+        }
+
+        setGpsStatusLoading(true);
+        setGpsStatusError("");
+
+        try {
+            const { error } = await supabase
+                .from("gps_mod")
+                .update({
+                    status: selectedGpsStatus
+                })
+                .eq("id", selectedGpsId);
+
+            if (error) {
+                console.error("Error updating GPS status:", error);
+                setGpsStatusError("Failed to update GPS status.");
+                return;
+            }
+
+            await fetchGPS();
+            setGpsEdit(false);
+        } catch (error) {
+            console.error("GPS status update error:", error);
+            setGpsStatusError("Something went wrong. Please try again.");
+        } finally {
+            setGpsStatusLoading(false);
+        }
+    };
+
     useEffect(() => {
 
         fetchBikes();
@@ -629,18 +678,24 @@ return (
 
                                     <div className='flex flex-col gap-2'>
                                         {gps.map((jipies) => (
-                                            <GPSRow 
+                                            <GPSRow
                                                 key={jipies.id}
                                                 name={jipies.code}
                                                 status={jipies.status}
-                                                battery={jipies.battery_life + `%`}
+                                                battery={jipies.battery_life + "%"}
                                                 simNumber={jipies.sim_number}
                                                 availableData={jipies.available_data}
                                                 gpsId={jipies.id}
                                                 fetchGPS={fetchGPS}
+                                                onEditStatus={() => {
+                                                    setSelectedGpsId(jipies.id);
+                                                    setSelectedGpsName(jipies.code);
+                                                    setSelectedGpsStatus(jipies.status);
+                                                    setGpsStatusError("");
+                                                    setGpsEdit(true);
+                                                }}
                                             />
-                                        ))
-                                        }
+                                        ))}
                                     </div>
                                 </div>
                             }
@@ -1153,6 +1208,69 @@ return (
                                 </div>
                             </div>
                         }
+
+                        {gpsEdit && (
+                            <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center px-5">
+                                <div className="bg-white w-full max-w-md p-5 rounded-xl flex flex-col gap-5 font-akagi font-bold text-gray">
+
+                                    <h1 className="text-2xl text-blue">
+                                        Edit GPS Status
+                                    </h1>
+
+                                    <div className="flex flex-col gap-2">
+                                        <h1 className="text-sm text-gray/70">GPS Name</h1>
+                                        <div className="bg-gray/10 rounded-lg px-3 py-2">
+                                            {selectedGpsName}
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col gap-2">
+                                        <h1 className="text-sm text-gray/70">Current Status</h1>
+
+                                        <select
+                                            value={selectedGpsStatus}
+                                            onChange={(e) => {
+                                                setSelectedGpsStatus(e.target.value);
+                                                setGpsStatusError("");
+                                            }}
+                                            className="w-full bg-gray/10 rounded-lg px-3 py-2 focus:outline-none"
+                                        >
+                                            {gpsStatuses.map((stat) => (
+                                                <option key={stat} value={stat}>
+                                                    {stat}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    {gpsStatusError && (
+                                        <p className="text-red-500 text-sm font-medium">
+                                            {gpsStatusError}
+                                        </p>
+                                    )}
+
+                                    <div className="flex justify-between pt-3">
+                                        <button
+                                            type="button"
+                                            disabled={gpsStatusLoading}
+                                            onClick={() => setGpsEdit(false)}
+                                            className="rounded-lg border border-gray px-3 py-1 cursor-pointer disabled:opacity-50"
+                                        >
+                                            Cancel
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            disabled={gpsStatusLoading}
+                                            onClick={handleGpsStatusUpdate}
+                                            className="rounded-lg bg-green-500 text-white px-3 py-1 hover:bg-green-600 disabled:opacity-50"
+                                        >
+                                            {gpsStatusLoading ? "Saving..." : "Save Changes"}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                 </motion.div>
             </>
             ) : (

@@ -25,6 +25,7 @@ import {
 import { FaPrint } from "react-icons/fa6";
 import MaintenanceRow from "../inventory/Bikes/Maintenance/MaintenanceRow"
 import BikeRowDataReports from "./BikeRowDataReports"
+import GPSRowDataReports from "./GPSRowDataReports"
 
 function DataReports() {
 
@@ -40,12 +41,29 @@ function DataReports() {
     const [maintenanceInfo, setMaintenanceInfo] = useState([]);
 
     const [bikeTypes, setBikeTypes] = useState([]);
+    const [gpsList, setGpsList] = useState([]);
+    const [gpsStats, setGpsStats] = useState([]);
+    const [gpsRentalStats, setGpsRentalStats] = useState([]);
+    const [gpsStatsLoading, setGpsStatsLoading] = useState(false);
+
+    const [gpsInventoryCount, setGpsInventoryCount] = useState({
+        total_gps: 0,
+        rented_gps: 0,
+        available_gps: 0,
+        maintenance_gps: 0,
+    });
 
     const [inventoryCounts, setInventoryCounts] = useState({
         total_bikes: 0,
         available_bikes: 0,
         rented_bikes: 0,
         maintenance_bikes: 0,
+    });
+
+    const [maintenanceCounts, setMaintenanceCounts] = useState({
+        total_maintenance: 0,
+        customer_maintenance: 0,
+        management_maintenance: 0
     });
 
     const [loading, setLoading] = useState(true);
@@ -136,8 +154,6 @@ function DataReports() {
                 return;
             }
 
-            console.log("Deductions:", data);
-
             setDeductions(data || []);
 
         } catch (error) {
@@ -183,7 +199,27 @@ function DataReports() {
 
         return `${year}-${month}-${day}`;
 
-        };
+    };
+    
+    const fetchGPSstats = async () => {
+
+        const { data, error } = await supabase.rpc(
+            "get_gps_rental_stats",
+            {
+                start_date: formatDate(dates[0]),
+                end_date: formatDate(dates[1])
+            }
+        );
+
+        if (error) {
+            console.error("GPS stats error:", error);
+            return;
+        }
+
+        console.log("GPS:", data);
+
+        setGpsStats(data || []);
+    };
 
     const [activeTab, setActiveTab] = useState("Sales");
 
@@ -245,6 +281,20 @@ function DataReports() {
 
         if (!error) {
             setBikeTypes(data || []);
+        } else {
+            console.error("Error fetching bikes:", error);
+        }
+    };
+
+    const fetchGPS = async () => {
+        const { data, error } = await supabase
+            .from("gps_mod")
+            .select(`
+                *
+            `);
+
+        if (!error) {
+            setGpsList(data || []);
         } else {
             console.error("Error fetching bikes:", error);
         }
@@ -357,10 +407,54 @@ function DataReports() {
                 console.error(error);
                 return;
             }
-
-            console.log(data);
-
             setChangeGross(data);
+        };
+
+        const fetchGPSInventoryCounts = async () => {
+            const { data, error } = await supabase.rpc(
+                "get_gps_inventory_counts"
+            );
+
+            if (error) {
+                console.error("Error fetching GPS inventory counts:", error);
+                return;
+            }
+
+            console.log("GPS inventory counts:", data);
+
+            setGpsInventoryCount(
+                data?.[0] ?? {
+                    total_gps: 0,
+                    rented_gps: 0,
+                    available_gps: 0,
+                    maintenance_gps: 0,
+                }
+            );
+        };
+
+        const fetchMaintenanceCounts = async () => {
+            const { data, error } = await supabase.rpc(
+                "get_maintenance_counts",
+                {
+                    start_date: formatDate(dates[0]),
+                    end_date: formatDate(dates[1])
+                }
+            );
+
+            if (error) {
+                console.error("Error fetching maintenance counts:", error);
+                return;
+            }
+
+            console.log("Maintenance counts:", data);
+
+            const counts = data?.[0];
+
+            setMaintenanceCounts({
+                total_maintenance: Number(counts?.total_maintenance ?? 0),
+                customer_maintenance: Number(counts?.customer_maintenance ?? 0),
+                management_maintenance: Number(counts?.management_maintenance ?? 0),
+            });
         };
 
         const fetchOvertime = async () => {
@@ -397,6 +491,9 @@ function DataReports() {
         );
 
         fetchBikes();
+        fetchGPS();
+        fetchGPSInventoryCounts();
+        fetchMaintenanceCounts();
     }, [dates]);
 
     useEffect(() => {
@@ -449,8 +546,6 @@ function DataReports() {
 
         fetchMaintenanceBikes();
     }, [dates]);
-
-    console.log("Maintenance", maintenanceInfo);
 
     useEffect(() => {
         const getTransactions = async () => {
@@ -704,6 +799,47 @@ function DataReports() {
         getTransactions();
 
     }, [dates]);
+
+    useEffect(() => {
+        if (
+            activeTab !== "GPS" ||
+            !dates?.[0] ||
+            !dates?.[1]
+        ) {
+            return;
+        }
+
+        let cancelled = false;
+
+        const fetchGPSRentalStats = async () => {
+            setGpsStatsLoading(true);
+
+            const { data, error } = await supabase.rpc(
+                "get_gps_rental_stats",
+                {
+                    p_start_date: formatDate(dates[0]),
+                    p_end_date: formatDate(dates[1]),
+                }
+            );
+
+            if (cancelled) return;
+
+            if (error) {
+                console.error("Error fetching GPS rental stats:", error);
+                setGpsRentalStats([]);
+            } else {
+                setGpsRentalStats(data ?? []);
+            }
+
+            setGpsStatsLoading(false);
+        };
+
+        fetchGPSRentalStats();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [activeTab, dates?.[0], dates?.[1]]);
 
   return (
     <>
@@ -1467,7 +1603,7 @@ function DataReports() {
 
                                 <div className='flex flex-col'>
                                     <h1 className='text-xl lg:text-3xl'>
-                                        ₱{Number(netSales.gross_sales).toLocaleString()}
+                                        {maintenanceCounts.total_maintenance}
                                     </h1>
                                     <h1 className='text-xs lg:text-sm font-medium'>Maintenance from management and customer</h1>
                                 </div>
@@ -1482,7 +1618,7 @@ function DataReports() {
 
                                 <div className='flex flex-col'>
                                     <h1 className='text-xl lg:text-3xl'>
-                                        ₱{Number(netSales.total_deductions).toLocaleString()}
+                                        {maintenanceCounts.management_maintenance}
                                     </h1>
                                     <h1 className='text-xs lg:text-sm font-medium'>Maintenance paid by management</h1>
                                 </div>
@@ -1497,7 +1633,7 @@ function DataReports() {
 
                                 <div className='flex flex-col'>
                                     <h1 className='text-xl lg:text-3xl'>
-                                        ₱{Number(netSales.net_sales).toLocaleString()}
+                                        {maintenanceCounts.customer_maintenance}
                                     </h1>
                                     <h1 className='text-xs lg:text-sm font-medium'>Maintenance paid by management</h1>
                                 </div>
@@ -1716,7 +1852,7 @@ function DataReports() {
 
                                 <div className='flex flex-col'>
                                     <h1 className='text-xl lg:text-3xl'>
-                                        {loading ? "Loading..." : inventoryCounts.total_bikes}
+                                        {gpsInventoryCount.total_gps}
                                     </h1>
                                     <h1 className='text-xs lg:text-sm font-medium'>All GPS</h1>
                                 </div>
@@ -1731,7 +1867,7 @@ function DataReports() {
 
                                 <div className='flex flex-col'>
                                     <h1 className='text-xl lg:text-3xl'>
-                                        {loading ? "Loading..." : inventoryCounts.rented_bikes}
+                                        {gpsInventoryCount.rented_gps}
                                     </h1>
                                     <h1 className='text-xs lg:text-sm font-medium'>Currently assigned</h1>
                                 </div>
@@ -1746,7 +1882,7 @@ function DataReports() {
 
                                 <div className='flex flex-col'>
                                     <h1 className='text-xl lg:text-3xl'>
-                                        {loading ? "Loading..." : inventoryCounts.available_bikes}
+                                        {gpsInventoryCount.available_gps}
                                     </h1>
                                     <h1 className='text-xs lg:text-sm font-medium'>Available GPS</h1>
                                 </div>
@@ -1761,7 +1897,7 @@ function DataReports() {
 
                                 <div className='flex flex-col'>
                                     <h1 className='text-xl lg:text-3xl'>
-                                        {loading ? "Loading..." : inventoryCounts.maintenance_bikes}
+                                        {gpsInventoryCount.maintenance_gps}
                                     </h1>
                                     <h1 className='text-xs lg:text-sm font-medium'>Maintenance GPS</h1>
                                 </div>
@@ -1773,7 +1909,7 @@ function DataReports() {
 
                         <div className='flex flex-row justify-between items-center gap-5'>
                             <h1 className='font-akagi font-bold text-lg text-gray'>
-                                Bikes
+                                GPS
                             </h1>
 
                             <h1 className='font-akagi font-medium text-sm text-gray'>
@@ -1784,22 +1920,27 @@ function DataReports() {
                             </h1>
                         </div>
 
-                        <div className='flex flex-col gap-2'>
-                            {bikeTypes.map((bikes) => (
+                        <div className="flex flex-col gap-2">
+                            {gpsList.map((gps) => {
+                                const gpsStats = gpsRentalStats.find(
+                                    (stat) => String(stat.gps_id) === String(gps.id)
+                                );
 
-                                
-                                <BikeRowDataReports 
-                                    bikeType={bikes?.name}
-                                    capacity={bikes?.capacity}
-                                    price={bikes?.price}
-                                    image={bikes?.image_url}
-                                    bikes={bikes?.bikes_mod}
-                                    bikeTypeId={bikes?.id}
-                                    startDate={formatDate(dates[0])}
-                                    endDate={formatDate(dates[1])}
-                                />
-                                
-                            ))}
+                                return (
+                                    <GPSRowDataReports
+                                        key={gps.id}
+                                        name={gps.code}
+                                        status={gps.status}
+                                        battery={gps.battery_life}
+                                        todayRents={gpsStats?.today_rents ?? 0}
+                                        selectedDateRents={
+                                            gpsStats?.selected_date_rents ?? 0
+                                        }
+                                        allTimeRents={gpsStats?.all_time_rents ?? 0}
+                                        statsLoading={gpsStatsLoading}
+                                    />
+                                );
+                            })}
                         </div>
                     </div>
                     </>

@@ -275,12 +275,14 @@ function TransactionHistory() {
                             *,
                             original_transaction:transactions_mod!overtime_mod_original_transaction_id_fkey (
                                 *,
-                                profile:profiles_mod!transactions_mod_user_id_fkey1 (
-                                    *
+                                orders_mod (
+                                    *,
+                                    bike_types_mod (*),
+                                    bikes_mod!orders_mod_bike_id_fkey (*),
+                                    gps_mod(*)
                                 ),
-                                walk_in:walk_ins_users_mod (
-                                    *
-                                )
+                                profile:profiles_mod!transactions_mod_user_id_fkey1 (*),
+                                walk_in:walk_ins_users_mod (*)
                             )
                         )
                         `)
@@ -597,6 +599,9 @@ function TransactionHistory() {
                                     const maintenanceData =
                                         transaction.maintenance_mod?.[0];
 
+                                    const overtimeData =
+                                        transaction.overtime_mod ?? [];
+
                                     return (
                                         <TransactionRow
                                             key={transaction.id}
@@ -618,6 +623,7 @@ function TransactionHistory() {
                                             extensionsData={extensionData}
                                             changeBikesData={changedBikesData}
                                             maintenanceData={maintenanceData}
+                                            overtimeData={overtimeData}
                                             assistedBy={transaction?.assisted_by_profile?.full_name ?? "Unknown"}
                                         />
                                     );
