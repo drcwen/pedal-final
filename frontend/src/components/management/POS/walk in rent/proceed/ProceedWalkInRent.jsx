@@ -11,6 +11,8 @@ function ProceedWalkInRent({onClose, cart, cartTotal, cashTendered, paymentMetho
     const [confirmProceed, setConfirmProceed] = useState(false);
     const [confirmBack, setConfirmBack] = useState(false);
 
+    const [loading, setLoading] = useState(false);
+
     const [fullName, setFullName] = useState(null);
     const [idType, setIdType] = useState(null);
 
@@ -110,7 +112,7 @@ function ProceedWalkInRent({onClose, cart, cartTotal, cashTendered, paymentMetho
             })
 
             if (error) {
-                console.error(error);
+                throw error;
             }
     }
 
@@ -145,7 +147,7 @@ function ProceedWalkInRent({onClose, cart, cartTotal, cashTendered, paymentMetho
             console.log("Error:", error);
 
             if (error) {
-                console.error(JSON.stringify(error, null, 2));
+                throw error;
             }
     }
 
@@ -161,8 +163,8 @@ function ProceedWalkInRent({onClose, cart, cartTotal, cashTendered, paymentMetho
             .update({status: "Rented"})
             .in("id", bikeIds);
 
-        if(error){
-            console.log(error);
+        if (error) {
+            throw error;
         }
     }
 
@@ -178,15 +180,16 @@ function ProceedWalkInRent({onClose, cart, cartTotal, cashTendered, paymentMetho
             .update({status: "Rented"})
             .in("id", gpsIds)
 
-        if(error){
-            console.log(error);
+        if (error) {
+            throw error;
         }
 
     }
 
 
     const handleProceed = async () => {
- 
+        if (loading || rentAdded) return;
+
         const hasUnselected = cart.some(item => {
             const selection = selectedItems[item.cartId];
 
@@ -197,25 +200,39 @@ function ProceedWalkInRent({onClose, cart, cartTotal, cashTendered, paymentMetho
             );
         });
 
-
         if (hasUnselected) {
             alert("Please select a Bike ID and GPS ID for every bike.");
             return;
-        } else if (!fullName || !idType) {
+        }
+
+        if (!fullName?.trim() || !idType) {
             alert("Name or ID Type is missing.");
             return;
         }
 
-        const transactionId = await getTransactionID();
-        if (!transactionId) return;
+        setLoading(true);
 
-        await walkInUserData(transactionId);
-        setConfirmProceed(true);
-        walkInOrders(transactionId);
-        setBikeRented();
-        setGPSRented();
+        try {
+            const transactionId = await getTransactionID();
 
-        setRentAdded(true);
+            if (!transactionId) {
+                throw new Error("Failed to create transaction.");
+            }
+
+            await walkInUserData(transactionId);
+            await walkInOrders(transactionId);
+            await setBikeRented();
+            await setGPSRented();
+
+            setConfirmProceed(false);
+            setRentAdded(true);
+
+        } catch (error) {
+            console.error("Error processing walk-in rental:", error);
+            alert("Failed to process the rental. Please check the transaction before trying again.");
+        } finally {
+            setLoading(false);
+        }
     };
   
 
@@ -230,21 +247,41 @@ function ProceedWalkInRent({onClose, cart, cartTotal, cashTendered, paymentMetho
                     <div className='flex flex-col gap-2'>
                         <div className='grid lg:grid-cols-[150px_1fr] grid-cols-[90px_1fr] items-center'>
                             <h1 className='md:text-md text-sm font-akagi font-bold text-[#6D7172]'>Full Name:</h1>
-                            <div className='bg-[#D9D9D9] rounded-lg px-3 py-1 flex items-center'>
+                            <div className='bg-[#D9D9D9] rounded-lg px-6 py-3 flex items-center'>
                                 <input 
                                     value={fullName}
                                     onChange={(e) => setFullName(e.target.value)}
-                                    className='w-full md:text-md text-sm font-akagi font-bold text-[#6D7172] focus:outline-none'/>
+                                    className='w-full md:text-md text-md font-akagi font-medium text-[#6D7172] focus:outline-none'/>
                             </div>
                         </div>
 
                         <div className='grid lg:grid-cols-[150px_1fr] grid-cols-[90px_1fr] items-center'>
-                            <h1 className='md:text-md text-sm font-akagi font-bold text-[#6D7172]'>ID Type:</h1>
+                            <h1 className='md:text-md text-sm font-akagi font-bold text-[#6D7172]'>
+                                ID Type:
+                            </h1>
+
                             <div className='bg-[#D9D9D9] rounded-lg px-3 py-1 flex items-center'>
-                                <input 
-                                    value={idType}
+                                <select
+                                    value={idType || ""}
                                     onChange={(e) => setIdType(e.target.value)}
-                                    className='w-full md:text-md text-sm font-akagi font-bold text-[#6D7172] focus:outline-none'></input>
+                                    className='w-full bg-transparent rounded-lg px-2 py-2 text-md font-akagi font-medium text-[#6D7172] focus:outline-none cursor-pointer'
+                                >
+                                    <option value="" disabled>
+                                        Select ID Type
+                                    </option>
+                                    <option value="Philippine National ID">Philippine National ID</option>
+                                    <option value="Driver's License">Driver's License</option>
+                                    <option value="Passport">Passport</option>
+                                    <option value="UMID">UMID</option>
+                                    <option value="SSS ID">SSS ID</option>
+                                    <option value="PhilHealth ID">PhilHealth ID</option>
+                                    <option value="TIN ID">TIN ID</option>
+                                    <option value="Postal ID">Postal ID</option>
+                                    <option value="Voter's ID">Voter's ID</option>
+                                    <option value="PRC ID">PRC ID</option>
+                                    <option value="Student ID">Student ID</option>
+                                    <option value="Other">Other</option>
+                                </select>
                             </div>
                         </div>
 
@@ -392,9 +429,16 @@ function ProceedWalkInRent({onClose, cart, cartTotal, cashTendered, paymentMetho
                                 </div>
 
                                 <div
-                                    onClick={handleProceed}   
-                                    className='bg-green-500 rounded-xl px-7 py-2 cursor-pointer'>
-                                    <h1 className='text-lg font-akagi font-bold text-[#ffffff]'>Yes</h1>
+                                    onClick={loading ? undefined : handleProceed}
+                                    className={`rounded-xl px-7 py-2 ${
+                                        loading
+                                            ? "bg-gray-400 cursor-not-allowed"
+                                            : "bg-green-500 cursor-pointer"
+                                    }`}
+                                >
+                                    <h1 className="text-lg font-akagi font-bold text-white">
+                                        {loading ? "Processing..." : "Yes"}
+                                    </h1>
                                 </div>
                             </div>
                         </div>

@@ -1,10 +1,8 @@
 import { supabase } from "../../lib/supabase"
 import Sidebar from "./sidebar/Sidebar"
-import { MdDirectionsBike } from "react-icons/md";
 import { motion } from "motion/react"
 import SidebarMobile from "./sidebar/SidebarMobile"
 import { useState, useEffect } from 'react';
-import { GrTransaction } from "react-icons/gr";
 import {
     AreaChart,
     Area,
@@ -12,10 +10,7 @@ import {
     YAxis,
     CartesianGrid,
     Tooltip,
-    ResponsiveContainer,
-    BarChart,
-    Bar
-} from "recharts";
+    ResponsiveContainer } from "recharts";
 
 function Dashboard() {
 
