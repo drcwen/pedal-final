@@ -30,6 +30,7 @@
   import AdminAlerts from "./components/management/Alerts"
   import Profile from "./components/management/profile/Profile"
   import CustomerProfile from "./components/sections/CustomerProfile"
+  import Reviews from "./components/sections/Reviews"
 
   function App() {
     const [session, setSession] = useState(null);
@@ -201,6 +202,7 @@
             <Route path="/transactions" element={<Transactions />} />
             <Route path="/past-transactions" element={<PastTransactions />} />
             <Route path="/alerts/:bikeId" element={<Alerts />} />
+            <Route path="/reviews" element={<Reviews />} />
             <Route path="*" element={<Navigate to="/" />} />
             <Route 
               path="/prof" 
@@ -218,6 +220,7 @@
                 />
               } 
             />
+
           </>
         )}
 

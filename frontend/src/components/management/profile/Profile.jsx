@@ -26,6 +26,9 @@ function Profile({ fullName, role, email, contact, id, branch, firstName, lastNa
     const [editBranch, setEditBranch] = useState(branch);
     const [editPassword, setEditPassword] = useState("");
 
+    const [simNumber, setSimNumber] = useState("");
+    const [simNumberError, setSimNumberError] = useState("");
+
     const [changePassword, setChangePassword] = useState(false);
 
     const [roleDropDown, setRoleDropDown] = useState(false);
@@ -61,48 +64,54 @@ function Profile({ fullName, role, email, contact, id, branch, firstName, lastNa
     };
 
     const updateProfile = async () => {
+        if (role !== "admin" && editRole !== role) {
+            setEditRole(role);
+        }
+
+        if (changePin && !/^\d{6}$/.test(editPin)) {
+            return;
+        }
+
         setLoading(true);
 
-        const { data, error } = await supabase
-            .from("profiles_mod")
-            .update({
-                first_name: editFirstName,
-                last_name: editLastName,
-                username: editUsername,
-                contact: editContact,
-                role: editRole
-            })
-            .eq("id", id);
+        try {
+            const { error: profileError } = await supabase
+                .from("profiles_mod")
+                .update({
+                    first_name: editFirstName,
+                    last_name: editLastName,
+                    username: editUsername,
+                    contact: editContact,
+                    role: role === "admin" ? role : editRole,
+                })
+                .eq("id", id);
 
-        const { pinError } = await supabase 
-            .from("pin_mod") 
-            .upsert( 
-                { admin_id: id, pin: editPin }, 
-                { onConflict: "admin_id" } ); 
-                
-            if (error) { 
-                console.log("Error saving PIN:", error.message); 
-                return; 
-            } 
-            
-            console.log("PIN saved successfully:", data);
+            if (profileError) throw profileError;
 
-        if (error) {
-            console.error("Error updating profile:", error);
+            // Save the PIN only when the admin explicitly changes it.
+            if (role === "admin" && changePin) {
+                const { error: pinError } = await supabase
+                    .from("pin_mod")
+                    .upsert(
+                        {
+                            admin_id: id,
+                            pin: editPin,
+                        },
+                        { onConflict: "admin_id" }
+                    );
+
+                if (pinError) throw pinError;
+            }
+
+            setEdit(false);
+            setChangePin(false);
+            setEditPin("");
+            setRoleDropDown(false);
+        } catch (error) {
+            console.error("Error saving profile:", error.message);
+        } finally {
             setLoading(false);
-            return;
         }
-
-        if (pinError) {
-            console.error("Error updating PIN:", error);
-            setLoading(false);
-            return;
-        }
-
-        setLoading(false);
-        setEdit(false);
-        setChangePin(!changePin);
-
     };
     
 
@@ -110,7 +119,7 @@ function Profile({ fullName, role, email, contact, id, branch, firstName, lastNa
     <>
 
         <div className='w-full h-screen bg-[#F2F2F2] flex'>
-            <Sidebar active={'dashboard'}/>
+            <Sidebar/>
 
             <motion.div
                 initial={{ height: 0, opacity: 0 }}
@@ -159,7 +168,8 @@ function Profile({ fullName, role, email, contact, id, branch, firstName, lastNa
                                         setEditEmail(email);
                                         setEditContact(contact);
                                         setEditUsername(username);
-
+                                        setChangePin(false);
+                                        setEditPin("");
                                         setEdit(false);
                                     } else {
                                         setEdit(true);
@@ -278,16 +288,51 @@ function Profile({ fullName, role, email, contact, id, branch, firstName, lastNa
                             </div>
                             
 
-                            <div className='flex flex-col'>
-                                <h1 className='font-medium'>Contact Number</h1>
-                                {!edit ? 
-                                    <h1 className='font-bold'>{editContact}</h1> 
-                                    : 
-                                    <input 
-                                        value={editContact}
-                                        onChange={(e) => {setEditContact(e.target.value)}}
-                                        className='bg-gray/20 font-bold focus:outline-none px-3 py-1 rounded-lg border border-gray'/>
-                                }
+                            <div className="flex flex-col gap-1">
+                                <h1 className="font-medium">SIM Number</h1>
+
+                                {!edit ? (
+                                    <h1 className="font-bold">
+                                        {simNumber || "No SIM number available"}
+                                    </h1>
+                                ) : (
+                                    <>
+                                        <input
+                                            type="text"
+                                            inputMode="numeric"
+                                            autoComplete="off"
+                                            maxLength={11}
+                                            value={simNumber}
+                                            onChange={(e) => {
+                                                const digits = e.target.value
+                                                    .replace(/\D/g, "")
+                                                    .slice(0, 11);
+
+                                                setSimNumber(digits);
+
+                                                if (digits.length === 0 || /^09\d{9}$/.test(digits)) {
+                                                    setSimNumberError("");
+                                                } else {
+                                                    setSimNumberError(
+                                                        "SIM number must start with 09 and contain exactly 11 digits."
+                                                    );
+                                                }
+                                            }}
+                                            placeholder="09XXXXXXXXX"
+                                            className="bg-gray/20 font-bold focus:outline-none px-3 py-1 rounded-lg border border-gray"
+                                        />
+
+                                        <p className="text-xs text-gray/70">
+                                            {simNumber.length}/11 digits
+                                        </p>
+
+                                        {simNumberError && (
+                                            <p className="text-sm text-red-500">
+                                                {simNumberError}
+                                            </p>
+                                        )}
+                                    </>
+                                )}
                             </div>
 
                             <div className='flex flex-col'>
@@ -365,43 +410,38 @@ function Profile({ fullName, role, email, contact, id, branch, firstName, lastNa
                             <div className='flex flex-col'>
                                 <h1 className='font-medium'>Position</h1>
                                     <div className={`w-fit ${edit ? undefined : "border border-[#505050]/30"} rounded-lg ${!edit ? "px-2 py-1" : undefined}`}>
-                                        {!edit ? 
-                                            <h1 className='font-bold first-letter:uppercase'>{editRole}</h1> 
-                                            : 
-                                            <div 
-                                                onClick={() => {setRoleDropDown(!roleDropDown)}}
-                                                className='relative cursor-pointer w-80 rounded-lg border border-gray bg-gray/30 px-3 py-1 flex justify-between items-center font-bold'>
-                                                <h1 className='first-letter:uppercase'>{editRole}</h1>
-                                                <RiArrowDropDownLine className='text-xl'/>
+                                        {!edit || role === "admin" ? (
+                                            <h1 className="font-bold first-letter:uppercase">
+                                                {role}
+                                            </h1>
+                                        ) : (
+                                            <div
+                                                onClick={() => setRoleDropDown(!roleDropDown)}
+                                                className="relative flex w-80 cursor-pointer items-center justify-between rounded-lg border border-gray bg-gray/30 px-3 py-1 font-bold"
+                                            >
+                                                <h1 className="first-letter:uppercase">{editRole}</h1>
 
-                                                {roleDropDown ? 
-                                                    <div className='absolute top-full left-0 w-full bg-white rounded-lg border border-[#9E9E9E] z-50 mt-1 '>
-                                                        <div 
-                                                            onClick={() => {setEditRole("cashier")}}
-                                                            className='px-3 py-1 hover:bg-gray/70 hover:text-[#ffffff] rounded-md'>
-                                                            Cashier
-                                                        </div>
+                                                <RiArrowDropDownLine className="text-xl" />
 
-                                                        <div 
-                                                            onClick={() => {setEditRole("admin")}}
-                                                            className='px-3 py-1 hover:bg-gray/70 hover:text-[#ffffff] rounded-md'>
-                                                            Admin
-                                                        </div>
-
-                                                        <div 
-                                                            onClick={() => {setEditRole("archive")}}
-                                                            className='px-3 py-1 hover:bg-gray/70 hover:text-[#ffffff] rounded-md'>
-                                                            Archive
-                                                        </div>
-                                                    </div> : undefined}
-
-                                                {/*<input 
-                                                value={editRole}
-                                                onChange={(e) => {setEditRole(e.target.value)}}
-                                                className='bg-gray/20 font-bold focus:outline-none px-3 py-1 rounded-lg border border-gray'/>*/}
+                                                {roleDropDown && (
+                                                    <div className="absolute left-0 top-full z-50 mt-1 w-full rounded-lg border border-[#9E9E9E] bg-[#ffffff]">
+                                                        {["cashier", "admin", "archive"].map((position) => (
+                                                            <div
+                                                                key={position}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setEditRole(position);
+                                                                    setRoleDropDown(false);
+                                                                }}
+                                                                className="rounded-md px-3 py-1 capitalize hover:bg-gray/70 hover:text-[#ffffff]"
+                                                            >
+                                                                {position}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
                                             </div>
-                                            
-                                        }
+                                        )}
                                     </div>
                                 
                             </div>
@@ -409,23 +449,27 @@ function Profile({ fullName, role, email, contact, id, branch, firstName, lastNa
                         </div>
                     </div>
                     
-                    {edit ? (
+                    {edit && (
                         <button
-                            type='button'
+                            type="button"
                             onClick={updateProfile}
-                            disabled={loading}
-                            className='w-fit flex items-center justify-center gap-2 min-w-[90px] rounded-lg bg-yellow font-akagi font-bold text-lg text-navyblue px-3 py-1 transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50'
+                            disabled={
+                                loading ||
+                                !/^09\d{9}$/.test(simNumber) ||
+                                (changePin && !/^\d{6}$/.test(editPin))
+                            }
+                            className="w-fit flex items-center justify-center gap-2 min-w-[90px] rounded-lg bg-yellow font-akagi font-bold text-lg text-navyblue px-3 py-1 transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             {loading ? (
                                 <>
-                                    <span className='w-4 h-4 border-2 border-navyblue/30 border-t-navyblue rounded-full animate-spin'></span>
+                                    <span className="w-4 h-4 border-2 border-navyblue/30 border-t-navyblue rounded-full animate-spin" />
                                     <span>Saving...</span>
                                 </>
                             ) : (
-                                'Submit'
+                                "Submit"
                             )}
                         </button>
-                    ) : undefined}
+                    )}
                 </div>
 
             </motion.div>

@@ -36,6 +36,37 @@ function AccountDetails({ fullName, role, email, contact, id, branch, firstName,
     const [currentUserRole, setCurrentUserRole] = useState(null);
     const [authLoaded, setAuthLoaded] = useState(false);
 
+    const [editPin, setEditPin] = useState("");
+    const [changePin, setChangePin] = useState(false);
+
+    const [contactError, setContactError] = useState("");
+    const [pinError, setPinError] = useState("");
+    const [showAdminWarning, setShowAdminWarning] = useState(false);
+    const [pendingRole, setPendingRole] = useState("");
+
+    const handleRoleChange = (newRole) => {
+        if (newRole === "admin" && editRole !== "admin") {
+            setPendingRole(newRole);
+            setShowAdminWarning(true);
+            setRoleDropDown(false);
+            return;
+        }
+
+        setEditRole(newRole);
+        setRoleDropDown(false);
+    };
+
+    const confirmRoleChange = () => {
+        setEditRole(pendingRole);
+        setPendingRole("");
+        setShowAdminWarning(false);
+    };
+
+    const cancelRoleChange = () => {
+        setPendingRole("");
+        setShowAdminWarning(false);
+    };
+
     useEffect(() => {
         const getCurrentUser = async () => {
             try {
@@ -74,8 +105,8 @@ function AccountDetails({ fullName, role, email, contact, id, branch, firstName,
     const isAdminViewingOtherAdmin =
         authLoaded &&
         !isOwnProfile &&
-        currentUserRole === "admin" &&
-        role?.toLowerCase() === "admin";
+        currentUserRole?.toLowerCase() === "admin" &&
+        editRole?.toLowerCase() === "admin";
 
     const canEditProfile =
         authLoaded &&
@@ -110,27 +141,59 @@ function AccountDetails({ fullName, role, email, contact, id, branch, firstName,
     };
 
     const updateProfile = async () => {
-        setLoading(true);
-
-        const { data, error } = await supabase
-            .from("profiles_mod")
-            .update({
-                first_name: editFirstName,
-                last_name: editLastName,
-                username: editUsername,
-                contact: editContact,
-                role: editRole
-            })
-            .eq("id", id);
-
-        if (error) {
-            console.error("Error updating profile:", error);
-            setLoading(false);
+        if (!/^09\d{9}$/.test(editContact || "")) {
+            setContactError(
+                "Contact number must start with 09 and contain exactly 11 digits."
+            );
             return;
         }
 
-        setLoading(false);
-        setEdit(false);
+        if (changePin && !/^\d{6}$/.test(editPin)) {
+            setPinError("PIN must contain exactly 6 digits.");
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            const { error: profileError } = await supabase
+                .from("profiles_mod")
+                .update({
+                    first_name: editFirstName,
+                    last_name: editLastName,
+                    username: editUsername,
+                    contact: editContact,
+                    role: editRole,
+                })
+                .eq("id", id);
+
+            if (profileError) throw profileError;
+
+            if (changePin && role === "admin") {
+                const { error: pinSaveError } = await supabase
+                    .from("pin_mod")
+                    .upsert(
+                        {
+                            admin_id: id,
+                            pin: editPin,
+                        },
+                        { onConflict: "admin_id" }
+                    );
+
+                if (pinSaveError) throw pinSaveError;
+            }
+
+            setEdit(false);
+            setChangePin(false);
+            setEditPin("");
+            setPinError("");
+            setContactError("");
+            setRoleDropDown(false);
+        } catch (error) {
+            console.error("Error updating account:", error.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
   return (
@@ -168,15 +231,22 @@ function AccountDetails({ fullName, role, email, contact, id, branch, firstName,
                                 <div className='flex flex-col gap-1'>
                                     {/*Name and Account Type*/}
                                     <div className='flex flex-row gap-3 font-akagi font-bold text-[#505050] items-center'>
-                                        <h1 className='md:text-2xl text-md md:text-lg'>{fullName}</h1>
+                                        <h1 className='md:text-2xl text-md md:text-lg'>
+                                            {`${editFirstName || ""} ${editLastName || ""}`.trim()}
+                                        </h1>
+
                                         <div className='px-2 py-0.5 bg-[#148BB8] rounded-md'>
-                                            <h1 className='text-xs md:text-md text-[#ffffff] uppercase tracking-wide'>{role}</h1>
+                                            <h1 className='text-xs md:text-md text-[#ffffff] uppercase tracking-wide'>
+                                                {editRole}
+                                            </h1>
                                         </div>
                                     </div>
                                     
                                     {/*Details and Branch*/}
                                     <div className='flex flex-row gap-1 md:gap-3 font-akagi font-bold text-[#505050] items-center'>
-                                        <h1 className='md:text-lg text-xs font-medium first-letter:uppercase'>{role} Account</h1>
+                                        <h1 className='md:text-lg text-xs font-medium first-letter:uppercase'>
+                                            {editRole} Account
+                                        </h1>
                                         <h1 className='md:text-lg text-xs font-medium'>•</h1>
                                         <h1 className='md:text-lg text-xs font-medium'>Main Branch</h1>
                                     </div>
@@ -199,6 +269,9 @@ function AccountDetails({ fullName, role, email, contact, id, branch, firstName,
                                         setEditEmail(email);
                                         setEditContact(contact);
                                         setEditUsername(username);
+                                        setRoleDropDown(false);
+                                        setShowAdminWarning(false);
+                                        setPendingRole("");
                                         setEdit(false);
                                     } else {
                                         setEdit(true);
@@ -338,16 +411,49 @@ function AccountDetails({ fullName, role, email, contact, id, branch, firstName,
                             </div>
                             
 
-                            <div className='flex flex-col'>
-                                <h1 className='font-medium'>Contact Number</h1>
-                                {!edit ? 
-                                    <h1 className='font-bold'>{editContact}</h1> 
-                                    : 
-                                    <input 
-                                        value={editContact}
-                                        onChange={(e) => {setEditContact(e.target.value)}}
-                                        className='bg-gray/20 font-bold focus:outline-none px-3 py-1 rounded-lg border border-gray'/>
-                                }
+                            <div className="flex flex-col gap-1">
+                                <h1 className="font-medium">Contact Number</h1>
+
+                                {!edit ? (
+                                    <h1 className="font-bold">{editContact}</h1>
+                                ) : (
+                                    <>
+                                        <input
+                                            type="text"
+                                            inputMode="numeric"
+                                            autoComplete="off"
+                                            maxLength={11}
+                                            value={editContact || ""}
+                                            onChange={(e) => {
+                                                const digits = e.target.value
+                                                    .replace(/\D/g, "")
+                                                    .slice(0, 11);
+
+                                                setEditContact(digits);
+
+                                                if (/^09\d{9}$/.test(digits)) {
+                                                    setContactError("");
+                                                } else {
+                                                    setContactError(
+                                                        "Contact number must start with 09 and contain exactly 11 digits."
+                                                    );
+                                                }
+                                            }}
+                                            placeholder="09XXXXXXXXX"
+                                            className="bg-gray/20 font-bold focus:outline-none px-3 py-1 rounded-lg border border-gray"
+                                        />
+
+                                        <p className="text-xs text-gray/70">
+                                            {(editContact || "").length}/11 digits
+                                        </p>
+
+                                        {contactError && (
+                                            <p className="text-sm text-red-500">
+                                                {contactError}
+                                            </p>
+                                        )}
+                                    </>
+                                )}
                             </div>
 
                             <div className='flex flex-col'>
@@ -380,26 +486,30 @@ function AccountDetails({ fullName, role, email, contact, id, branch, firstName,
                                                 <h1 className='first-letter:uppercase'>{editRole}</h1>
                                                 <RiArrowDropDownLine className='text-xl'/>
 
-                                                {roleDropDown ? 
-                                                    <div className='absolute top-full left-0 w-full bg-white rounded-lg border border-[#9E9E9E] z-50 mt-1 '>
-                                                        <div 
-                                                            onClick={() => {setEditRole("cashier")}}
-                                                            className='px-3 py-1 hover:bg-gray/70 hover:text-[#ffffff] rounded-md'>
+                                                {roleDropDown ? (
+                                                    <div className="absolute top-full left-0 w-full bg-white rounded-lg border border-[#9E9E9E] z-50 mt-1">
+                                                        <div
+                                                            onClick={() => handleRoleChange("cashier")}
+                                                            className="px-3 py-1 hover:bg-gray/70 hover:text-[#ffffff] rounded-md cursor-pointer"
+                                                        >
                                                             Cashier
                                                         </div>
 
-                                                        <div 
-                                                            onClick={() => {setEditRole("admin")}}
-                                                            className='px-3 py-1 hover:bg-gray/70 hover:text-[#ffffff] rounded-md'>
+                                                        <div
+                                                            onClick={() => handleRoleChange("admin")}
+                                                            className="px-3 py-1 hover:bg-gray/70 hover:text-[#ffffff] rounded-md cursor-pointer"
+                                                        >
                                                             Admin
                                                         </div>
 
-                                                        <div 
-                                                            onClick={() => {setEditRole("archive")}}
-                                                            className='px-3 py-1 hover:bg-gray/70 hover:text-[#ffffff] rounded-md'>
+                                                        <div
+                                                            onClick={() => handleRoleChange("archive")}
+                                                            className="px-3 py-1 hover:bg-gray/70 hover:text-[#ffffff] rounded-md cursor-pointer"
+                                                        >
                                                             Archive
                                                         </div>
-                                                    </div> : undefined}
+                                                    </div>
+                                                ) : undefined}
 
                                                 {/*<input 
                                                 value={editRole}
@@ -412,11 +522,6 @@ function AccountDetails({ fullName, role, email, contact, id, branch, firstName,
                                 
                             </div>
 
-                            <div className='flex flex-col'>
-                                <h1 className='font-medium'>Branch/Location</h1>
-                                <h1 className='font-bold'>{branch}</h1>
-                            </div>
-
                         </div>
                     </div>
                     
@@ -424,7 +529,11 @@ function AccountDetails({ fullName, role, email, contact, id, branch, firstName,
                         <button
                             type='button'
                             onClick={updateProfile}
-                            disabled={loading}
+                            disabled={
+                                loading ||
+                                !/^09\d{9}$/.test(editContact || "") ||
+                                (changePin && !/^\d{6}$/.test(editPin))
+                            }
                             className='w-fit flex items-center justify-center gap-2 min-w-[90px] rounded-lg bg-yellow font-akagi font-bold text-lg text-navyblue px-3 py-1 transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50'
                         >
                             {loading ? (
@@ -441,6 +550,59 @@ function AccountDetails({ fullName, role, email, contact, id, branch, firstName,
 
             </motion.div>
         </div>
+
+        {showAdminWarning && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
+            <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                transition={{ duration: 0.2 }}
+                className="w-full max-w-md rounded-2xl bg-[#ffffff] p-6 shadow-2xl"
+            >
+                {/* Warning icon */}
+                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-amber-100">
+                    <span className="text-3xl text-amber-600">!</span>
+                </div>
+
+                {/* Modal message */}
+                <div className="text-center">
+                    <h2 className="font-akagi text-xl font-bold text-[#505050]">
+                        Change Role to Admin?
+                    </h2>
+
+                    <p className="mt-3 text-sm leading-relaxed text-gray">
+                        You are about to grant this employee Admin privileges.
+                        This may give them access to sensitive account information
+                        and administrative features.
+                    </p>
+
+                    <p className="mt-2 text-sm font-bold text-[#505050]">
+                        Are you sure you want to continue?
+                    </p>
+                </div>
+
+                {/* Actions */}
+                <div className="mt-6 flex gap-3">
+                    <button
+                        type="button"
+                        onClick={cancelRoleChange}
+                        className="flex-1 rounded-xl border border-gray/40 px-4 py-2.5 font-akagi font-bold text-[#505050] transition hover:bg-gray/10"
+                    >
+                        Cancel
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={confirmRoleChange}
+                        className="flex-1 rounded-xl bg-yellow px-4 py-2.5 font-akagi font-bold text-navyblue transition hover:opacity-80"
+                    >
+                        Confirm
+                    </button>
+                </div>
+            </motion.div>
+        </div>
+    )}
     </>
   )
 }
