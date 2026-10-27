@@ -253,6 +253,12 @@ function TransactionCurrentRow({ bikeCount, date, method, total, status, transac
         }
     }, [showTransaction, transactions?.id, status]);
 
+    useEffect(() => {
+        if (!transactions?.id) return;
+
+        loadExistingRefund();
+    }, [transactions?.id]);
+
     const handleReviewSubmit = async () => {
         if (reviewSubmitting || reviewLoading || existingReview) {
             return;
@@ -513,10 +519,15 @@ function TransactionCurrentRow({ bikeCount, date, method, total, status, transac
 
                     <div className='flex gap-2 justify-end'>
 
-                        {status === "pending" && (
+                        {(
+                            status === "pending" ||
+                            status === "refund rejected" ||
+                            status === "refunded"
+                        ) && (
                             <div
                                 onClick={async (e) => {
                                     e.stopPropagation();
+
                                     setRefundError("");
                                     setOpenRefund(true);
                                     await loadExistingRefund();
@@ -529,13 +540,13 @@ function TransactionCurrentRow({ bikeCount, date, method, total, status, transac
                             >
                                 <RiRefundFill className="text-md" />
 
-                                {existingRefund?.status?.toLowerCase() === "pending"
-                                    ? "View Refund Request"
-                                    : existingRefund?.status?.toLowerCase() === "approved"
+                                {refundLoading
+                                    ? "Checking Refund..."
+                                    : ["approved", "pending", "rejected"].includes(
+                                        existingRefund?.status?.toLowerCase()
+                                    )
                                         ? "View Refund Request"
-                                        : existingRefund?.status?.toLowerCase() === "rejected"
-                                            ? "View Refund Request"
-                                            : "Request Refund"}
+                                        : "Request Refund"}
                             </div>
                         )}
 
