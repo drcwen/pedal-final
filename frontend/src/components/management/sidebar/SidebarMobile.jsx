@@ -14,6 +14,7 @@ import { MdManageAccounts } from "react-icons/md";
 import { IoMdSettings } from "react-icons/io";
 import { TbReportAnalytics } from "react-icons/tb";
 import { TiUser } from "react-icons/ti";
+import { RiRefundFill } from "react-icons/ri";
 
 function SidebarMobile({active}) {
 
@@ -69,6 +70,12 @@ function SidebarMobile({active}) {
       icon: MdOutlineInventory,
       key: "inventory",
       route: "/inventory",
+    },
+    {
+      name: "Refund",
+      icon: RiRefundFill,
+      key: "refund",
+      route: "/refund",
     },
     {
       name: "Monitoring",

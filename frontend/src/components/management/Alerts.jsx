@@ -15,6 +15,44 @@ function Alerts() {
     const [updating, setUpdating] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
 
+    const [activeTab, setActiveTab] = useState("Pending");
+
+    const tabs = [
+        {
+            key: "Pending",
+            label: "Pending",
+            count: activeAlerts.filter(
+                (alert) => (alert.status || "Pending") === "Pending"
+            ).length,
+        },
+        {
+            key: "Resolved",
+            label: "Resolved",
+            count: activeAlerts.filter(
+                (alert) => alert.status === "Resolved"
+            ).length,
+        },
+        {
+            key: "Dismissed",
+            label: "Dismissed",
+            count: activeAlerts.filter(
+                (alert) => alert.status === "Dismissed"
+            ).length,
+        },
+        {
+            key: "All",
+            label: "All",
+            count: activeAlerts.length,
+        },
+    ];
+
+    const filteredAlerts = activeAlerts.filter((alert) => {
+        if (activeTab === "All") return true;
+
+        return (alert.status || "Pending") === activeTab;
+    });
+
+
     const getAlertDateGroup = (timestamp) => {
         if (!timestamp) return "Unknown Date";
 
@@ -47,7 +85,7 @@ function Alerts() {
     };
 
     const groupedAlerts = Object.entries(
-        [...activeAlerts]
+        [...filteredAlerts]
             .sort((a, b) => {
                 // Dismissed alerts always go to the bottom.
                 const aDismissed = a.status === "Dismissed";
@@ -217,6 +255,23 @@ function Alerts() {
 
                     <div className="w-full flex-1 min-h-0 min-w-0 bg-[#ffffff] rounded-xl p-5 overflow-y-auto flex flex-col">
                         <div className="flex flex-col gap-3">
+                
+                            <div className="flex gap-2 overflow-x-auto pb-1">
+                                {tabs.map((tab) => (
+                                    <button
+                                        key={tab.key}
+                                        type="button"
+                                        onClick={() => setActiveTab(tab.key)}
+                                        className={`shrink-0 rounded-lg px-4 py-2 text-sm font-akagi font-medium transition ${
+                                            activeTab === tab.key
+                                                ? "bg-blue text-[#ffffff]"
+                                                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                        }`}
+                                    >
+                                        {tab.label} ({tab.count})
+                                    </button>
+                                ))}
+                            </div>
                             {loading && (
                                 <div className="flex justify-center items-center py-10 font-akagi text-gray">
                                     Loading alerts...
@@ -245,7 +300,6 @@ function Alerts() {
                                     </p>
                                 </div>
                             )}
-
                             {!loading && groupedAlerts.map(([dateGroup, alerts]) => (
                                 <div key={dateGroup} className="flex flex-col gap-3">
                                     {/* Date heading */}

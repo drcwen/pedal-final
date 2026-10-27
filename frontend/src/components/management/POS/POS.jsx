@@ -9,6 +9,7 @@ import { motion } from "motion/react"
 import { useNavigate } from "react-router-dom";
 import { TbHistory } from "react-icons/tb";
 import { IoMdClose } from "react-icons/io";
+import { RiRefundFill } from "react-icons/ri";
 
 function POS() {
 
@@ -431,6 +432,7 @@ function POS() {
                                     </div>
                                 </div>
 
+
                                 {/*Add Transactions*/}
                                 <div className='flex flex-row gap-3'>
                                     {activeTab === "reservation" &&
@@ -450,6 +452,7 @@ function POS() {
                                 </div>
 
                             </div>
+
                         </div>
                     </div>
 

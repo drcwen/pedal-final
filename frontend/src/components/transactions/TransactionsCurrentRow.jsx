@@ -517,15 +517,25 @@ function TransactionCurrentRow({ bikeCount, date, method, total, status, transac
                             <div
                                 onClick={async (e) => {
                                     e.stopPropagation();
+                                    setRefundError("");
                                     setOpenRefund(true);
                                     await loadExistingRefund();
                                 }}
                                 className={`px-2 py-1 cursor-pointer rounded-lg flex gap-2 items-center text-[#ffffff] text-sm ${
-                                    existingRefund ? "bg-red-400" : "bg-red-400"
+                                    existingRefund?.status?.toLowerCase() === "approved"
+                                        ? "bg-green-500 hover:bg-green-600"
+                                        : "bg-red-400 hover:bg-red-500"
                                 }`}
                             >
                                 <RiRefundFill className="text-md" />
-                                {existingRefund ? "Continue Refund Request" : "Request Refund"}
+
+                                {existingRefund?.status?.toLowerCase() === "pending"
+                                    ? "View Refund Request"
+                                    : existingRefund?.status?.toLowerCase() === "approved"
+                                        ? "View Refund Request"
+                                        : existingRefund?.status?.toLowerCase() === "rejected"
+                                            ? "View Refund Request"
+                                            : "Request Refund"}
                             </div>
                         )}
 
@@ -570,7 +580,148 @@ function TransactionCurrentRow({ bikeCount, date, method, total, status, transac
                     }
 
                     {openRefund && (
+                        
                         <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-[110] p-5">
+                            
+                            {existingRefund?.status?.toLowerCase() === "approved" ? (
+                            /* APPROVED REFUND VIEW */
+                            <div className="bg-[#ffffff] p-5 md:p-8 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto font-akagi text-gray flex flex-col gap-5 border border-green-200 shadow-xl">
+                                {/* Header */}
+                                <div className="flex justify-between items-start gap-3">
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex flex-col gap-1">
+                                            <h1 className="text-xl md:text-2xl font-bold text-green-700">
+                                                Refund Approved
+                                            </h1>
+                                            <p className="text-sm font-medium text-green-600">
+                                                Your refund request has been approved and processed.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <IoCloseSharp
+                                        onClick={() => setOpenRefund(false)}
+                                        className="text-2xl cursor-pointer shrink-0"
+                                    />
+                                </div>
+
+                                {/* Approval notice */}
+                                <div className="rounded-xl border border-green-200 bg-green-50 p-4 flex gap-3 items-start">
+                                    <div className="rounded-full bg-green-100 p-2">
+                                        <RiRefundFill className="text-xl text-green-600" />
+                                    </div>
+
+                                    <div className="flex flex-col gap-1">
+                                        <h2 className="font-bold text-green-800">
+                                            Refund Successfully Approved
+                                        </h2>
+                                        <p className="text-sm font-medium text-green-700">
+                                            Your refund request has been approved by the 3Jremy's POS
+                                            administrator. Keep your refund reference number for
+                                            future reference.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Refund reference number */}
+                                <div className="rounded-xl border-2 border-green-300 bg-green-50 p-4 flex flex-col gap-2">
+                                    <label className="text-sm font-bold text-green-800">
+                                        Refund Reference Number
+                                    </label>
+
+                                    <div className="flex flex-col sm:flex-row gap-2">
+                                        <div className="flex-1 rounded-lg border border-green-200 bg-[#ffffff] px-4 py-3 break-all">
+                                            <p className="text-base font-bold text-green-800">
+                                                {existingRefund.refund_reference_number || "Reference number not provided"}
+                                            </p>
+                                        </div>
+
+                                        {existingRefund.refund_reference_number && (
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(
+                                                        existingRefund.refund_reference_number
+                                                    );
+                                                }}
+                                                className="rounded-lg bg-green-700 hover:bg-green-800 text-[#ffffff] px-4 py-3 text-sm font-bold"
+                                            >
+                                                Copy Reference
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    <p className="text-xs text-green-700">
+                                        Save this number as proof of your refund transaction.
+                                    </p>
+                                </div>
+
+                                {/* Refund details */}
+                                <div className="flex flex-col gap-4">
+                                    <h2 className="text-lg font-bold text-green-800">
+                                        Refund Details
+                                    </h2>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="flex flex-col gap-1">
+                                            <label className="text-sm font-bold text-gray/70">
+                                                Reason for Refund
+                                            </label>
+                                            <div className="rounded-lg border border-green-100 bg-green-50/50 px-3 py-3 text-sm">
+                                                {existingRefund.reason || "—"}
+                                            </div>
+                                        </div>
+
+                                        <div className="flex flex-col gap-1">
+                                            <label className="text-sm font-bold text-gray/70">
+                                                Refund Method
+                                            </label>
+                                            <div className="rounded-lg border border-green-100 bg-green-50/50 px-3 py-3 text-sm">
+                                                {existingRefund.refund_method || "—"}
+                                            </div>
+                                        </div>
+
+                                        <div className="flex flex-col gap-1">
+                                            <label className="text-sm font-bold text-gray/70">
+                                                Account Holder Name
+                                            </label>
+                                            <div className="rounded-lg border border-green-100 bg-green-50/50 px-3 py-3 text-sm break-words">
+                                                {existingRefund.account_holder_name || "—"}
+                                            </div>
+                                        </div>
+
+                                        <div className="flex flex-col gap-1">
+                                            <label className="text-sm font-bold text-gray/70">
+                                                Account Number
+                                            </label>
+                                            <div className="rounded-lg border border-green-100 bg-green-50/50 px-3 py-3 text-sm break-all">
+                                                {existingRefund.account_number || "—"}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col gap-1">
+                                        <label className="text-sm font-bold text-gray/70">
+                                            Additional Details
+                                        </label>
+                                        <div className="rounded-lg border border-green-100 bg-green-50/50 px-3 py-3 text-sm whitespace-pre-wrap break-words">
+                                            {existingRefund.additional_details || "—"}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Close button */}
+                                <div className="flex justify-end pt-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setOpenRefund(false)}
+                                        className="rounded-lg bg-green-700 hover:bg-green-800 text-[#ffffff] px-6 py-3 font-bold"
+                                    >
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
                             <div className="
                                 bg-[#ffffff]
                                 p-5 md:p-8
@@ -866,7 +1017,7 @@ function TransactionCurrentRow({ bikeCount, date, method, total, status, transac
                                         </button>
                                     </div>
                                 </div>
-                            </div>
+                            </div>)}
                         </div>
                     )}
 

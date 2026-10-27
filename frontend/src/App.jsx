@@ -31,6 +31,7 @@
   import Profile from "./components/management/profile/Profile"
   import CustomerProfile from "./components/sections/CustomerProfile"
   import Reviews from "./components/sections/Reviews"
+  import Refund from "./components/management/refund/Refund"
 
   function App() {
     const [session, setSession] = useState(null);
@@ -238,6 +239,7 @@
             <Route path="/pos/create" element={<WalkInRent />}/>
             <Route path="/history" element={<TransactionHistory />}/>
             <Route path="/inventory" element={<Inventory/>}/>
+            <Route path="/refund" element={<Refund />} />
             <Route path="/monitoring" element={<Monitoring/>}/>
             <Route 
               path="/prof" 
@@ -271,6 +273,7 @@
             <Route path="/past-transactions" element={<PastTransactions />} />
             <Route path="*" element={<Navigate to="/" />} />
             <Route path="/pos/create" element={<WalkInRent />}/>
+            <Route path="/refund" element={<Refund />} />
             <Route path="/history" element={<TransactionHistory />}/>
             <Route path="/inventory" element={<Inventory/>}/>
             <Route path="/monitoring" element={<Monitoring/>}/>

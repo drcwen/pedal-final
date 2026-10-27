@@ -15,11 +15,14 @@ import { TbReportAnalytics } from "react-icons/tb";
 import { HiMiniBellAlert } from "react-icons/hi2";
 import Alerts from "../Alerts"
 import { useState, useEffect } from 'react';
+import { RiRefundFill } from "react-icons/ri";
 
 function Sidebar({active}) {
 
     const navigate = useNavigate();
     const [userName, setUserNname] = useState(null);
+
+    const [pendingRefundsCount, setPendingRefundsCount] = useState(0);
 
     const [pendingAlertsCount, setPendingAlertsCount] = useState(0);
 
@@ -68,33 +71,20 @@ function Sidebar({active}) {
       let isMounted = true;
 
       const fetchPendingAlertsCount = async () => {
-          const { data, error } = await supabase
-              .from("alerts_mod")
-              .select("id, status");
+        const { count, error } = await supabase
+            .from("alerts_mod")
+            .select("id", { count: "exact", head: true })
+            .or("status.is.null,status.eq.Pending");
 
-          if (error) {
-              console.error("Error fetching alerts:", error.message);
-              return;
-          }
+        if (error) {
+            console.error("Error fetching pending alerts:", error.message);
+            return;
+        }
 
-          console.log("Alerts visible to this user:", data);
-          console.log(
-              "Pending alerts:",
-              data.filter(
-                  (alert) =>
-                      alert.status?.trim().toLowerCase() === "ongoing"
-              ).length
-          );
-
-          const count = data.filter(
-              (alert) =>
-                  alert.status?.trim().toLowerCase() === "ongoing"
-          ).length;
-
-          if (isMounted) {
-              setPendingAlertsCount(count);
-          }
-      };
+        if (isMounted) {
+            setPendingAlertsCount(count ?? 0);
+        }
+    };
 
       fetchPendingAlertsCount();
 
@@ -136,6 +126,12 @@ function Sidebar({active}) {
         route: "/pos",
       },
       {
+        name: "Refund",
+        icon: RiRefundFill,
+        key: "refund",
+        route: "/refund",
+      },
+      {
         name: "Transaction History",
         icon: FaHistory,
         key: "history",
@@ -173,6 +169,48 @@ function Sidebar({active}) {
       },
     ]
 
+    useEffect(() => {
+      let isMounted = true;
+
+      const fetchPendingRefundsCount = async () => {
+          const { count, error } = await supabase
+              .from("refund_mod")
+              .select("id", { count: "exact", head: true })
+              .ilike("status", "pending");
+
+          if (error) {
+              console.error("Error fetching pending refunds:", error.message);
+              return;
+          }
+
+          if (isMounted) {
+              setPendingRefundsCount(count ?? 0);
+          }
+      };
+
+      fetchPendingRefundsCount();
+
+      const channel = supabase
+          .channel("sidebar-pending-refunds")
+          .on(
+              "postgres_changes",
+              {
+                  event: "*",
+                  schema: "public",
+                  table: "refunds_mod",
+              },
+              () => {
+                  fetchPendingRefundsCount();
+              }
+          )
+          .subscribe();
+
+      return () => {
+          isMounted = false;
+          supabase.removeChannel(channel);
+      };
+  }, []);
+
   return (
     <>
 
@@ -197,17 +235,26 @@ function Sidebar({active}) {
                     </div>
                   </div>
 
-                  <div className='flex flex-col gap-4'>
-                      {menu.map((item) => (
-                          <SidebarTabs
-                              key={item.key}
-                              icon={item.icon}
-                              name={item.name}
-                              isActive={active === item.key}
-                              onClick={() => navigate(item.route)}
-                          />
-                      ))}
-                  </div>
+                  <div className="flex flex-col gap-4">
+                    {menu.map((item) => (
+                        <div key={item.key} className="relative">
+                            <SidebarTabs
+                                icon={item.icon}
+                                name={item.name}
+                                isActive={active === item.key}
+                                onClick={() => navigate(item.route)}
+                            />
+
+                            {item.key === "refund" && pendingRefundsCount > 0 && (
+                                <div className="absolute top-1/2 right-3 -translate-y-1/2 min-w-5 h-5 px-1 rounded-full bg-red-500 flex items-center justify-center font-akagi font-bold text-yellow text-xs pointer-events-none">
+                                    {pendingRefundsCount > 99
+                                        ? "99+"
+                                        : pendingRefundsCount}
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
               </div>
 
               <div className='flex flex-row justify-between items-center pb-10 px-3 '>
