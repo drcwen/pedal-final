@@ -199,7 +199,7 @@ function TransactionsSection() {
             .order("created_at", { ascending: false })
             .eq("user_id", user.id)
             .gte("created_at", `${today}T00:00:00+08:00`)
-            .eq("status", "pending");
+            .in("status", ["pending", "pending refund", "refund rejected"]);
 
         if (error) {
                 console.log(error);
@@ -348,7 +348,7 @@ function TransactionsSection() {
                     `)
             .order("created_at", { ascending: false })
             .eq("user_id", user.id)
-            .lte("created_at", `${today}T00:00:00+08:00`);
+            .or(`status.eq.refunded,created_at.lte.${today}T00:00:00+08:00`);
 
         if (error) {
                 console.log(error);
@@ -445,6 +445,7 @@ function TransactionsSection() {
                                         status={transaction.status}
                                         transactions={transaction}
                                         startedBikes={transaction?.orders_mod}
+                                        fetchTransactions={fetchTransactions}
                                     />
                                 </motion.div>
                             );
@@ -487,6 +488,7 @@ function TransactionsSection() {
                                         status={transaction.status}
                                         transactions={transaction}
                                         startedBikes={transaction?.orders_mod}
+                                        fetchTransactions={fetchTransactions}
                                     />
                                 </motion.div>
                             );

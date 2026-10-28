@@ -10,7 +10,7 @@ import { MdRateReview } from "react-icons/md";
 import { supabase } from "../../lib/supabase";
 import { FaStar } from "react-icons/fa";
 
-function TransactionCurrentRow({ bikeCount, date, method, total, status, transactions, startedBikes }) {
+function TransactionCurrentRow({ bikeCount, date, method, total, status, transactions, fetchTransactions, startedBikes }) {
 
     const [openReceipt, setOpenReceipt] = useState(false);
     const [openRefund, setOpenRefund] = useState(false);
@@ -154,42 +154,76 @@ function TransactionCurrentRow({ bikeCount, date, method, total, status, transac
         try {
             setRefundSubmitting(true);
 
+            // Insert the refund request
             const refundRequest = {
-                original_transaction_id: transactions.id,
-                reason: refundReason,
+                original_transaction_id: originalTransactionId,
+                reason: refundReason.trim(),
                 additional_details: refundNotes.trim(),
                 refund_method: refundMethod,
                 account_holder_name: refundAccountName.trim(),
                 account_number: accountDigits,
-                status: existingRefund?.status ?? "pending",
+                status: "pending",
             };
 
-            let data;
-            let error;
-
-            if (existingRefund) {
-                setRefundError("A refund request already exists for this transaction.");
-                return;
-            }
-
-            ({ data, error } = await supabase
+            const { data, error: refundErrorResult } = await supabase
                 .from("refund_mod")
                 .insert([refundRequest])
                 .select()
-                .single());
+                .single();
 
-            if (error) {
-                console.error("Supabase refund error:", error);
-                setRefundError(error.message || "Failed to save the refund request.");
+            if (refundErrorResult) {
+                console.error("Supabase refund error:", refundErrorResult);
+                setRefundError(
+                    refundErrorResult.message ||
+                    "Failed to save the refund request."
+                );
                 return;
             }
 
+            console.log("Transaction ID:", originalTransactionId);
+            console.log("Transaction ID type:", typeof originalTransactionId);
+
+            const {
+                data: updatedTransaction,
+                error: transactionError,
+            } = await supabase
+                .from("transactions_mod")
+                .update({ status: "pending refund" })
+                .eq("id", originalTransactionId)
+                .select("id, status");
+
+            console.log("Updated transaction:", updatedTransaction);
+            console.log("Update error:", transactionError);
+
+            if (transactionError) {
+                setExistingRefund(data);
+                setRefundError(
+                    `Refund request saved, but transaction update failed: ${transactionError.message}`
+                );
+                return;
+            }
+
+            if (!updatedTransaction || updatedTransaction.length === 0) {
+                setExistingRefund(data);
+                setRefundError(
+                    "Refund request saved, but no transaction was updated. Check the transaction ID and RLS policies."
+                );
+                return;
+            }
+
+            // Both operations succeeded
             setExistingRefund(data);
             setOpenRefund(false);
             setShowTransaction(false);
+
+            await fetchTransactions();
+
         } catch (error) {
             console.error("Refund submission error:", error);
-            setRefundError("Something went wrong while saving your refund request.");
+            setRefundError(
+                error.message ||
+                "Something went wrong while saving your refund request."
+            );
         } finally {
             setRefundSubmitting(false);
         }
@@ -543,7 +577,8 @@ function TransactionCurrentRow({ bikeCount, date, method, total, status, transac
                         {(
                             status === "pending" ||
                             status === "refund rejected" ||
-                            status === "refunded"
+                            status === "refunded" ||
+                            status === "pending refund"
                         ) && (
                             <div
                                 onClick={async (e) => {
