@@ -54,7 +54,7 @@ function GallerySection({
         <section className="w-full overflow-hidden bg-darkblue py-16">
 
             {/* Header */}
-            <div className="mx-auto mb-10 max-w-7xl px-6">
+            <div className="mb-10 w-full px-10 lg:px-30">
 
                 <motion.h2
                     initial={{ opacity: 0, y: 20 }}
@@ -69,7 +69,7 @@ function GallerySection({
             </div>
 
             {/* Gallery */}
-            <div className="mx-auto max-w-7xl px-6 pb-4">
+            <div className="w-full px-10 pb-4 lg:px-30">
 
                 <div
                     className="
@@ -77,7 +77,7 @@ function GallerySection({
                         grid-cols-1
                         gap-8
                         md:grid-cols-4
-                        md:auto-rows-[200px]
+                        md:auto-rows-[230px]
                     "
                 >
 
