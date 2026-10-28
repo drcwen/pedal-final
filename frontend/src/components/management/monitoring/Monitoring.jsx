@@ -585,7 +585,7 @@ function Monitoring() {
                                                 }
                                             }}
                                             // Save to database when user finishes typing or leaves the input field
-                                            onBlur={(e) => updateGeofenceRadiusInDatabase(Number(e.target.value))}
+                                            onBlur={(e) => updateGeofenceRadius(Number(e.target.value))}
                                             className="w-full min-w-0 rounded-lg border border-gray/30 px-3 py-2 text-blue outline-none focus:border-blue"
                                         />
 
@@ -600,8 +600,8 @@ function Monitoring() {
                                         value={radiusMeters}
                                         onChange={(e) => setRadiusMeters(Number(e.target.value))}
                                         // Save to database only after the user drops/releases the slider handle
-                                        onMouseUp={(e) => updateGeofenceRadiusInDatabase(Number(e.target.value))}
-                                        onTouchEnd={(e) => updateGeofenceRadiusInDatabase(Number(e.target.value))}
+                                        onMouseUp={(e) => updateGeofenceRadius(Number(e.target.value))}
+                                        onTouchEnd={(e) => updateGeofenceRadius(Number(e.target.value))}
                                         className="w-full accent-blue"
                                     />
 
