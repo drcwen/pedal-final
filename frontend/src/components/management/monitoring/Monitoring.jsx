@@ -137,6 +137,22 @@ function Monitoring() {
         };
     };
 
+    const updateGeofenceRadius = async (newRadius) => {
+        try {
+            const { error } = await supabase
+                .from("gps_mod")
+                .update({ geofence_radius: newRadius });
+
+            if (error) {
+                console.error("Error updating geofence radius in database:", error);
+            } else {
+                console.log("Geofence radius updated successfully to:", newRadius);
+            }
+        } catch (err) {
+            console.error("Unexpected error updating geofence radius:", err);
+        }
+    };
+
     useEffect(() => {
         if (!mapContainer.current || map.current) return;
 
@@ -557,9 +573,7 @@ function Monitoring() {
                                             value={radiusMeters}
                                             onChange={(e) => {
                                                 const value = e.target.value;
-
                                                 if (value === "") return;
-
                                                 const number = Number(value);
 
                                                 if (
@@ -570,6 +584,8 @@ function Monitoring() {
                                                     setRadiusMeters(number);
                                                 }
                                             }}
+                                            // Save to database when user finishes typing or leaves the input field
+                                            onBlur={(e) => updateGeofenceRadiusInDatabase(Number(e.target.value))}
                                             className="w-full min-w-0 rounded-lg border border-gray/30 px-3 py-2 text-blue outline-none focus:border-blue"
                                         />
 
@@ -583,6 +599,9 @@ function Monitoring() {
                                         step="50"
                                         value={radiusMeters}
                                         onChange={(e) => setRadiusMeters(Number(e.target.value))}
+                                        // Save to database only after the user drops/releases the slider handle
+                                        onMouseUp={(e) => updateGeofenceRadiusInDatabase(Number(e.target.value))}
+                                        onTouchEnd={(e) => updateGeofenceRadiusInDatabase(Number(e.target.value))}
                                         className="w-full accent-blue"
                                     />
 

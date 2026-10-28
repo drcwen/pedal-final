@@ -524,27 +524,8 @@ function WalkInRent() {
                                     }
                                 </div>
 
-                                {/*Payment Button*/}
-                                <div 
-                                    onClick={() => {
-                                        if (gcash) {
-                                            setGcash(true);
-                                            setGcashStatus("waiting");
-                                        } else if (cash) {
-                                            setProceed(true);
-                                        }
-                                    }}
-                                    className={`${
-                                        grandTotal === 0 ||
-                                        (!cash && !gcash) ||
-                                        (cash && (cashAmount === null || Number(cashAmount) < grandTotal))
-                                            ? "hidden"
-                                            : "block"
-                                    } w-fit self-end bg-yellow rounded-xl px-8 py-3 text-center cursor-pointer`}
-                                >
-                                    <h1 className="text-xl font-bold font-akagi text-darkblue">
-                                        Payment
-                                    </h1>
+                                <div className='w-fit self-end bg-yellow rounded-xl px-8 py-3 text-center'>
+                                    <h1 className='text-xl font-bold font-akagi text-darkblue'>Payment</h1>
                                 </div>
 
                                 {proceed && 
