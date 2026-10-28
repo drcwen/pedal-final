@@ -96,6 +96,22 @@ function Monitoring() {
 
     const pinLocation = [121.07421345160672, 14.7123590730687];
 
+    // Fetch initial radius from database on load to prevent reset on refresh
+    useEffect(() => {
+        const fetchRadius = async () => {
+            const { data, error } = await supabase
+                .from("gps_mod")
+                .select("geofence_radius")
+                .limit(1)
+                .single();
+
+            if (!error && data?.geofence_radius) {
+                setRadiusMeters(data.geofence_radius);
+            }
+        };
+        fetchRadius();
+    }, []);
+
     const createGeofenceCircle = (center, radiusMeters) => {
         const [longitude, latitude] = center;
         const earthRadius = 6371008.8;
@@ -141,7 +157,8 @@ function Monitoring() {
         try {
             const { error } = await supabase
                 .from("gps_mod")
-                .update({ geofence_radius: newRadius });
+                .update({ geofence_radius: newRadius })
+                .neq("id", 0);
 
             if (error) {
                 console.error("Error updating geofence radius in database:", error);
