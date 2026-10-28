@@ -217,7 +217,7 @@ function Sidebar({active}) {
         <div className='hidden lg:block h-screen w-55 bg-[#FFFFFF] border-r border-r-[#C1C1C1] gap-5 px-3'>
 
             <div className='h-full flex flex-col justify-between'>
-              <div className='flex flex-col'>
+              <div className="flex flex-col flex-1 min-h-0">
                   {/*Logo*/}
                   <div className='w-full py-10 pl-8 flex flex-row items-center gap-3'>
                       <h1 className='font-akagi font-bold text-[#0B5793] text-3xl hover:text-blue duration-300 transition-all cursor-pointer'><span className='text-blue'>3J</span>REMY</h1>
@@ -235,9 +235,9 @@ function Sidebar({active}) {
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-4 overflow-y-auto overflow-x-hidden scrollbar-none min-h-0 flex-1">
                     {menu.map((item) => (
-                        <div key={item.key} className="relative">
+                        <div key={item.key} className="relative shrink-0">
                             <SidebarTabs
                                 icon={item.icon}
                                 name={item.name}
@@ -257,7 +257,7 @@ function Sidebar({active}) {
                 </div>
               </div>
 
-              <div className='flex flex-row justify-between items-center pb-10 px-3 '>
+              <div className='pt-6 flex flex-row justify-between items-center pb-6 px-3 '>
                 <div 
                   onClick={() => {navigate('/prof')}}
                   className='flex flex-row gap-3 items-center'>
