@@ -49,32 +49,45 @@ function CartSection() {
     }
 
     function groupOrders(orders) {
-        const groups = {};
+        const schedules = {};
 
         orders.forEach((order) => {
-            // Group by rental date and starting time only
-            const groupKey = [
+            const scheduleKey = [
                 order.reservation_date,
                 order.start_time
             ].join("-");
 
-            if (!groups[groupKey]) {
-                groups[groupKey] = {
-                    groupKey,
+            const itemKey = [
+                order.bike_type_id,
+                order.duration_hours
+            ].join("-");
+
+            if (!schedules[scheduleKey]) {
+                schedules[scheduleKey] = {
+                    groupKey: scheduleKey,
                     reservation_date: order.reservation_date,
                     start_time: order.start_time,
-                    orders: [],
+                    items: {}
+                };
+            }
+
+            if (!schedules[scheduleKey].items[itemKey]) {
+                schedules[scheduleKey].items[itemKey] = {
+                    ...order,
+                    itemKey,
                     quantity: 0,
                     orderIds: []
                 };
             }
 
-            groups[groupKey].orders.push(order);
-            groups[groupKey].quantity += 1;
-            groups[groupKey].orderIds.push(order.id);
+            schedules[scheduleKey].items[itemKey].quantity += 1;
+            schedules[scheduleKey].items[itemKey].orderIds.push(order.id);
         });
 
-        return Object.values(groups);
+        return Object.values(schedules).map((schedule) => ({
+            ...schedule,
+            items: Object.values(schedule.items)
+        }));
     }
 
     function handleCheckout() {
@@ -459,36 +472,29 @@ function CartSection() {
                                     </p>
 
                                     <p className="font-akagi text-sm text-gray-600">
-                                        {formatTime(group.start_time)}
+                                        {formatTime(group.start_time)} onwards
                                     </p>
                                 </div>
 
                                 {/* Bikes with the same rental schedule */}
-                                {group.orders.map((order) => (
+                                {group.items.map((item) => (
                                     <CartRentRow
-                                        key={order.id}
-                                        image={order.bike_types_mod.image_url}
-                                        name={order.bike_types_mod.name}
-                                        hour={order.duration_hours}
-                                        reservationdate={order.reservation_date}
-                                        starttime={order.start_time}
-                                        range={order.reservation_range}
-                                        price={order.bike_types_mod.price}
-                                        quantity={1}
-                                        orderIds={[order.id]}
-                                        bikeTypeId={order.bike_type_id}
-                                        checked={!!checkedItems[order.id]}
-                                        onCheck={() => handleCheckbox([order.id])}
-                                        onQuantityChange={(newQuantity) => {
-                                            handleQuantityChange(
-                                                {
-                                                    ...order,
-                                                    quantity: 1,
-                                                    orderIds: [order.id]
-                                                },
-                                                newQuantity
-                                            );
-                                        }}
+                                        key={item.itemKey}
+                                        image={item.bike_types_mod.image_url}
+                                        name={item.bike_types_mod.name}
+                                        hour={item.duration_hours}
+                                        reservationdate={item.reservation_date}
+                                        starttime={item.start_time}
+                                        range={item.reservation_range}
+                                        price={item.bike_types_mod.price}
+                                        quantity={item.quantity}
+                                        orderIds={item.orderIds}
+                                        bikeTypeId={item.bike_type_id}
+                                        checked={orderIdsChecked(item.orderIds)}
+                                        onCheck={() => handleCheckbox(item.orderIds)}
+                                        onQuantityChange={(newQuantity) =>
+                                            handleQuantityChange(item, newQuantity)
+                                        }
                                     />
                                 ))}
                             </div>
