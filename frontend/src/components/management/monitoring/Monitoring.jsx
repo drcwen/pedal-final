@@ -137,6 +137,22 @@ function Monitoring() {
         };
     };
 
+    const updateGeofenceRadius = async (newRadius) => {
+        try {
+            const { error } = await supabase
+                .from("gps_mod")
+                .update({ geofence_radius: newRadius });
+
+            if (error) {
+                console.error("Error updating geofence radius in database:", error);
+            } else {
+                console.log("Geofence radius updated successfully to:", newRadius);
+            }
+        } catch (err) {
+            console.error("Unexpected error updating geofence radius:", err);
+        }
+    };
+
     useEffect(() => {
         if (!mapContainer.current || map.current) return;
 
