@@ -51,6 +51,19 @@ function TransactionCurrentRow({ bikeCount, date, method, total, status, transac
         });
     }
 
+    function formatDate(date) {
+        if (!date) return "";
+
+        const [year, month, day] = date.split("-").map(Number);
+
+        return new Date(year, month - 1, day)
+            .toLocaleDateString("en-US", {
+                month: "long",
+                day: "2-digit",
+                year: "numeric"
+            });
+    }
+
     function getReservationDatePH(range) {
         if (!range) return null;
 
@@ -408,6 +421,8 @@ function TransactionCurrentRow({ bikeCount, date, method, total, status, transac
         }
     };
 
+    console.log("transactions", transactions)
+
     return (
         <>
         <div
@@ -419,7 +434,7 @@ function TransactionCurrentRow({ bikeCount, date, method, total, status, transac
                 </div>
 
                     <div className='flex justify-center'>
-                        <h1 className='text-xl font-akagi font-bold text-[#6D7172]'>{date}</h1>
+                        <h1 className='text-xl font-akagi font-bold text-[#6D7172]'>{formatDate(transactions?.orders_mod[0]?.reservation_date)}</h1>
                     </div>
 
                 <div className='flex justify-center'>
@@ -465,25 +480,56 @@ function TransactionCurrentRow({ bikeCount, date, method, total, status, transac
                 </div>
             </div>
 
-            <div className='lg:hidden grid grid-cols-4 justify-between items-center'>
-                <div className='w-fit rounded-lg px-3 py-1 bg-yellow'>
-                    <h1 className='text-lg font-akagi font-black text-navyblue'>{bikeCount}</h1>
+            <div className="lg:hidden grid grid-cols-[auto_1fr_1fr_auto] items-center gap-2">
+                {/* Bike count */}
+                <div className="w-fit rounded-lg px-2 sm:px-3 py-1 bg-yellow">
+                    <h1 className="text-base sm:text-lg font-akagi font-black text-navyblue">
+                        {bikeCount}
+                    </h1>
                 </div>
 
-                <div className=''>
-                    <div className='flex justify-center'>
-                        <h1 className='text-md font-akagi font-bold text-[#6D7172]'>{date}</h1>
+                {/* Date */}
+                <div className="min-w-0 flex justify-center">
+                    <h1 className="text-sm sm:text-md font-akagi font-bold text-[#6D7172] text-center whitespace-nowrap">
+                        {date}
+                    </h1>
+                </div>
+
+                {/* Status */}
+                <div className="flex justify-center">
+                    <div
+                        className={`w-fit rounded-full uppercase py-1 px-2 sm:px-3 ${
+                            status?.toLowerCase() === "refunded"
+                                ? "bg-green-600"
+                                : status?.toLowerCase() === "refund rejected"
+                                ? "bg-red-600"
+                                : status?.toLowerCase() === "pending"
+                                ? "bg-yellow"
+                                : status?.toLowerCase() === "completed"
+                                ? "bg-gray-500"
+                                : status?.toLowerCase() === "started"
+                                ? "bg-blue"
+                                : "bg-yellow"
+                        }`}
+                    >
+                        <h1
+                            className={`text-[10px] sm:text-sm font-akagi font-bold tracking-normal text-center leading-tight whitespace-nowrap ${
+                                ["refunded", "refund rejected", "completed", "started"].includes(
+                                    status?.toLowerCase()
+                                )
+                                    ? "text-[#ffffff]"
+                                    : "text-navyblue"
+                            }`}
+                        >
+                            {status}
+                        </h1>
                     </div>
                 </div>
 
-                <div className='flex justify-center'>
-                    <h1 className='text-md font-akagi font-bold text-[#6D7172]'>{method}</h1>
+                {/* Arrow */}
+                <div className="flex justify-end">
+                    <FaArrowRight className="text-base sm:text-lg text-[#6D7172]" />
                 </div>
-
-                <div className='flex justify-end'>
-                    <FaArrowRight className='text-lg text-[#6D7172]'/>
-                </div>
-
             </div>
 
             <div className='h-0.5 w-full bg-black/10 rounded-lg'/>
@@ -516,14 +562,34 @@ function TransactionCurrentRow({ bikeCount, date, method, total, status, transac
                             className='text-xl cursor-pointer'/>
                     </div>
 
-                    <div className='flex flex-col gap-2'>
+                    <div className='lg:grid lg:grid-cols-2 flex flex-col gap-1'>
                         <div className='grid grid-cols-[120px_1fr]'>
                             <h1>Payment Date:</h1>
-                            <h1>{date}</h1>
+                            <h1 className='font-medium'>{date}</h1>
+                        </div>
+                        <div className='grid grid-cols-[120px_1fr]'>
+                            <h1>Rent Date:</h1>
+                            <h1 className='font-medium'>{formatDate(transactions?.orders_mod[0]?.reservation_date)}</h1>
+                        </div>
+                        <div className='grid grid-cols-[120px_1fr]'>
+                            <h1>Method:</h1>
+                            <h1 className='font-medium'>{transactions?.payment_method}</h1>
+                        </div>
+                        <div className='grid grid-cols-[120px_1fr]'>
+                            <h1>Reference No:</h1>
+                            <h1 className='font-medium'>{transactions?.reference_number}</h1>
                         </div>
                         <div className='grid grid-cols-[120px_1fr]'>
                             <h1>Status:</h1>
-                            <h1>{status}</h1>
+                            <h1 className='font-medium'>
+                                {status
+                                    ? status
+                                        .split(" ")
+                                        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                                        .join(" ")
+                                    : ""
+                                }
+                            </h1>
                         </div>
 
                     </div>
@@ -541,12 +607,26 @@ function TransactionCurrentRow({ bikeCount, date, method, total, status, transac
 
                                     <div className='flex flex-col'>
                                         <h1 className='text-sm font-akagi font-bold text-gray'>BIKE ID</h1>
-                                        <h1 className='text-sm font-akagi font-medium text-gray'>{orders?.bikes_mod?.code ?? "WAITING"}</h1>
+                                        <h1 className='text-sm font-akagi font-medium text-gray'>
+                                            {status === "pending"
+                                                ? "WAITING"
+                                                : ["refunded", "refund rejected", "completed"].includes(status)
+                                                    ? (orders?.bikes_mod?.code ?? "N/A")
+                                                    : (orders?.bikes_mod?.code ?? "WAITING")
+                                            }
+                                        </h1>
                                     </div>
 
                                     <div className='flex flex-col'>
                                         <h1 className='text-sm font-akagi font-bold text-gray'>GPS ID</h1>
-                                        <h1 className='text-sm font-akagi font-medium text-gray'>{orders?.gps_mod?.code ?? "WAITING"}</h1>
+                                        <h1 className='text-sm font-akagi font-medium text-gray'>
+                                            {status === "pending"
+                                                ? "WAITING"
+                                                : ["refunded", "refund rejected", "completed"].includes(status)
+                                                    ? (orders?.gps_mod?.code ?? "N/A")
+                                                    : (orders?.gps_mod?.code ?? "WAITING")
+                                            }
+                                        </h1>
                                     </div>
 
                                     <div className='flex flex-col'>

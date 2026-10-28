@@ -13,6 +13,8 @@ function CartSection() {
 
     const [checkoutTotal, setCheckoutTotal] = useState(total || 0);
 
+    const groupedOrders = groupOrders(orders);
+
     const [dropDown, setDropDown] = useState(false);
 
     const [paymentMethod, setPaymentMethod] = useState("GCash");
@@ -63,6 +65,32 @@ function CartSection() {
         setName(displayName);
     }
 
+    function groupOrders(orders = []) {
+        const grouped = {};
+
+        orders.forEach((order) => {
+            const key = [
+                order.bike_type_id,
+                order.reservation_date,
+                order.start_time,
+                order.duration_hours
+            ].join("-");
+
+            if (!grouped[key]) {
+                grouped[key] = {
+                    ...order,
+                    quantity: 0,
+                    orderIds: []
+                };
+            }
+
+            grouped[key].quantity += 1;
+            grouped[key].orderIds.push(order.id);
+        });
+
+        return Object.values(grouped);
+    }
+
     async function fetchCheckoutTotal() {
 
         if (!orders || orders.length === 0) return;
@@ -110,7 +138,7 @@ function CartSection() {
 
 
     return (
-        <div className='box-model flex flex-col gap-5 flex flex-col justify-center'>
+        <div className='box-model flex flex-col gap-5 justify-center'>
 
             <div className="lg:grid lg:grid-cols-3 lg:gap-15 flex flex-col gap-10">
 
@@ -140,27 +168,21 @@ function CartSection() {
                     </div>
                 </div>
 
-                <div className='h-70 overflow-y-auto flex flex-col gap-4 py-5'>
+                <div className='h-120 overflow-y-auto flex flex-col gap-4 py-5'>
 
-                    {orders?.map((order) => (
+                    {groupedOrders.map((order) => (
                         <CheckoutRentRow
-                            key={order.id}
-
+                            key={order.orderIds[0]}
                             image={order.bike_types_mod.image_url}
-
                             bike={order.bike_types_mod.name}
-
-                            quantity="x1"
-
+                            quantity={`x${order.quantity}`}
                             rentdate={order.reservation_date}
-
                             rentstart={order.start_time}
-
                             duration={`${order.duration_hours} hour${order.duration_hours > 1 ? "s" : ""}`}
-
                             price={
                                 order.duration_hours *
-                                order.bike_types_mod.price
+                                order.bike_types_mod.price *
+                                order.quantity
                             }
                         />
                     ))}
@@ -247,7 +269,7 @@ function CartSection() {
                             setShowPopup(false);
                         }}
                         onSuccess={() => {
-                            navigate("/");
+                            navigate("/transactions");
                         }}
                     />
                 )}
