@@ -422,7 +422,7 @@ function TransactionsSection() {
                     ) : transactions.length === 0 ? (
                         <div className="w-full text-center">
                             <h1 className='text-gray font-akagi text-lg'>
-                                No bikes are added to cart.
+                                No active transactions yet.
                             </h1>
                         </div> 
                     ) : (
@@ -465,7 +465,7 @@ function TransactionsSection() {
                     ) : pastTransactions.length === 0 ? (
                         <div className="w-full text-center">
                             <h1 className='text-gray font-akagi text-lg'>
-                                No bikes are added to cart.
+                                No past transactions yet.
                             </h1>
                         </div> 
                     ) : (
