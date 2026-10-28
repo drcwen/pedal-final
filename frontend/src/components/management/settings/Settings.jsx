@@ -10,7 +10,7 @@ import { IoMdArrowDropdown } from "react-icons/io";
 import { IoMdRemove } from "react-icons/io";
 import { RiArrowDropDownLine } from "react-icons/ri";
 
-function Settings() {
+function Settings({role}) {
 
     const [activeTab, setActiveTab] = useState("operatingHours");
 
@@ -256,7 +256,7 @@ function Settings() {
     <>
 
         <div className='w-full h-screen bg-[#F2F2F2] flex'>
-            <Sidebar active={'settings'}/>
+            <Sidebar active={'settings'} userRole={role}/>
             
 
             <motion.div

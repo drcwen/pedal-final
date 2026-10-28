@@ -13,7 +13,7 @@ import Maintenance from "./Bikes/Maintenance/Maintenance"
 import { supabase } from "../../../lib/supabase"
 import SetMaintenanceStatus from "./Bikes/SetMaintenanceStatus"
 
-function Inventory() {
+function Inventory({role }) {
 
     const [activeTab, setActiveTab] = useState("Bike");
     const [addType, setAddType] = useState(false);
@@ -570,7 +570,7 @@ return (
     <>
 
         <div className='w-full h-screen md:bg-[#F2F2F2] flex'>
-            <Sidebar active={'inventory'}/>
+            <Sidebar active={'inventory'} userRole={role}/>
 
             {!maintenance ? (
             <>

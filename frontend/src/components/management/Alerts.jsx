@@ -7,7 +7,7 @@ import SidebarMobile from "./sidebar/SidebarMobile";
 import { IoMdLocate } from "react-icons/io";
 import { RiArrowDropDownLine } from "react-icons/ri";
 
-function Alerts() {
+function Alerts({role}) {
     const [activeAlerts, setActiveAlerts] = useState([]);
     const [selectedAlert, setSelectedAlert] = useState(null);
     const [showResolveDropdown, setShowResolveDropdown] = useState(false);
@@ -231,7 +231,7 @@ function Alerts() {
     return (
         <>
             <div className="w-full h-screen overflow-hidden bg-[#F2F2F2] flex">
-                <Sidebar active="" />
+                <Sidebar active="" userRole={role} />
                 <SidebarMobile active="" />
 
                 <motion.div

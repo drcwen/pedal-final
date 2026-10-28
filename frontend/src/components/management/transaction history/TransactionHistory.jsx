@@ -7,7 +7,7 @@ import "primereact/resources/themes/lara-light-cyan/theme.css";
 import { motion } from "motion/react"
 import { supabase } from "../../../lib/supabase"
 
-function TransactionHistory() {
+function TransactionHistory({role}) {
 
     const today = new Date();
 
@@ -399,7 +399,7 @@ function TransactionHistory() {
     <>
 
         <div className='w-full h-screen md:bg-[#F2F2F2] flex'>
-            <Sidebar active={'history'}/>
+            <Sidebar active={'history'} userRole={role}/>
 
             <motion.div
                 initial={{ height: 0, opacity: 0 }}

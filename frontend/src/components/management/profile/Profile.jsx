@@ -119,7 +119,7 @@ function Profile({ fullName, role, email, contact, id, branch, firstName, lastNa
     <>
 
         <div className='w-full h-screen bg-[#F2F2F2] flex'>
-            <Sidebar/>
+            <Sidebar userRole={role}/>
 
             <motion.div
                 initial={{ height: 0, opacity: 0 }}

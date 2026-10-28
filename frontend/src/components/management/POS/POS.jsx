@@ -11,7 +11,7 @@ import { TbHistory } from "react-icons/tb";
 import { IoMdClose } from "react-icons/io";
 import { RiRefundFill } from "react-icons/ri";
 
-function POS() {
+function POS({ role }) {
 
     const [activeTab, setActiveTab] = useState("ongoing");
     const navigate = useNavigate();
@@ -331,7 +331,7 @@ function POS() {
 
 
         <div className='w-full h-screen bg-[#F2F2F2] flex'>
-            <Sidebar active={'pos'}/>
+            <Sidebar active={'pos'} userRole={role}/>
             
 
             <motion.div

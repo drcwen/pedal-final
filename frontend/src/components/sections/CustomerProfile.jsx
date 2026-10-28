@@ -286,10 +286,12 @@ function CustomerProfile({ fullName, role, email, contact, id, branch, firstName
                                 }
                             </div>
 
-                            <div className='flex flex-col'>
-                                <h1 className='font-medium'>Employee ID</h1>
-                                <h1 className='font-bold'>{id}</h1>
-                            </div>
+                            {role !== "customer" &&
+                                <div className='flex flex-col'>
+                                    <h1 className='font-medium'>Employee ID</h1>
+                                    <h1 className='font-bold'>{id}</h1>
+                                </div>
+                            }
 
                             {role === "admin" && ( 
                                 <div className='flex flex-col'> 
@@ -348,67 +350,73 @@ function CustomerProfile({ fullName, role, email, contact, id, branch, firstName
                         </div>
                     </div>
 
+                    {role !== "customer" &&
                     <div className='w-full h-0.5 bg-gray/50 rounded-full'/>
+                    }
 
                     {/*Work Details*/}
+                    {role !== "customer" &&
                     <div className='w-full flex flex-col gap-5 md:px-5 tracking-wide'>
                         <div className=' flex flex-row gap-3 items-center font-akagi font-bold text-[#505050] text-lg md:text-xl'>
                             <MdWork className='text-[#148BB8] text-2xl'/>
                             Work Details
                         </div>
 
-                        <div className='flex flex-col gap-3 font-akagi text-sm md:text-lg text-[#505050]'>
-                            <div className='flex flex-col'>
-                                <h1 className='font-medium'>Position</h1>
-                                    <div className={`w-fit ${edit ? undefined : "border border-[#505050]/30"} rounded-lg ${!edit ? "px-2 py-1" : undefined}`}>
-                                        {!edit ? 
-                                            <h1 className='font-bold first-letter:uppercase'>{editRole}</h1> 
-                                            : 
-                                            <div 
-                                                onClick={() => {setRoleDropDown(!roleDropDown)}}
-                                                className='relative cursor-pointer w-80 rounded-lg border border-gray bg-gray/30 px-3 py-1 flex justify-between items-center font-bold'>
-                                                <h1 className='first-letter:uppercase'>{editRole}</h1>
-                                                <RiArrowDropDownLine className='text-xl'/>
+                        
+                            <div className='flex flex-col gap-3 font-akagi text-sm md:text-lg text-[#505050]'>
+                                <div className='flex flex-col'>
+                                    <h1 className='font-medium'>Position</h1>
+                                        <div className={`w-fit ${edit ? undefined : "border border-[#505050]/30"} rounded-lg ${!edit ? "px-2 py-1" : undefined}`}>
+                                            {!edit ? 
+                                                <h1 className='font-bold first-letter:uppercase'>{editRole}</h1> 
+                                                : 
+                                                <div 
+                                                    onClick={() => {setRoleDropDown(!roleDropDown)}}
+                                                    className='relative cursor-pointer w-80 rounded-lg border border-gray bg-gray/30 px-3 py-1 flex justify-between items-center font-bold'>
+                                                    <h1 className='first-letter:uppercase'>{editRole}</h1>
+                                                    <RiArrowDropDownLine className='text-xl'/>
 
-                                                {roleDropDown ? 
-                                                    <div className='absolute top-full left-0 w-full bg-white rounded-lg border border-[#9E9E9E] z-50 mt-1 '>
-                                                        <div 
-                                                            onClick={() => {setEditRole("cashier")}}
-                                                            className='px-3 py-1 hover:bg-gray/70 hover:text-[#ffffff] rounded-md'>
-                                                            Cashier
-                                                        </div>
+                                                    {roleDropDown ? 
+                                                        <div className='absolute top-full left-0 w-full bg-white rounded-lg border border-[#9E9E9E] z-50 mt-1 '>
+                                                            <div 
+                                                                onClick={() => {setEditRole("cashier")}}
+                                                                className='px-3 py-1 hover:bg-gray/70 hover:text-[#ffffff] rounded-md'>
+                                                                Cashier
+                                                            </div>
 
-                                                        <div 
-                                                            onClick={() => {setEditRole("admin")}}
-                                                            className='px-3 py-1 hover:bg-gray/70 hover:text-[#ffffff] rounded-md'>
-                                                            Admin
-                                                        </div>
+                                                            <div 
+                                                                onClick={() => {setEditRole("admin")}}
+                                                                className='px-3 py-1 hover:bg-gray/70 hover:text-[#ffffff] rounded-md'>
+                                                                Admin
+                                                            </div>
 
-                                                        <div 
-                                                            onClick={() => {setEditRole("archive")}}
-                                                            className='px-3 py-1 hover:bg-gray/70 hover:text-[#ffffff] rounded-md'>
-                                                            Archive
-                                                        </div>
-                                                    </div> : undefined}
+                                                            <div 
+                                                                onClick={() => {setEditRole("archive")}}
+                                                                className='px-3 py-1 hover:bg-gray/70 hover:text-[#ffffff] rounded-md'>
+                                                                Archive
+                                                            </div>
+                                                        </div> : undefined}
 
-                                                {/*<input 
-                                                value={editRole}
-                                                onChange={(e) => {setEditRole(e.target.value)}}
-                                                className='bg-gray/20 font-bold focus:outline-none px-3 py-1 rounded-lg border border-gray'/>*/}
-                                            </div>
-                                            
-                                        }
-                                    </div>
-                                
+                                                    {/*<input 
+                                                    value={editRole}
+                                                    onChange={(e) => {setEditRole(e.target.value)}}
+                                                    className='bg-gray/20 font-bold focus:outline-none px-3 py-1 rounded-lg border border-gray'/>*/}
+                                                </div>
+                                                
+                                            }
+                                        </div>
+                                    
+                                </div>
+
+                                <div className='flex flex-col'>
+                                    <h1 className='font-medium'>Branch/Location</h1>
+                                    <h1 className='font-bold'>{branch}</h1>
+                                </div>
+
                             </div>
-
-                            <div className='flex flex-col'>
-                                <h1 className='font-medium'>Branch/Location</h1>
-                                <h1 className='font-bold'>{branch}</h1>
-                            </div>
-
-                        </div>
+                        
                     </div>
+                    }
                     
                     {edit ? (
                         <button

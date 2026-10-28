@@ -228,25 +228,30 @@
         {/* CASHIER */}
         {session && role === "cashier" && (
           <>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/monitoring" element={<Monitoring />} />
-            <Route path="/monitoring/:gpsId" element={<Monitoring />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/pos" element={<POS />} />
+            <Route
+                path="/dashboard"
+                element={<Dashboard role={role} />}
+            />
+            <Route
+                path="/"
+                element={<Dashboard role={role} />}
+            />
+            <Route path="/monitoring" element={<Monitoring role={role}/>} />
+            <Route path="/monitoring/:gpsId" element={<Monitoring role={role}/>} />
+            <Route path="/pos" element={<POS role={role}/>} />
             <Route path="/transactions" element={<Transactions />} />
             <Route path="/past-transactions" element={<PastTransactions />} />
             <Route path="*" element={<Navigate to="/" />} />
             <Route path="/pos/create" element={<WalkInRent />}/>
-            <Route path="/history" element={<TransactionHistory />}/>
-            <Route path="/inventory" element={<Inventory/>}/>
-            <Route path="/refund" element={<Refund />} />
-            <Route path="/monitoring" element={<Monitoring/>}/>
+            <Route path="/history" element={<TransactionHistory role={role}/>}/>
+            <Route path="/inventory" element={<Inventory role={role}/>}/>
+            <Route path="/admin-alerts" element={<AdminAlerts role={role}/>} />
             <Route 
               path="/prof" 
               element={
                 <Profile
                   fullName={userData?.full_name}
-                  role={userData?.role}
+                  role={role}
                   email={userData?.email}
                   contact={userData?.contact}
                   id={userData?.id}
@@ -264,29 +269,27 @@
         {/* ADMIN */}
         {session && role === "admin" && (
           <>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/monitoring" element={<Monitoring />} />
-            <Route path="/monitoring/:gpsId" element={<Monitoring />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/pos" element={<POS />} />
-            <Route path="/transactions" element={<Transactions />} />
-            <Route path="/past-transactions" element={<PastTransactions />} />
-            <Route path="*" element={<Navigate to="/" />} />
-            <Route path="/pos/create" element={<WalkInRent />}/>
-            <Route path="/refund" element={<Refund />} />
-            <Route path="/history" element={<TransactionHistory />}/>
-            <Route path="/inventory" element={<Inventory/>}/>
-            <Route path="/monitoring" element={<Monitoring/>}/>
-            <Route path="/accounts" element={<ManageAccount/>}/>
-            <Route path="/settings" element={<Settings/>}/>
-            <Route path="/data-reports" element={<DataReports/>}/>
-            <Route path="/admin-alerts" element={<AdminAlerts/>} />
+            <Route path="/" element={<Dashboard role={role}/>} />
+            <Route path="/monitoring" element={<Monitoring role={role} />} />
+            <Route path="/monitoring/:gpsId" element={<Monitoring role={role}/>} />
+            <Route path="/dashboard" element={<Dashboard role={role}/>} />
+            <Route path="/pos" element={<POS role={role}/>} />
+            <Route path="*" element={<Navigate to="/" role={role}/>} />
+            <Route path="/pos/create" element={<WalkInRent role={role}/>}/>
+            <Route path="/refund" element={<Refund role={role}/>} />
+            <Route path="/history" element={<TransactionHistory role={role}/>}/>
+            <Route path="/inventory" element={<Inventory role={role}/>}/>
+            <Route path="/monitoring" element={<Monitoring role={role}/>}/>
+            <Route path="/accounts" element={<ManageAccount role={role}/>}/>
+            <Route path="/settings" element={<Settings role={role}/>}/>
+            <Route path="/data-reports" element={<DataReports role={role}/>}/>
+            <Route path="/admin-alerts" element={<AdminAlerts role={role}/>} />
             <Route 
               path="/prof" 
               element={
                 <Profile
                   fullName={userData?.full_name}
-                  role={userData?.role}
+                  role={role}
                   email={userData?.email}
                   contact={userData?.contact}
                   id={userData?.id}

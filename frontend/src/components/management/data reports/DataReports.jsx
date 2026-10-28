@@ -26,8 +26,9 @@ import { FaPrint } from "react-icons/fa6";
 import MaintenanceRow from "../inventory/Bikes/Maintenance/MaintenanceRow"
 import BikeRowDataReports from "./BikeRowDataReports"
 import GPSRowDataReports from "./GPSRowDataReports"
+import * as XLSX from "xlsx";
 
-function DataReports() {
+function DataReports({role}) {
 
     const [dashboardData, setDashboardData] = useState([]);
 
@@ -45,6 +46,154 @@ function DataReports() {
     const [gpsStats, setGpsStats] = useState([]);
     const [gpsRentalStats, setGpsRentalStats] = useState([]);
     const [gpsStatsLoading, setGpsStatsLoading] = useState(false);
+
+    const handleExportExcel = () => {
+    // Export only the transaction types currently selected.
+    const filteredTransactions = transactionData.filter((transaction) =>
+        selectedTypes.includes(transaction.type)
+    );
+
+    if (filteredTransactions.length === 0) {
+        alert("No transactions available to export.");
+        return;
+    }
+
+    const excelData = filteredTransactions.map((transaction) => {
+        // Get customer details for extensions, changes, and overtime.
+        const extensionTransaction =
+            transaction.type === "extend"
+                ? transaction.extensions_mod?.[0]?.orders_mod?.transaction
+                : null;
+
+        const changeTransaction =
+            transaction.type === "change"
+                ? transaction.change_bikes_mod?.[0]?.orders_mod?.transaction
+                : null;
+
+        const maintenanceTransaction =
+            transaction.type === "maintenance"
+                ? transaction.maintenance_mod?.[0]?.orders_mod?.transaction
+                : null;
+
+        const overtimeTransaction =
+            transaction.type === "overtime"
+                ? transaction.overtime_mod?.[0]?.original_transaction
+                : null;
+
+        const relatedTransaction =
+            extensionTransaction ??
+            changeTransaction ??
+            maintenanceTransaction ??
+            overtimeTransaction;
+
+        const profile =
+            relatedTransaction?.profile ?? transaction.profile;
+
+        const walkIn =
+            relatedTransaction?.walk_in ?? transaction.walk_in;
+
+        const customerName = profile
+            ? (
+                profile.full_name ??
+                `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim()
+            )
+            : (
+                walkIn?.[0]?.full_name ??
+                (transaction.type === "maintenance"
+                    ? "Management"
+                    : "Unknown Customer")
+            );
+
+        // Get bike codes associated with the transaction.
+        const bikeCodes = [
+            ...(transaction.orders_mod ?? []).map(
+                (order) =>
+                    order.bikes_mod?.code ??
+                    order.current_bike?.code
+            ),
+            ...(transaction.change_bikes_mod ?? []).flatMap((change) => [
+                change.original_bike?.code,
+                change.changed_bike?.code,
+            ]),
+            ...(transaction.extensions_mod ?? []).map(
+                (extension) => extension.bikes_mod?.code
+            ),
+            ...(transaction.maintenance_mod ?? []).map(
+                (maintenance) =>
+                    maintenance.orders_mod?.current_bike?.code ??
+                    maintenance.bikes_mod?.code
+            ),
+        ].filter(Boolean);
+
+        const createdAt = transaction.created_at
+            ? new Date(transaction.created_at)
+            : null;
+
+        return {
+            "Transaction ID": transaction.id,
+            "Date": createdAt
+                ? createdAt.toLocaleDateString("en-PH", {
+                    timeZone: "Asia/Manila",
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                })
+                : "",
+            "Time": createdAt
+                ? createdAt.toLocaleTimeString("en-PH", {
+                    timeZone: "Asia/Manila",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: true,
+                })
+                : "",
+            "Transaction Type": transaction.type,
+            "Customer Name": customerName,
+            "Bike Codes": [...new Set(bikeCodes)].join(", "),
+            "Status": transaction.status ?? "",
+            "Payment Method": transaction.payment_method ?? "",
+            "Total Amount": Number(
+                transaction.total_amount ?? 0
+            ),
+            "Assisted By":
+                transaction.assisted_by_profile?.full_name ??
+                "Unknown",
+        };
+    });
+
+    // Create the Excel workbook and worksheet.
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(
+        workbook,
+        worksheet,
+        "Transactions"
+    );
+
+    // Set readable column widths.
+    worksheet["!cols"] = [
+        { wch: 16 }, // Transaction ID
+        { wch: 14 }, // Date
+        { wch: 14 }, // Time
+        { wch: 18 }, // Transaction Type
+        { wch: 25 }, // Customer Name
+        { wch: 22 }, // Bike Codes
+        { wch: 15 }, // Status
+        { wch: 18 }, // Payment Method
+        { wch: 16 }, // Total Amount
+        { wch: 22 }, // Assisted By
+    ];
+
+    // Generate a filename using the selected date range.
+    const startDate = formatDate(dates[0]) || "start";
+    const endDate = formatDate(dates[1]) || "end";
+
+    XLSX.writeFile(
+        workbook,
+        `3JRemys_Transactions_${startDate}_to_${endDate}.xlsx`
+    );
+};
 
     const [gpsInventoryCount, setGpsInventoryCount] = useState({
         total_gps: 0,
@@ -845,7 +994,7 @@ function DataReports() {
     <>
 
         <div className='w-full h-screen bg-[#F2F2F2] flex'>
-            <Sidebar active={'datareports'}/>
+            <Sidebar active={'datareports'} userRole={role}/>
             
 
             <motion.div
@@ -1288,10 +1437,15 @@ function DataReports() {
                                     </div>
                                 </div>
 
-                                <div className='flex flex-row cursor-pointer gap-2 rounded-lg bg-blue font-akagi font-bold text-md px-3 py-1 items-center text-[#ffffff]'>
-                                    <FaPrint className='text-sm'/>
+                                
+                                <button
+                                    type="button"
+                                    onClick={handleExportExcel}
+                                    className="flex flex-row cursor-pointer gap-2 rounded-lg bg-blue font-akagi font-bold text-md px-3 py-1 items-center text-[#ffffff] hover:bg-blue/80 transition-all"
+                                >
+                                    <FaPrint className="text-sm" />
                                     Export
-                                </div>
+                                </button>
                             </div>
 
                             {/* All Transactions */}

@@ -13,7 +13,7 @@ import { supabase } from "../../../lib/supabase"
 
 setWorkerUrl(maplibreWorkerUrl);
 
-function Monitoring() {
+function Monitoring({ role }) {
 
     const [ongoing, setOngoing] = useState([]);
 
@@ -552,7 +552,7 @@ function Monitoring() {
   return (
     <>
         <div className='w-full h-screen md:h-screen md:bg-[#F2F2F2] flex'>
-            <Sidebar active={'monitoring'}/>
+            <Sidebar active="monitoring" userRole={role} />
 
             <motion.div
                 initial={{ height: 0, opacity: 0 }}

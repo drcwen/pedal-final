@@ -17,7 +17,7 @@ import Alerts from "../Alerts"
 import { useState, useEffect } from 'react';
 import { RiRefundFill } from "react-icons/ri";
 
-function Sidebar({active}) {
+function Sidebar({ active, userRole }) {
 
     const navigate = useNavigate();
     const [userName, setUserNname] = useState(null);
@@ -211,6 +211,24 @@ function Sidebar({active}) {
       };
   }, []);
 
+  const filteredMenu = menu.filter((item) => {
+      if (userRole === "cashier") {
+          return [
+              "dashboard",
+              "pos",
+              "history",
+              "monitoring",
+              "inventory",
+          ].includes(item.key);
+      }
+
+      if (userRole === "admin") {
+          return true;
+      }
+
+      return false;
+  });
+
   return (
     <>
 
@@ -236,7 +254,7 @@ function Sidebar({active}) {
                   </div>
 
                   <div className="flex flex-col gap-4 overflow-y-auto overflow-x-hidden scrollbar-none min-h-0 flex-1">
-                    {menu.map((item) => (
+                    {filteredMenu.map((item) => (
                         <div key={item.key} className="relative shrink-0">
                             <SidebarTabs
                                 icon={item.icon}

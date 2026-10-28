@@ -9,7 +9,7 @@ import BikesTile from "./BikesTile"
 import ProceedWalkInRent from "./proceed/ProceedWalkInRent"
 import { FaTrash } from "react-icons/fa";
 
-function WalkInRent() {
+function WalkInRent({role}) {
     
     const navigate = useNavigate();
     const [info, setInfo] = useState([]);
@@ -248,7 +248,7 @@ function WalkInRent() {
     <>
 
         <div className='w-full h-screen bg-[#F2F2F2] flex'>
-            <Sidebar active={'pos'}/>
+            <Sidebar active={'pos'} userRole={role}/>
             <SidebarMobile active={'pos'}/>
 
             <div className='flex-1 p-4 pb-30 overflow-y-scroll scrollbar-thin scrollbar-thumb-[#B9B9B9] scrollbar-track-[#E2E2E2] min-[1330px]:pr-60'>

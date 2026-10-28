@@ -396,10 +396,31 @@ function TransactionCurrentRow({ bikeCount, date, method, total, status, transac
                     <h1 className='text-xl font-akagi font-bold text-[#6D7172]'>{total}</h1>
                 </div>
 
-                <div className='flex justify-center rounded-lg'>
-                    
-                    <div className='rounded-lg py-1 px-3 bg-yellow'>
-                        <h1 className='text-md font-akagi font-bold text-navyblue'>{status}</h1>
+                <div className="flex justify-center rounded-lg">
+                    <div
+                        className={`rounded-full uppercase py-1 px-3 ${
+                            status?.toLowerCase() === "refunded"
+                                ? "bg-green-600"
+                                : status?.toLowerCase() === "refund rejected"
+                                ? "bg-red-600"
+                                : status?.toLowerCase() === "pending"
+                                ? "bg-yellow"
+                                : status?.toLowerCase() === "completed"
+                                ? "bg-gray-500"
+                                : "bg-yellow"
+                        }`}
+                    >
+                        <h1
+                            className={`text-md font-akagi font-bold tracking-wide ${
+                                ["refunded", "refund rejected", "completed"].includes(
+                                    status?.toLowerCase()
+                                )
+                                    ? "text-[#ffffff]"
+                                    : "text-navyblue"
+                            }`}
+                        >
+                            {status}
+                        </h1>
                     </div>
                 </div>
 

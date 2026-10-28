@@ -13,7 +13,7 @@ import {
     HiOutlineEye,
 } from "react-icons/hi";
 
-function Refund() {
+function Refund({role}) {
     const [refunds, setRefunds] = useState([]);
     const [loading, setLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState("");
@@ -346,7 +346,7 @@ function Refund() {
 
     return (
         <div className="w-full h-screen md:bg-[#F2F2F2] flex">
-            <Sidebar active="refund" />
+            <Sidebar active="refund" userRole={role}/>
 
             <motion.div
                 initial={{ height: 0, opacity: 0 }}
