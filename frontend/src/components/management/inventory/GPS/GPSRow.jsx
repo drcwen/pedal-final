@@ -7,7 +7,16 @@ import { IoCloseSharp } from "react-icons/io5";
 import { FaCheck } from "react-icons/fa";
 import { supabase } from "../../../../lib/supabase";
 
-function GPSRow({name, battery, status, simNumber, availableData, gpsId, fetchGPS}) {
+function GPSRow({
+    name,
+    status,
+    battery,
+    simNumber,
+    availableData,
+    gpsId,
+    fetchGPS,
+    onEditStatus
+}) { 
 
     const [dropDown, setDropDown] = useState(false);
     const [edit, setEdit] = useState(false);
@@ -182,28 +191,71 @@ function GPSRow({name, battery, status, simNumber, availableData, gpsId, fetchGP
                                 </div>
                             )}
 
+                            
+
                             {/*Mobile Edit, Cancel, and Submit button*/}
                             <div className='flex justify-end'>
-                                <div className='flex gap-2 items-center'>
-                                    <div 
-                                        onClick={() => {setEdit(!edit)}}
-                                        className={`px-2 py-2 rounded-lg py-0.5 ${!edit ? "bg-blue text-[#ffffff]" : "border border-gray text-gray"} font-akagi font-bold text-md`}>
-                                        {edit ? <IoCloseSharp className='text-md'/> : <MdModeEditOutline className='text-md'/>}
+                                {/* Edit GPS Status, Edit Name/SIM, Cancel, and Submit buttons */}
+                                    <div className="flex flex-wrap justify-end gap-2 mt-4">
+                                        {/* Edit GPS Status */}
+                                        <button
+                                            type="button"
+                                            onClick={onEditStatus}
+                                            className="px-3 py-2 rounded-lg bg-blue text-white
+                                                    font-akagi font-bold text-sm
+                                                    hover:opacity-80 transition-all"
+                                        >
+                                            <MdModeEditOutline className="inline mr-1" />
+                                            Edit Status
+                                        </button>
+
+                                        {/* Edit Name/SIM and Save */}
+                                        <div className="flex gap-2 items-center">
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    if (edit) {
+                                                        setEditName(name);
+                                                        setEditSimNumber(simNumber);
+                                                        setEditError("");
+                                                    }
+
+                                                    setEdit(!edit);
+                                                }}
+                                                disabled={editLoading}
+                                                className={`px-2 py-2 rounded-lg font-akagi font-bold text-sm ${
+                                                    !edit
+                                                        ? "bg-blue text-white"
+                                                        : "border border-gray text-gray"
+                                                }`}
+                                            >
+                                                {edit ? (
+                                                    <IoCloseSharp className="text-md" />
+                                                ) : (
+                                                    <>
+                                                        <MdModeEditOutline className="inline mr-1" />
+                                                        Edit Details
+                                                    </>
+                                                )}
+                                            </button>
+
+                                            {edit && (
+                                                <button
+                                                    type="button"
+                                                    onClick={handleEditGPS}
+                                                    disabled={editLoading}
+                                                    className={`px-2 py-2 rounded-lg text-white bg-blue
+                                                        font-akagi font-bold text-md ${
+                                                            editLoading
+                                                                ? "opacity-50 cursor-not-allowed"
+                                                                : "hover:opacity-80"
+                                                        }`}
+                                                >
+                                                    <FaCheck />
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
-                                    { edit ?
-                                    <div
-                                        onClick={!editLoading ? handleEditGPS : undefined}
-                                        className={`px-2 py-2 rounded-lg text-[#ffffff] py-0.5 bg-blue font-akagi font-bold text-md ${
-                                            editLoading
-                                                ? "opacity-50 cursor-not-allowed"
-                                                : "cursor-pointer"
-                                        }`}
-                                    >
-                                        <FaCheck />
-                                    </div>
-                                    : undefined
-                                    }   
-                                </div>
                             </div>
 
                         </motion.div>

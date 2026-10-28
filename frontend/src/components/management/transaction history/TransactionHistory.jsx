@@ -179,13 +179,18 @@ function TransactionHistory() {
                             bikes_mod!orders_mod_bike_id_fkey (*),
                             gps_mod (*)
                         ),
-                        extensions_mod (
+                        extensions_mod!extensions_mod_transaction_id_fkey (
                             *,
-                            bikes_mod(
-                            *
+                            bikes_mod (
+                                *
                             ),
                             bike_types_mod (
-                            *
+                                *
+                            ),
+                            original_transaction:transactions_mod!extensions_mod_original_transaction_id_fkey (
+                                *,
+                                profile:profiles_mod!transactions_mod_user_id_fkey1 (*),
+                                walk_in:walk_ins_users_mod (*)
                             ),
                             orders_mod (
                                 *,
@@ -227,8 +232,14 @@ function TransactionHistory() {
                                 )
                             )
                         ),
-                        change_bikes_mod (
+                        change_bikes_mod!change_bikes_mod_trans_id_fkey (
                             *,
+                            original_transaction:transactions_mod!change_bikes_mod_original_transaction_id_fkey (
+                                *,
+                                profile:profiles_mod!transactions_mod_user_id_fkey1 (*),
+                                walk_in:walk_ins_users_mod (*)
+                            ),
+
                             original_bike:bikes_mod!change_bikes_mod_bike_id_fkey (
                                 *,
                                 bike_type:bike_types_mod (*)
@@ -249,7 +260,7 @@ function TransactionHistory() {
                                     *,
                                     bike_types_mod (*)
                                 ),
-                                original_bike:bikes_mod!orders_mod_initial_bike_id_fkey(
+                                original_bike:bikes_mod!orders_mod_initial_bike_id_fkey (
                                     *,
                                     bike_types_mod (*)
                                 ),
@@ -264,12 +275,14 @@ function TransactionHistory() {
                             *,
                             original_transaction:transactions_mod!overtime_mod_original_transaction_id_fkey (
                                 *,
-                                profile:profiles_mod!transactions_mod_user_id_fkey1 (
-                                    *
+                                orders_mod (
+                                    *,
+                                    bike_types_mod (*),
+                                    bikes_mod!orders_mod_bike_id_fkey (*),
+                                    gps_mod(*)
                                 ),
-                                walk_in:walk_ins_users_mod (
-                                    *
-                                )
+                                profile:profiles_mod!transactions_mod_user_id_fkey1 (*),
+                                walk_in:walk_ins_users_mod (*)
                             )
                         )
                         `)
@@ -586,6 +599,9 @@ function TransactionHistory() {
                                     const maintenanceData =
                                         transaction.maintenance_mod?.[0];
 
+                                    const overtimeData =
+                                        transaction.overtime_mod ?? [];
+
                                     return (
                                         <TransactionRow
                                             key={transaction.id}
@@ -607,6 +623,7 @@ function TransactionHistory() {
                                             extensionsData={extensionData}
                                             changeBikesData={changedBikesData}
                                             maintenanceData={maintenanceData}
+                                            overtimeData={overtimeData}
                                             assistedBy={transaction?.assisted_by_profile?.full_name ?? "Unknown"}
                                         />
                                     );

@@ -22,8 +22,10 @@ import {
     BarChart,
     Bar
 } from "recharts";
-import { RiArrowDropDownLine, RiArrowDropUpLine } from "react-icons/ri";
 import { FaPrint } from "react-icons/fa6";
+import MaintenanceRow from "../inventory/Bikes/Maintenance/MaintenanceRow"
+import BikeRowDataReports from "./BikeRowDataReports"
+import GPSRowDataReports from "./GPSRowDataReports"
 
 function DataReports() {
 
@@ -33,7 +35,81 @@ function DataReports() {
     const [walkInGross , setWalkInGross] = useState("...");
     const [extensionsGross, setExtensionsGross] = useState("...");
     const [changeGross, setChangeGross] = useState("...");
+    const [overtimeGross, setOvertimeGross] = useState("...");
     const [deductions, setDeductions] = useState([]);
+
+    const [maintenanceInfo, setMaintenanceInfo] = useState([]);
+
+    const [bikeTypes, setBikeTypes] = useState([]);
+    const [gpsList, setGpsList] = useState([]);
+    const [gpsStats, setGpsStats] = useState([]);
+    const [gpsRentalStats, setGpsRentalStats] = useState([]);
+    const [gpsStatsLoading, setGpsStatsLoading] = useState(false);
+
+    const [gpsInventoryCount, setGpsInventoryCount] = useState({
+        total_gps: 0,
+        rented_gps: 0,
+        available_gps: 0,
+        maintenance_gps: 0,
+    });
+
+    const [inventoryCounts, setInventoryCounts] = useState({
+        total_bikes: 0,
+        available_bikes: 0,
+        rented_bikes: 0,
+        maintenance_bikes: 0,
+    });
+
+    const [maintenanceCounts, setMaintenanceCounts] = useState({
+        total_maintenance: 0,
+        customer_maintenance: 0,
+        management_maintenance: 0
+    });
+
+    const [loading, setLoading] = useState(true);
+
+    const fetchBikeInventoryCounts = async () => {
+        const { data, error } = await supabase.rpc(
+            "get_bike_inventory_counts"
+        );
+
+        if (error) {
+            console.error("Error fetching bike inventory counts:", error);
+            return null;
+        }
+
+        return data?.[0] ?? {
+            total_bikes: 0,
+            available_bikes: 0,
+            rented_bikes: 0,
+            maintenance_bikes: 0,
+        };
+    };
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const loadInventoryCounts = async () => {
+            setLoading(true);
+
+            const counts = await fetchBikeInventoryCounts();
+
+            if (isMounted) {
+                if (counts) {
+                    setInventoryCounts(counts);
+                }
+
+                setLoading(false);
+            }
+        };
+
+        loadInventoryCounts();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
+
 
     //NET SALES
     const [gross, setGross] = useState("...");
@@ -42,6 +118,25 @@ function DataReports() {
         total_deductions: 0,
         net_sales: 0
     });
+
+    const convertToPhilippineDate = (timestamp) => {
+        return new Date(timestamp).toLocaleDateString("en-PH", {
+            timeZone: "Asia/Manila",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit"
+        });
+    };
+
+    const convertToPhilippineTime = (timestamp) => {
+        return new Date(timestamp).toLocaleTimeString("en-PH", {
+            timeZone: "Asia/Manila",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: true
+        });
+    };
 
     const fetchDateDeductions = async (startDate, endDate) => {
         try {
@@ -58,8 +153,6 @@ function DataReports() {
                 setDeductions([]);
                 return;
             }
-
-            console.log("Deductions:", data);
 
             setDeductions(data || []);
 
@@ -106,7 +199,27 @@ function DataReports() {
 
         return `${year}-${month}-${day}`;
 
-        };
+    };
+    
+    const fetchGPSstats = async () => {
+
+        const { data, error } = await supabase.rpc(
+            "get_gps_rental_stats",
+            {
+                start_date: formatDate(dates[0]),
+                end_date: formatDate(dates[1])
+            }
+        );
+
+        if (error) {
+            console.error("GPS stats error:", error);
+            return;
+        }
+
+        console.log("GPS:", data);
+
+        setGpsStats(data || []);
+    };
 
     const [activeTab, setActiveTab] = useState("Sales");
 
@@ -136,7 +249,6 @@ function DataReports() {
 
     const [dates, setDates] = useState([firstDay, lastDay]);
     const [transactionData, setTransactionData] = useState([]);
-    const [loading, setLoading] = useState(true);
 
     const [selectedTypes, setSelectedTypes] = useState([
         "walk-in",
@@ -154,6 +266,40 @@ function DataReports() {
         );
     };
 
+    const fetchBikes = async () => {
+        const { data, error } = await supabase
+            .from("bike_types_mod")
+            .select(`
+                *,
+                bikes_mod (
+                    id,
+                    code,
+                    bike_type_id,
+                    status
+                )
+            `);
+
+        if (!error) {
+            setBikeTypes(data || []);
+        } else {
+            console.error("Error fetching bikes:", error);
+        }
+    };
+
+    const fetchGPS = async () => {
+        const { data, error } = await supabase
+            .from("gps_mod")
+            .select(`
+                *
+            `);
+
+        if (!error) {
+            setGpsList(data || []);
+        } else {
+            console.error("Error fetching bikes:", error);
+        }
+    };
+
     useEffect(() => {
         const fetchData = async () => {
             const { data, error } = await supabase.rpc(
@@ -168,8 +314,6 @@ function DataReports() {
                 console.error(error);
                 return;
             }
-
-            console.log("datas", data);
 
             setDashboardData(data);
         };
@@ -263,10 +407,73 @@ function DataReports() {
                 console.error(error);
                 return;
             }
-
-            console.log(data);
-
             setChangeGross(data);
+        };
+
+        const fetchGPSInventoryCounts = async () => {
+            const { data, error } = await supabase.rpc(
+                "get_gps_inventory_counts"
+            );
+
+            if (error) {
+                console.error("Error fetching GPS inventory counts:", error);
+                return;
+            }
+
+            console.log("GPS inventory counts:", data);
+
+            setGpsInventoryCount(
+                data?.[0] ?? {
+                    total_gps: 0,
+                    rented_gps: 0,
+                    available_gps: 0,
+                    maintenance_gps: 0,
+                }
+            );
+        };
+
+        const fetchMaintenanceCounts = async () => {
+            const { data, error } = await supabase.rpc(
+                "get_maintenance_counts",
+                {
+                    start_date: formatDate(dates[0]),
+                    end_date: formatDate(dates[1])
+                }
+            );
+
+            if (error) {
+                console.error("Error fetching maintenance counts:", error);
+                return;
+            }
+
+            console.log("Maintenance counts:", data);
+
+            const counts = data?.[0];
+
+            setMaintenanceCounts({
+                total_maintenance: Number(counts?.total_maintenance ?? 0),
+                customer_maintenance: Number(counts?.customer_maintenance ?? 0),
+                management_maintenance: Number(counts?.management_maintenance ?? 0),
+            });
+        };
+
+        const fetchOvertime = async () => {
+            const { data, error } = await supabase.rpc(
+                "get_date_overtime_gross_revenue",
+                {
+                    start_date: formatDate(dates[0]),
+                    end_date: formatDate(dates[1])
+                }
+            );
+
+            if (error) {
+                console.error(error);
+                return;
+            }
+
+            console.log("overtime",data);
+
+            setOvertimeGross(data);
         };
 
         fetchData();
@@ -276,11 +483,68 @@ function DataReports() {
         fetchExtensions();
         fetchChange();
         fetchNetSales();
+        fetchOvertime();
 
         fetchDateDeductions(
             formatDate(dates[0]),
             formatDate(dates[1])
         );
+
+        fetchBikes();
+        fetchGPS();
+        fetchGPSInventoryCounts();
+        fetchMaintenanceCounts();
+    }, [dates]);
+
+    useEffect(() => {
+        const fetchMaintenanceBikes = async () => {
+            if (!dates?.[0] || !dates?.[1]) {
+                setMaintenanceInfo([]);
+                return;
+            }
+
+            const startDate = new Date(dates[0]);
+            startDate.setHours(0, 0, 0, 0);
+
+            const endDate = new Date(dates[1]);
+            endDate.setHours(23, 59, 59, 999);
+
+            const { data, error } = await supabase
+                .from("maintenance_mod")
+                .select(`
+                    *,
+                    bikes_mod (
+                        *,
+                        bike_types_mod (*)
+                    ),
+                    orders_mod (
+                        *,
+                        transaction:transactions_mod (*),
+                        current_bike:bikes_mod!orders_mod_bike_id_fkey (
+                            *,
+                            bike_types_mod (*)
+                        ),
+                        original_bike:bikes_mod!orders_mod_initial_bike_id_fkey (
+                            *,
+                            bike_types_mod (*)
+                        )
+                    ),
+                    transactions_mod (*)
+                `)
+                .gte("created_at", startDate.toISOString())
+                .lte("created_at", endDate.toISOString())
+                .order("created_at", { ascending: false });
+
+            if (error) {
+                console.error("Error fetching maintenance bikes:", error);
+                setMaintenanceInfo([]);
+                return;
+            }
+
+            setMaintenanceInfo(data || []);
+        };
+
+        fetchMaintenanceBikes();
     }, [dates]);
 
     useEffect(() => {
@@ -322,13 +586,18 @@ function DataReports() {
                         bikes_mod!orders_mod_bike_id_fkey (*),
                         gps_mod (*)
                     ),
-                    extensions_mod (
+                    extensions_mod!extensions_mod_transaction_id_fkey (
                         *,
-                        bikes_mod(
-                        *
+                        bikes_mod (
+                            *
                         ),
                         bike_types_mod (
-                        *
+                            *
+                        ),
+                        original_transaction:transactions_mod!extensions_mod_original_transaction_id_fkey (
+                            *,
+                            profile:profiles_mod!transactions_mod_user_id_fkey1 (*),
+                            walk_in:walk_ins_users_mod (*)
                         ),
                         orders_mod (
                             *,
@@ -370,8 +639,14 @@ function DataReports() {
                             )
                         )
                     ),
-                    change_bikes_mod (
+                    change_bikes_mod!change_bikes_mod_trans_id_fkey (
                         *,
+                        original_transaction:transactions_mod!change_bikes_mod_original_transaction_id_fkey (
+                            *,
+                            profile:profiles_mod!transactions_mod_user_id_fkey1 (*),
+                            walk_in:walk_ins_users_mod (*)
+                        ),
+
                         original_bike:bikes_mod!change_bikes_mod_bike_id_fkey (
                             *,
                             bike_type:bike_types_mod (*)
@@ -392,7 +667,7 @@ function DataReports() {
                                 *,
                                 bike_types_mod (*)
                             ),
-                            original_bike:bikes_mod!orders_mod_initial_bike_id_fkey(
+                            original_bike:bikes_mod!orders_mod_initial_bike_id_fkey (
                                 *,
                                 bike_types_mod (*)
                             ),
@@ -525,6 +800,47 @@ function DataReports() {
 
     }, [dates]);
 
+    useEffect(() => {
+        if (
+            activeTab !== "GPS" ||
+            !dates?.[0] ||
+            !dates?.[1]
+        ) {
+            return;
+        }
+
+        let cancelled = false;
+
+        const fetchGPSRentalStats = async () => {
+            setGpsStatsLoading(true);
+
+            const { data, error } = await supabase.rpc(
+                "get_gps_rental_stats",
+                {
+                    p_start_date: formatDate(dates[0]),
+                    p_end_date: formatDate(dates[1]),
+                }
+            );
+
+            if (cancelled) return;
+
+            if (error) {
+                console.error("Error fetching GPS rental stats:", error);
+                setGpsRentalStats([]);
+            } else {
+                setGpsRentalStats(data ?? []);
+            }
+
+            setGpsStatsLoading(false);
+        };
+
+        fetchGPSRentalStats();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [activeTab, dates?.[0], dates?.[1]]);
+
   return (
     <>
 
@@ -586,6 +902,28 @@ function DataReports() {
                             Maintenance
                         </h1>
 
+                        <h1
+                            onClick={() => setActiveTab("Bikes")}
+                            className={`font-akagi font-medium cursor-pointer flex-shrink-0 ${
+                                activeTab === "Bikes"
+                                    ? "text-blue hover:underline"
+                                    : "text-gray"
+                            }`}
+                        >
+                            Bikes
+                        </h1>
+
+                        <h1
+                            onClick={() => setActiveTab("GPS")}
+                            className={`font-akagi font-medium cursor-pointer flex-shrink-0 ${
+                                activeTab === "GPS"
+                                    ? "text-blue hover:underline"
+                                    : "text-gray"
+                            }`}
+                        >
+                            GPS
+                        </h1>
+
                     </div>
 
                 </div>
@@ -633,7 +971,7 @@ function DataReports() {
                 {activeTab === "Sales" &&
 
                     <>
-                        <div className='bg-[#ffffff] w-full rounded-xl p-5 flex flex-col gap-3'>
+                        <div className='bg-[#ffffff] w-full rounded-xl p-5 flex flex-col gap-3 shadow-md'>
                             <h1 className='md:text-xl text-lg font-akagi font-bold tracking-wide text-gray'>
                                 Gross Revenue for {dates?.[0] && dates?.[1]
                                     ? `${formatDisplayDate(dates[0])} – ${formatDisplayDate(dates[1])}`
@@ -729,7 +1067,7 @@ function DataReports() {
                     
 
                         <div className='w-full grid lg:grid-cols-4 grid-cols-2 gap-5'>
-                            <div className='bg-[#ffffff] p-5 font-akagi font-bold text-gray rounded-xl flex flex-col gap-2'>
+                            <div className='bg-[#ffffff] p-5 font-akagi font-bold text-gray rounded-xl flex flex-col gap-2 shadow-md'>
                                 <h1 className='font-medium'>Gross Revenue</h1>
                                 <h1 className='lg:text-4xl text-2xl'>P{gross}</h1>
                                     <div className="w-full h-[70px]">
@@ -748,7 +1086,7 @@ function DataReports() {
                                     </div>
                             </div>
 
-                            <div className='bg-[#ffffff] p-5 font-akagi font-bold text-gray rounded-xl flex flex-col gap-2'>
+                            <div className='bg-[#ffffff] p-5 font-akagi font-bold text-gray rounded-xl flex flex-col gap-2 shadow-md'>
                                 <div className='flex flex-row justify-between items-center'>
                                     <h1 className='font-medium'>Net Revenue</h1>
                                     <IoIosInformationCircleOutline className='text-xl cursor-pointer'/>
@@ -770,7 +1108,7 @@ function DataReports() {
                                 </div>
                             </div>
 
-                            <div className='bg-[#ffffff] p-5 font-akagi font-bold text-gray rounded-xl flex flex-col gap-2'>
+                            <div className='bg-[#ffffff] p-5 font-akagi font-bold text-gray rounded-xl flex flex-col gap-2 shadow-md'>
                                 <h1 className='font-medium'>Walk-In Gross Revenue</h1>
                                 <h1 className='lg:text-4xl text-2xl'>P{walkInGross}</h1>
                                 <div className="w-full h-[70px]">
@@ -790,7 +1128,7 @@ function DataReports() {
                                 
                             </div>
 
-                            <div className='bg-[#ffffff] p-5 font-akagi font-bold text-gray rounded-xl flex flex-col gap-2'>
+                            <div className='bg-[#ffffff] p-5 font-akagi font-bold text-gray rounded-xl flex flex-col gap-2 shadow-md'>
                                 <h1 className='font-medium'>Reservation Gross Revenue</h1>
                                 <h1 className='lg:text-4xl text-2xl'>P{reservationGross}</h1>
                                 <div className="w-full h-[70px]">
@@ -809,7 +1147,7 @@ function DataReports() {
                                 </div>
                             </div>
 
-                            <div className='bg-[#ffffff] p-5 font-akagi font-bold text-gray rounded-xl flex flex-col gap-2'>
+                            <div className='bg-[#ffffff] p-5 font-akagi font-bold text-gray rounded-xl flex flex-col gap-2 shadow-md'>
                                 <h1 className='font-medium'>Extensions Gross Revenue</h1>
                                 <h1 className='lg:text-4xl text-2xl'>P{extensionsGross}</h1>
                                 <div className="w-full h-[70px]">
@@ -828,7 +1166,7 @@ function DataReports() {
                                 </div>
                             </div>
 
-                            <div className='bg-[#ffffff] p-5 font-akagi font-bold text-gray rounded-xl flex flex-col gap-2'>
+                            <div className='bg-[#ffffff] p-5 font-akagi font-bold text-gray rounded-xl flex flex-col gap-2 shadow-md'>
                                 <h1 className='font-medium'>Changed Bikes Gross Revenue</h1>
                                 <h1 className='lg:text-4xl text-2xl'>P{changeGross}</h1>
                                 <div className="w-full h-[70px]">
@@ -845,6 +1183,29 @@ function DataReports() {
                                         </BarChart>
                                     </ResponsiveContainer>
                                 </div>
+
+                                
+                            </div>
+
+                            <div className='bg-[#ffffff] p-5 font-akagi font-bold text-gray rounded-xl flex flex-col gap-2 shadow-md'>
+                                <h1 className='font-medium'>Overtime Bikes Gross Revenue</h1>
+                                <h1 className='lg:text-4xl text-2xl'>P{overtimeGross}</h1>
+                                <div className="w-full h-[70px]">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart
+                                            data={dashboardData}
+                                            margin={{ top: 5, right: 0, left: 0, bottom: 0 }}
+                                        >
+                                            <Bar
+                                                dataKey="revenue"
+                                                radius={[3, 3, 3, 3]}
+                                                fill="#979B9D"
+                                            />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+
+                                
                             </div>
 
                         </div>
@@ -1088,7 +1449,7 @@ function DataReports() {
                 {activeTab === "Net Sales" &&
                     <>
                     <div className='xl:grid-cols-3 grid grid-cols-2 gap-5'>
-                        <div className='bg-gradient-to-t from-blue to-blue/65 shadow-md rounded-xl px-4 py-4 flex flex-col gap-2 font-akagi font-bold text-[#ffffff]'>
+                        <div className='bg-gradient-to-t from-blue to-blue/65  shadow-md  rounded-xl px-4 py-4 flex flex-col gap-2 font-akagi font-bold text-[#ffffff]'>
                             <div className='w-full h-full lg:h-27 flex flex-col justify-between'>
                                 <div className='flex flex-row justify-between'>
                                     <h1 className='font-medium text-sm md:text-lg'>Gross Sales</h1>
@@ -1118,7 +1479,7 @@ function DataReports() {
                             </div>
                         </div>
 
-                        <div className='bg-[#ffffff] shadow-md  rounded-xl px-4 py-4 flex flex-col gap-2 font-akagi font-bold text-gray'>
+                        <div className='bg-gradient-to-t from-blue to-blue/65  shadow-md  rounded-xl px-4 py-4 flex flex-col gap-2 font-akagi font-bold text-[#ffffff]'>
                             <div className='w-full h-full flex flex-col justify-between'>
                                 <div className='flex flex-row justify-between'>
                                     <h1 className='font-medium text-sm md:text-lg'>Net Sales</h1>
@@ -1225,7 +1586,362 @@ function DataReports() {
                             </div>
 
                         )}
+                        
 
+                    </div>
+                    </>
+                }
+
+                {activeTab === "Maintenance" &&
+                    <>
+                    <div className='xl:grid-cols-3 grid grid-cols-2 gap-5'>
+                        <div className='bg-gradient-to-t from-blue to-blue/65 shadow-md rounded-xl px-4 py-4 flex flex-col gap-2 font-akagi font-bold text-[#ffffff]'>
+                            <div className='w-full h-full lg:h-27 flex flex-col justify-between'>
+                                <div className='flex flex-row justify-between'>
+                                    <h1 className='font-medium text-sm md:text-lg'>Total Maintenance</h1>
+                                </div>
+
+                                <div className='flex flex-col'>
+                                    <h1 className='text-xl lg:text-3xl'>
+                                        {maintenanceCounts.total_maintenance}
+                                    </h1>
+                                    <h1 className='text-xs lg:text-sm font-medium'>Maintenance from management and customer</h1>
+                                </div>
+                            </div>
+                        </div>  
+
+                        <div className='bg-[#ffffff] shadow-md rounded-xl px-4 py-4 flex flex-col gap-2 font-akagi font-bold text-gray'>
+                            <div className='w-full h-full flex flex-col justify-between'>
+                                <div className='flex flex-row justify-between'>
+                                    <h1 className='font-medium text-sm md:text-lg'>Management Maintenance</h1>
+                                </div>
+
+                                <div className='flex flex-col'>
+                                    <h1 className='text-xl lg:text-3xl'>
+                                        {maintenanceCounts.management_maintenance}
+                                    </h1>
+                                    <h1 className='text-xs lg:text-sm font-medium'>Maintenance paid by management</h1>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className='bg-[#ffffff] shadow-md  rounded-xl px-4 py-4 flex flex-col gap-2 font-akagi font-bold text-gray'>
+                            <div className='w-full h-full flex flex-col justify-between'>
+                                <div className='flex flex-row justify-between'>
+                                    <h1 className='font-medium text-sm md:text-lg'>Customer Maintenance</h1>
+                                </div>
+
+                                <div className='flex flex-col'>
+                                    <h1 className='text-xl lg:text-3xl'>
+                                        {maintenanceCounts.customer_maintenance}
+                                    </h1>
+                                    <h1 className='text-xs lg:text-sm font-medium'>Maintenance paid by management</h1>
+                                </div>
+                            </div>
+                        </div>
+
+
+                    </div>
+
+                    <div className='bg-[#ffffff] shadow-md rounded-xl p-5 flex flex-col gap-4'>
+
+                        <div className='flex flex-row justify-between items-center gap-5'>
+                            <h1 className='font-akagi font-bold text-lg text-gray'>
+                                Maintenance
+                            </h1>
+
+                            <h1 className='font-akagi font-medium text-sm text-gray'>
+                                {dates?.[0] && dates?.[1]
+                                    ? `${formatDisplayDate(dates[0])} – ${formatDisplayDate(dates[1])}`
+                                    : ""
+                                }
+                            </h1>
+                        </div>
+
+                        <div className="flex flex-col gap-6">
+
+                            {/* Customer-Paid Maintenance */}
+                            <div className="flex flex-col gap-3 bg-gray/15 rounded-lg p-3 shadow-lg py-5">
+                                <h2 className="font-akagi font-medium text-md text-gray">
+                                    Customer
+                                </h2>
+
+                                <div className="flex flex-col gap-2">
+                                    {maintenanceInfo
+                                        .filter(
+                                            (maintenance) =>
+                                                maintenance.payment_by?.toLowerCase() === "customer"
+                                        )
+                                        .map((maintenance) => (
+                                            <MaintenanceRow
+                                                key={maintenance.id}
+                                                bikeId={maintenance?.orders_mod?.current_bike?.code}
+                                                bikeTypeId={maintenance?.orders_mod?.current_bike?.bike_types_mod?.name}
+                                                reason={maintenance?.reason}
+                                                status={maintenance?.status}
+                                                price={maintenance?.price}
+                                                paidBy={maintenance?.payment_by}
+                                                payment={maintenance?.transactions_mod?.total_amount}
+                                                change={maintenance?.transactions_mod?.change_amount}
+                                                method={maintenance?.transactions_mod?.payment_method}
+                                                bikeCode={maintenance?.orders_mod?.code}
+                                                maintenanceId={maintenance?.id}
+                                                date={convertToPhilippineDate(maintenance?.created_at)}
+                                                time={convertToPhilippineTime(maintenance?.created_at)}
+                                                managementBikeId={maintenance?.bike_id}
+                                                managementBikeCode={maintenance?.bikes_mod?.code}
+                                                managementBikeTypeId={maintenance?.bikes_mod?.bike_types_mod?.name}
+                                                inventoryBikeCode={maintenance?.bikes_mod?.code}
+                                                inventoryBikeId={maintenance?.bike_id}
+                                            />
+                                        ))}
+                                </div>
+                            </div>
+
+                            {/* Management-Paid Maintenance */}
+                            <div className="flex flex-col gap-3 bg-gray/15 rounded-lg p-3 shadow-lg py-5">
+                                <h2 className="font-akagi font-medium text-md text-gray">
+                                    Management
+                                </h2>
+
+                                <div className="flex flex-col gap-2">
+                                    {maintenanceInfo
+                                        .filter(
+                                            (maintenance) =>
+                                                maintenance.payment_by?.toLowerCase() === "management"
+                                        )
+                                        .map((maintenance) => (
+                                            <MaintenanceRow
+                                                key={maintenance.id}
+                                                bikeId={maintenance?.orders_mod?.current_bike?.code}
+                                                bikeTypeId={maintenance?.orders_mod?.current_bike?.bike_types_mod?.name}
+                                                reason={maintenance?.reason}
+                                                status={maintenance?.status}
+                                                price={maintenance?.price}
+                                                paidBy={maintenance?.payment_by}
+                                                payment={maintenance?.transactions_mod?.total_amount}
+                                                change={maintenance?.transactions_mod?.change_amount}
+                                                method={maintenance?.transactions_mod?.payment_method}
+                                                bikeCode={maintenance?.orders_mod?.code}
+                                                maintenanceId={maintenance?.id}
+                                                date={convertToPhilippineDate(maintenance?.created_at)}
+                                                time={convertToPhilippineTime(maintenance?.created_at)}
+                                                managementBikeId={maintenance?.bike_id}
+                                                managementBikeCode={maintenance?.bikes_mod?.code}
+                                                managementBikeTypeId={maintenance?.bikes_mod?.bike_types_mod?.name}
+                                                inventoryBikeCode={maintenance?.bikes_mod?.code}
+                                                inventoryBikeTypeId={maintenance?.bikes_mod?.bike_types_mod?.name}
+                                            />
+                                        ))}
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                    </>
+                }
+
+                {activeTab === "Bikes" &&
+                    <>
+                    <div className='xl:grid-cols-4 grid grid-cols-2 gap-5'>
+                        <div className='bg-gradient-to-t from-blue to-blue/65 shadow-md rounded-xl px-4 py-4 flex flex-col gap-2 font-akagi font-bold text-[#ffffff]'>
+                            <div className='w-full h-full lg:h-27 flex flex-col justify-between'>
+                                <div className='flex flex-row justify-between'>
+                                    <h1 className='font-medium text-sm md:text-lg'>Total Bikes</h1>
+                                </div>
+
+                                <div className='flex flex-col'>
+                                    <h1 className='text-xl lg:text-3xl'>
+                                        {loading ? "Loading..." : inventoryCounts.total_bikes}
+                                    </h1>
+                                    <h1 className='text-xs lg:text-sm font-medium'>All bikes</h1>
+                                </div>
+                            </div>
+                        </div>  
+
+                        <div className='bg-[#ffffff] shadow-md rounded-xl px-4 py-4 flex flex-col gap-2 font-akagi font-bold text-gray'>
+                            <div className='w-full h-full flex flex-col justify-between'>
+                                <div className='flex flex-row justify-between'>
+                                    <h1 className='font-medium text-sm md:text-lg'>Rented</h1>
+                                </div>
+
+                                <div className='flex flex-col'>
+                                    <h1 className='text-xl lg:text-3xl'>
+                                        {loading ? "Loading..." : inventoryCounts.rented_bikes}
+                                    </h1>
+                                    <h1 className='text-xs lg:text-sm font-medium'>Currently in use</h1>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className='bg-[#ffffff] shadow-md  rounded-xl px-4 py-4 flex flex-col gap-2 font-akagi font-bold text-gray'>
+                            <div className='w-full h-full flex flex-col justify-between'>
+                                <div className='flex flex-row justify-between'>
+                                    <h1 className='font-medium text-sm md:text-lg'>Available</h1>
+                                </div>
+
+                                <div className='flex flex-col'>
+                                    <h1 className='text-xl lg:text-3xl'>
+                                        {loading ? "Loading..." : inventoryCounts.available_bikes}
+                                    </h1>
+                                    <h1 className='text-xs lg:text-sm font-medium'>Available bikes</h1>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className='bg-[#ffffff] shadow-md  rounded-xl px-4 py-4 flex flex-col gap-2 font-akagi font-bold text-gray'>
+                            <div className='w-full h-full flex flex-col justify-between'>
+                                <div className='flex flex-row justify-between'>
+                                    <h1 className='font-medium text-sm md:text-lg'>Under Maintenance</h1>
+                                </div>
+
+                                <div className='flex flex-col'>
+                                    <h1 className='text-xl lg:text-3xl'>
+                                        {loading ? "Loading..." : inventoryCounts.maintenance_bikes}
+                                    </h1>
+                                    <h1 className='text-xs lg:text-sm font-medium'>Maintenance bikes</h1>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className='bg-[#ffffff] shadow-md rounded-xl p-5 flex flex-col gap-4'>
+
+                        <div className='flex flex-row justify-between items-center gap-5'>
+                            <h1 className='font-akagi font-bold text-lg text-gray'>
+                                Bikes
+                            </h1>
+
+                            <h1 className='font-akagi font-medium text-sm text-gray'>
+                                {dates?.[0] && dates?.[1]
+                                    ? `${formatDisplayDate(dates[0])} – ${formatDisplayDate(dates[1])}`
+                                    : ""
+                                }
+                            </h1>
+                        </div>
+
+                        <div className='flex flex-col gap-2'>
+                            {bikeTypes.map((bikes) => (
+
+                                
+                                <BikeRowDataReports 
+                                    bikeType={bikes?.name}
+                                    capacity={bikes?.capacity}
+                                    price={bikes?.price}
+                                    image={bikes?.image_url}
+                                    bikes={bikes?.bikes_mod}
+                                    bikeTypeId={bikes?.id}
+                                    startDate={formatDate(dates[0])}
+                                    endDate={formatDate(dates[1])}
+                                />
+                                
+                            ))}
+                        </div>
+                    </div>
+                    </>
+                }
+
+                {activeTab === "GPS" &&
+                    <>
+                    <div className='xl:grid-cols-4 grid grid-cols-2 gap-5'>
+                        <div className='bg-gradient-to-t from-blue to-blue/65 shadow-md rounded-xl px-4 py-4 flex flex-col gap-2 font-akagi font-bold text-[#ffffff]'>
+                            <div className='w-full h-full lg:h-27 flex flex-col justify-between'>
+                                <div className='flex flex-row justify-between'>
+                                    <h1 className='font-medium text-sm md:text-lg'>Total GPS</h1>
+                                </div>
+
+                                <div className='flex flex-col'>
+                                    <h1 className='text-xl lg:text-3xl'>
+                                        {gpsInventoryCount.total_gps}
+                                    </h1>
+                                    <h1 className='text-xs lg:text-sm font-medium'>All GPS</h1>
+                                </div>
+                            </div>
+                        </div>  
+
+                        <div className='bg-[#ffffff] shadow-md rounded-xl px-4 py-4 flex flex-col gap-2 font-akagi font-bold text-gray'>
+                            <div className='w-full h-full flex flex-col justify-between'>
+                                <div className='flex flex-row justify-between'>
+                                    <h1 className='font-medium text-sm md:text-lg'>Assigned</h1>
+                                </div>
+
+                                <div className='flex flex-col'>
+                                    <h1 className='text-xl lg:text-3xl'>
+                                        {gpsInventoryCount.rented_gps}
+                                    </h1>
+                                    <h1 className='text-xs lg:text-sm font-medium'>Currently assigned</h1>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className='bg-[#ffffff] shadow-md  rounded-xl px-4 py-4 flex flex-col gap-2 font-akagi font-bold text-gray'>
+                            <div className='w-full h-full flex flex-col justify-between'>
+                                <div className='flex flex-row justify-between'>
+                                    <h1 className='font-medium text-sm md:text-lg'>Available</h1>
+                                </div>
+
+                                <div className='flex flex-col'>
+                                    <h1 className='text-xl lg:text-3xl'>
+                                        {gpsInventoryCount.available_gps}
+                                    </h1>
+                                    <h1 className='text-xs lg:text-sm font-medium'>Available GPS</h1>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className='bg-[#ffffff] shadow-md  rounded-xl px-4 py-4 flex flex-col gap-2 font-akagi font-bold text-gray'>
+                            <div className='w-full h-full flex flex-col justify-between'>
+                                <div className='flex flex-row justify-between'>
+                                    <h1 className='font-medium text-sm md:text-lg'>Under Maintenance</h1>
+                                </div>
+
+                                <div className='flex flex-col'>
+                                    <h1 className='text-xl lg:text-3xl'>
+                                        {gpsInventoryCount.maintenance_gps}
+                                    </h1>
+                                    <h1 className='text-xs lg:text-sm font-medium'>Maintenance GPS</h1>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className='bg-[#ffffff] shadow-md rounded-xl p-5 flex flex-col gap-4'>
+
+                        <div className='flex flex-row justify-between items-center gap-5'>
+                            <h1 className='font-akagi font-bold text-lg text-gray'>
+                                GPS
+                            </h1>
+
+                            <h1 className='font-akagi font-medium text-sm text-gray'>
+                                {dates?.[0] && dates?.[1]
+                                    ? `${formatDisplayDate(dates[0])} – ${formatDisplayDate(dates[1])}`
+                                    : ""
+                                }
+                            </h1>
+                        </div>
+
+                        <div className="flex flex-col gap-2">
+                            {gpsList.map((gps) => {
+                                const gpsStats = gpsRentalStats.find(
+                                    (stat) => String(stat.gps_id) === String(gps.id)
+                                );
+
+                                return (
+                                    <GPSRowDataReports
+                                        key={gps.id}
+                                        name={gps.code}
+                                        status={gps.status}
+                                        battery={gps.battery_life}
+                                        todayRents={gpsStats?.today_rents ?? 0}
+                                        selectedDateRents={
+                                            gpsStats?.selected_date_rents ?? 0
+                                        }
+                                        allTimeRents={gpsStats?.all_time_rents ?? 0}
+                                        statsLoading={gpsStatsLoading}
+                                    />
+                                );
+                            })}
+                        </div>
                     </div>
                     </>
                 }

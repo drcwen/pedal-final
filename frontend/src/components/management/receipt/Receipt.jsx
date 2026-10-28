@@ -2,6 +2,7 @@
 import { IoIosArrowBack } from "react-icons/io";
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from "motion/react"
+import { printReceipt } from "./printReceipt"
 
 function Receipt({ startedBikes, transaction }) {
 
@@ -75,6 +76,9 @@ function Receipt({ startedBikes, transaction }) {
         }, {})
     );
 
+    console.log(startedBikes)
+    console.log(transaction)
+
     return (
     <>
 
@@ -126,7 +130,7 @@ function Receipt({ startedBikes, transaction }) {
                                     <div className='flex flex-col'>
                                         <div className='flex flex-row gap-2'>
                                             <h1>
-                                                {bike.original_bike?.bike_types_mod?.name ?? "Unknown Bike"}
+                                                {bike.original_bike?.bike_types_mod?.name ?? bike?.bike_types_mod?.name}
                                             </h1>
 
                                             <h1>
@@ -144,7 +148,7 @@ function Receipt({ startedBikes, transaction }) {
                                     </div>
 
                                     <h1>
-                                        P{(bike.bike_types_mod?.price ?? 0) * bike.duration_hours * bike.quantity}
+                                        P{((bike.original_bike?.bike_types_mod?.price ?? bike?.bike_types_mod?.price ?? 0) * bike.duration_hours * bike.quantity)}
                                     </h1>
                                 </div>
                             ))}
@@ -177,6 +181,19 @@ function Receipt({ startedBikes, transaction }) {
                         <div className='flex flex-row justify-between'>
                             <h1>Assisted by:</h1>
                             <h1>{transaction?.assisted_by_profile?.full_name}</h1>
+                        </div>
+                    </div>
+
+                    <div className='flex justify-end lg:px-10 px-2'>
+                        <div 
+                            onClick={() => {
+                            printReceipt({
+                                transaction,
+                                startedBikes
+                            });
+                        }}
+                            className='cursor-pointer bg-blue rounded-lg px-3 py-0.5 font-akagi font-bold text-[#ffffff] text-xs'>
+                            Print
                         </div>
                     </div>
                 </div>

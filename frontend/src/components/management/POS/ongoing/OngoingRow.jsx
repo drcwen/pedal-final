@@ -13,10 +13,15 @@ import { MdDeleteForever } from "react-icons/md";
 import { useRef } from "react";
 import { IoMdClose } from "react-icons/io";
 import RentalOverdue from "./RentalOverdue"
+import ChangedBikesReceipt from "../../receipt/ChangedBikeReceipt"
+import ExtendBikeReceipt from "../../receipt/ExtendBikeReceipt"
 
 function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, transaction, transactionDetails }) {
 
     const [receipt, setReceipt] = useState(false);
+
+    const [changeBikes, setChangeBikes] = useState([]);
+    const [extensions, setExtensions] = useState([]);
 
     const [extendOrder, setExtendOrder] = useState(null);
     const [changeOrder, setChangeOrder] = useState(null);
@@ -461,6 +466,85 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
         return `["${start}","${formattedEnd}")`;
     }
 
+    //get all the change bikes, and extensions data based on original transaction id
+    const fetchRelatedTransactions = async () => {
+    try {
+
+        if (!transaction) {
+            console.log("No original_bike_id found for transaction:", transaction);
+
+            return {
+                originalBikeId: null,
+                changeBikes: [],
+                extensions: [],
+            };
+        }
+
+        // 2. Get bike changes using the original bike ID
+        const { data: changeBikes, error: changeError } = await supabase
+            .from("change_bikes_mod")
+            .select(`
+                *,
+                original_bike:bikes_mod!change_bikes_mod_bike_id_fkey(*),
+                original_bike_type:bike_types_mod!change_bikes_mod_bike_type_id_fkey(*),
+                changed_bike:bikes_mod!change_bikes_mod_changed_bike_id_fkey(*),
+                changed_bike_type:bike_types_mod!change_bikes_mod_changed_bike_type_id_fkey(*),
+                orders_mod(*),
+                transaction:transactions_mod!change_bikes_mod_trans_id_fkey(
+                    *,
+                    profile:profiles_mod!transactions_mod_assisted_by_fkey(*)
+                )
+            `)
+            .eq("original_transaction_id", transaction);
+
+        // 3. Get extensions using the original transaction ID
+        const { data: extensions, error: extensionError } = await supabase
+            .from("extensions_mod")
+            .select(`
+                *,
+                bikes_mod(*),
+                bike_types_mod(*),
+                orders_mod(*),
+                transaction:transactions_mod!extensions_mod_transaction_id_fkey(
+                    *,
+                    profile:profiles_mod!transactions_mod_assisted_by_fkey(*)
+                )
+            `)
+            .eq("original_transaction_id", transaction);
+
+        if (extensionError) throw extensionError;
+
+        return {
+            changeBikes: changeBikes ?? [],
+            extensions: extensions ?? [],
+        };
+
+    } catch (error) {
+        console.error("Error fetching related transactions:", error);
+
+        return {
+            originalBikeId: null,
+            changeBikes: [],
+            extensions: [],
+        };
+    }
+};
+
+    useEffect(() => {
+        if (!transaction) return;
+
+        const loadRelatedTransactions = async () => {
+            const data = await fetchRelatedTransactions();
+
+            setChangeBikes(data.changeBikes ?? []);
+            setExtensions(data.extensions ?? []);
+        };
+
+        loadRelatedTransactions();
+    }, [transaction]);
+
+    
+
     useEffect(() => {
         
         if (bikeDetails.length === 0) return;
@@ -657,19 +741,33 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
                                     overflow-y-auto
                                     scrollbar-thin
                                     scrollbar-thumb-[#B9B9B9]
-                                    scrollbar-track-[#E2E2E2] flex flex-col gap-5
-                                    flex flex-col gap-2
+                                    scrollbar-track-[#E2E2E2]
+                                    flex flex-col gap-5
                                 "
                             >
                                 <Receipt 
-                                    startedBikes={startedBikes}
+                                    startedBikes={bikeDetails}
                                     transaction={transactionDetails}
                                 />
 
-                                <Receipt 
-                                    startedBikes={startedBikes}
-                                    transaction={transactionDetails}
-                                />
+                                {changeBikes.map((change) => (
+                                    
+                                    <ChangedBikesReceipt 
+                                        transaction={change?.transaction}
+                                        changeBikesData={change}
+                                    />
+   
+                                ))}
+
+                                {extensions.map((extend) => (
+                                    
+                                    <ExtendBikeReceipt 
+                                        transaction={extend?.transaction}
+                                        extensionsData={extend}
+                                    />
+   
+                                ))}
+                                
 
                                 <div className='flex justify-between'>
                                     <div 
@@ -833,6 +931,9 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
                                 updatedTime={updatedTime}
                                 bikeCode={extendOrder.bikeCode}
                                 bikeTypeId={extendOrder.bikeTypeId}
+                                originalTransactionId={transaction}
+                                refreshOngoing={refreshOngoing}
+                                setExtendOrder={setExtendOrder}
                             />
                         }
                     </div>

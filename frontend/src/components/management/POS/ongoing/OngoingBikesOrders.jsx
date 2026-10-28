@@ -4,6 +4,8 @@ import { FaArrowCircleLeft } from "react-icons/fa";
 import { RiArrowDropDownLine } from "react-icons/ri";
 import { GoDotFill } from "react-icons/go";
 import { supabase } from "../../../../lib/supabase"
+import { useNavigate } from 'react-router-dom';
+
 import WalkInRent from "../ongoing/WalkInRent"
 
 function OngoingBikesOrders({ 
@@ -38,6 +40,8 @@ function OngoingBikesOrders({
 
     const numericDuration = parseFloat(duration) || 0;
     const total = Number(pricePerHour) * numericDuration;
+
+    const navigate = useNavigate();
 
     const isRentalOverdue = () => {
         const endDate = getEndDate(end);
@@ -86,11 +90,6 @@ function OngoingBikesOrders({
 
     const overtimeHours = getOvertimeHours(start, end);
     const overtimePayment = overtimeHours * price;
-
-    console.log("Overtime hours:", overtimeHours);
-    console.log("Overtime payment:", overtimePayment);
-
-    console.log(isRentalOverdue());
 
     function getEndTimeOnly(tstzrange) {
         const match = tstzrange.match(/\["[^"]+","([^"]+)"\)/);
@@ -485,6 +484,7 @@ function OngoingBikesOrders({
                     {dot === true &&
                         <div className='absolute right-0 w-fit z-100 bg-gray p-3 flex flex-col gap-2 font-akagi font-bold text-[#ffffff] rounded-lg cursor-pointer'>
                             <div
+                                onClick={() => {navigate(`/monitoring/${gpsCode}`)}}
                                 className=''>
                                 <h1>Monitor</h1>
                             </div>

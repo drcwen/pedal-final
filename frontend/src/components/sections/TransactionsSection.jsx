@@ -4,16 +4,21 @@ import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { fade } from "../../animations/fade"
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
 
 function TransactionsSection() {
 
     const [transactions, setTransactions] = useState([]);
     const [pastTransactions, setPastTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
-    const navigate = useNavigate();
 
     const [active, setActive] = useState("Active");
+
+    const today = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Asia/Manila",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+    }).format(new Date());
 
     const formatPHDateTime = (timestamp) => {
         const date = new Date(timestamp);
@@ -70,27 +75,130 @@ function TransactionsSection() {
         const { data, error } = await supabase
             .from("transactions_mod")
             .select(`
-                id,
-                payment_method,
-                amount_paid,
-                total_amount,
-                change_amount,
-                status,
-                created_at,
-                orders_mod!orders_mod_transaction_id_fkey (
                     *,
-                    bike_types_mod (
+                    profile:profiles_mod!transactions_mod_user_id_fkey1 (
                         *
                     ),
-                    bikes_mod (
+                    walk_in:walk_ins_users_mod (
                         *
                     ),
-                    gps_mod (
+                    assisted_by_profile:profiles_mod!transactions_mod_assisted_by_fkey (
                         *
+                    ),
+                    orders_mod (
+                        *,
+                        bike_types_mod (*),
+                        bikes_mod!orders_mod_bike_id_fkey (*),
+                        gps_mod (*)
+                    ),
+                    extensions_mod!extensions_mod_transaction_id_fkey (
+                        *,
+                        bikes_mod (
+                            *
+                        ),
+                        bike_types_mod (
+                            *
+                        ),
+                        original_transaction:transactions_mod!extensions_mod_original_transaction_id_fkey (
+                            *,
+                            profile:profiles_mod!transactions_mod_user_id_fkey1 (*),
+                            walk_in:walk_ins_users_mod (*)
+                        ),
+                        orders_mod (
+                            *,
+                            bikes_mod!orders_mod_bike_id_fkey (
+                                *,
+                                bike_types_mod (
+                                    *
+                                )
+                            ),
+                            transaction:transactions_mod (
+                                *,
+                                profile:profiles_mod!transactions_mod_user_id_fkey1 (*),
+                                walk_in:walk_ins_users_mod (*)
+                            )
+                        )
+                    ),
+                    maintenance_mod (
+                        *,
+                        orders_mod (
+                            *,
+                            bikes_mod!orders_mod_bike_id_fkey (
+                                *,
+                                bike_types_mod (
+                                    *
+                                )
+                            ),
+                            gps_mod (
+                                *
+                            ),
+                            transaction:transactions_mod (
+                                profile:profiles_mod!transactions_mod_user_id_fkey1 (*),
+                                walk_in:walk_ins_users_mod (*)
+                            )
+                        ),
+                        bikes_mod (
+                            *,
+                            bike_types_mod(
+                                *
+                            )
+                        )
+                    ),
+                    change_bikes_mod!change_bikes_mod_trans_id_fkey (
+                        *,
+                        original_transaction:transactions_mod!change_bikes_mod_original_transaction_id_fkey (
+                            *,
+                            profile:profiles_mod!transactions_mod_user_id_fkey1 (*),
+                            walk_in:walk_ins_users_mod (*)
+                        ),
+
+                        original_bike:bikes_mod!change_bikes_mod_bike_id_fkey (
+                            *,
+                            bike_type:bike_types_mod (*)
+                        ),
+
+                        changed_bike:bikes_mod!change_bikes_mod_changed_bike_id_fkey (
+                            *,
+                            bike_type:bike_types_mod (*)
+                        ),
+
+                        original_bike_type:bike_types_mod!change_bikes_mod_bike_type_id_fkey (*),
+
+                        changed_bike_type:bike_types_mod!change_bikes_mod_changed_bike_type_id_fkey (*),
+
+                        orders_mod (
+                            *,
+                            current_bike:bikes_mod!orders_mod_bike_id_fkey (
+                                *,
+                                bike_types_mod (*)
+                            ),
+                            original_bike:bikes_mod!orders_mod_initial_bike_id_fkey (
+                                *,
+                                bike_types_mod (*)
+                            ),
+                            transaction:transactions_mod (
+                                *,
+                                profile:profiles_mod!transactions_mod_user_id_fkey1 (*),
+                                walk_in:walk_ins_users_mod (*)
+                            )
+                        )
+                    ),
+                    overtime_mod!overtime_mod_transaction_id_fkey (
+                        *,
+                        original_transaction:transactions_mod!overtime_mod_original_transaction_id_fkey (
+                            *,
+                            profile:profiles_mod!transactions_mod_user_id_fkey1 (
+                                *
+                            ),
+                            walk_in:walk_ins_users_mod (
+                                *
+                            )
+                        )
                     )
-                )
-            `)
+                    `)
+            .order("created_at", { ascending: false })
             .eq("user_id", user.id)
+            .gte("created_at", `${today}T00:00:00+08:00`)
             .eq("status", "pending");
 
         if (error) {
@@ -116,29 +224,131 @@ function TransactionsSection() {
 
         const { data, error } = await supabase
             .from("transactions_mod")
-            .select(`
-                id,
-                payment_method,
-                amount_paid,
-                total_amount,
-                change_amount,
-                status,
-                created_at,
-                orders_mod!orders_mod_transaction_id_fkey (
+                .select(`
                     *,
-                    bike_types_mod (
+                    profile:profiles_mod!transactions_mod_user_id_fkey1 (
                         *
                     ),
-                    bikes_mod (
+                    walk_in:walk_ins_users_mod (
                         *
                     ),
-                    gps_mod (
+                    assisted_by_profile:profiles_mod!transactions_mod_assisted_by_fkey (
                         *
+                    ),
+                    orders_mod (
+                        *,
+                        bike_types_mod (*),
+                        bikes_mod!orders_mod_bike_id_fkey (*),
+                        gps_mod (*)
+                    ),
+                    extensions_mod!extensions_mod_transaction_id_fkey (
+                        *,
+                        bikes_mod (
+                            *
+                        ),
+                        bike_types_mod (
+                            *
+                        ),
+                        original_transaction:transactions_mod!extensions_mod_original_transaction_id_fkey (
+                            *,
+                            profile:profiles_mod!transactions_mod_user_id_fkey1 (*),
+                            walk_in:walk_ins_users_mod (*)
+                        ),
+                        orders_mod (
+                            *,
+                            bikes_mod!orders_mod_bike_id_fkey (
+                                *,
+                                bike_types_mod (
+                                    *
+                                )
+                            ),
+                            transaction:transactions_mod (
+                                *,
+                                profile:profiles_mod!transactions_mod_user_id_fkey1 (*),
+                                walk_in:walk_ins_users_mod (*)
+                            )
+                        )
+                    ),
+                    maintenance_mod (
+                        *,
+                        orders_mod (
+                            *,
+                            bikes_mod!orders_mod_bike_id_fkey (
+                                *,
+                                bike_types_mod (
+                                    *
+                                )
+                            ),
+                            gps_mod (
+                                *
+                            ),
+                            transaction:transactions_mod (
+                                profile:profiles_mod!transactions_mod_user_id_fkey1 (*),
+                                walk_in:walk_ins_users_mod (*)
+                            )
+                        ),
+                        bikes_mod (
+                            *,
+                            bike_types_mod(
+                                *
+                            )
+                        )
+                    ),
+                    change_bikes_mod!change_bikes_mod_trans_id_fkey (
+                        *,
+                        original_transaction:transactions_mod!change_bikes_mod_original_transaction_id_fkey (
+                            *,
+                            profile:profiles_mod!transactions_mod_user_id_fkey1 (*),
+                            walk_in:walk_ins_users_mod (*)
+                        ),
+
+                        original_bike:bikes_mod!change_bikes_mod_bike_id_fkey (
+                            *,
+                            bike_type:bike_types_mod (*)
+                        ),
+
+                        changed_bike:bikes_mod!change_bikes_mod_changed_bike_id_fkey (
+                            *,
+                            bike_type:bike_types_mod (*)
+                        ),
+
+                        original_bike_type:bike_types_mod!change_bikes_mod_bike_type_id_fkey (*),
+
+                        changed_bike_type:bike_types_mod!change_bikes_mod_changed_bike_type_id_fkey (*),
+
+                        orders_mod (
+                            *,
+                            current_bike:bikes_mod!orders_mod_bike_id_fkey (
+                                *,
+                                bike_types_mod (*)
+                            ),
+                            original_bike:bikes_mod!orders_mod_initial_bike_id_fkey (
+                                *,
+                                bike_types_mod (*)
+                            ),
+                            transaction:transactions_mod (
+                                *,
+                                profile:profiles_mod!transactions_mod_user_id_fkey1 (*),
+                                walk_in:walk_ins_users_mod (*)
+                            )
+                        )
+                    ),
+                    overtime_mod!overtime_mod_transaction_id_fkey (
+                        *,
+                        original_transaction:transactions_mod!overtime_mod_original_transaction_id_fkey (
+                            *,
+                            profile:profiles_mod!transactions_mod_user_id_fkey1 (
+                                *
+                            ),
+                            walk_in:walk_ins_users_mod (
+                                *
+                            )
+                        )
                     )
-                )
-            `)
+                    `)
+            .order("created_at", { ascending: false })
             .eq("user_id", user.id)
-            .eq("status", "completed");
+            .lte("created_at", `${today}T00:00:00+08:00`);
 
         if (error) {
                 console.log(error);

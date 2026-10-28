@@ -30,6 +30,8 @@
   import AdminAlerts from "./components/management/Alerts"
   import Profile from "./components/management/profile/Profile"
   import CustomerProfile from "./components/sections/CustomerProfile"
+  import Reviews from "./components/sections/Reviews"
+  import Refund from "./components/management/refund/Refund"
 
   function App() {
     const [session, setSession] = useState(null);
@@ -201,6 +203,7 @@
             <Route path="/transactions" element={<Transactions />} />
             <Route path="/past-transactions" element={<PastTransactions />} />
             <Route path="/alerts/:bikeId" element={<Alerts />} />
+            <Route path="/reviews" element={<Reviews />} />
             <Route path="*" element={<Navigate to="/" />} />
             <Route 
               path="/prof" 
@@ -218,6 +221,7 @@
                 />
               } 
             />
+
           </>
         )}
 
@@ -225,6 +229,8 @@
         {session && role === "cashier" && (
           <>
             <Route path="/" element={<Dashboard />} />
+            <Route path="/monitoring" element={<Monitoring />} />
+            <Route path="/monitoring/:gpsId" element={<Monitoring />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/pos" element={<POS />} />
             <Route path="/transactions" element={<Transactions />} />
@@ -233,6 +239,7 @@
             <Route path="/pos/create" element={<WalkInRent />}/>
             <Route path="/history" element={<TransactionHistory />}/>
             <Route path="/inventory" element={<Inventory/>}/>
+            <Route path="/refund" element={<Refund />} />
             <Route path="/monitoring" element={<Monitoring/>}/>
             <Route 
               path="/prof" 
@@ -258,12 +265,15 @@
         {session && role === "admin" && (
           <>
             <Route path="/" element={<Dashboard />} />
+            <Route path="/monitoring" element={<Monitoring />} />
+            <Route path="/monitoring/:gpsId" element={<Monitoring />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/pos" element={<POS />} />
             <Route path="/transactions" element={<Transactions />} />
             <Route path="/past-transactions" element={<PastTransactions />} />
             <Route path="*" element={<Navigate to="/" />} />
             <Route path="/pos/create" element={<WalkInRent />}/>
+            <Route path="/refund" element={<Refund />} />
             <Route path="/history" element={<TransactionHistory />}/>
             <Route path="/inventory" element={<Inventory/>}/>
             <Route path="/monitoring" element={<Monitoring/>}/>

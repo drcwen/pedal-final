@@ -1,10 +1,8 @@
 import { supabase } from "../../lib/supabase"
 import Sidebar from "./sidebar/Sidebar"
-import { MdDirectionsBike } from "react-icons/md";
 import { motion } from "motion/react"
 import SidebarMobile from "./sidebar/SidebarMobile"
 import { useState, useEffect } from 'react';
-import { GrTransaction } from "react-icons/gr";
 import {
     AreaChart,
     Area,
@@ -12,10 +10,7 @@ import {
     YAxis,
     CartesianGrid,
     Tooltip,
-    ResponsiveContainer,
-    BarChart,
-    Bar
-} from "recharts";
+    ResponsiveContainer } from "recharts";
 
 function Dashboard() {
 
@@ -36,6 +31,22 @@ function Dashboard() {
     const [dates, setDates] = useState([firstDay, lastDay]);
 
     const [dashboardData, setDashboardData] = useState([]);
+    const [availableBikes, setAvailableBikes] = useState([]);
+
+    const fetchAvailableBikes = async () => {
+        const { data, error } = await supabase.rpc(
+            "get_available_bikes_by_type"
+        );
+
+        if (error) {
+            console.error(error);
+            return;
+        }
+
+        console.log("available bikes:", data);
+
+        setAvailableBikes(data || []);
+    };
 
     const [dashboardCounts, setDashboardCounts] = useState({
         reservations_today: 0,
@@ -91,13 +102,14 @@ function Dashboard() {
     useEffect(() => {
         fetchData();
         fetchDashboardCounts();
+        fetchAvailableBikes();
     }, [dates]);
     
     console.log(dashboardData)
   return (
     <>
 
-        <div className='w-full min-h-screen bg-[#F2F2F2] flex'>
+        <div className='w-full h-screen bg-[#F2F2F2] flex'>
             <Sidebar active={'dashboard'}/>
 
             <motion.div
@@ -105,7 +117,7 @@ function Dashboard() {
                 animate={{ height: "auto", opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
                 transition={{ duration: 0.25, ease: "easeInOut" }} 
-                className='flex flex-col flex-1 min-w-0 lg:h-screen lg:py-15 lg:px-10 p-5 md:p-7 gap-5'>
+                className='flex flex-col flex-1 min-w-0 lg:h-screen lg:overflow-hidden lg:py-15 lg:px-10 p-5 py-10 px-8 md:p-7 gap-5'>
 
                 <SidebarMobile active={'dashboard'}/>
 
@@ -156,7 +168,7 @@ function Dashboard() {
                 </div>
 
                 {/*Graph*/}
-                <div className='w-full lg:h-full flex flex-col lg:grid lg:grid-cols-3 gap-5'>
+                <div className='w-full lg:h-full min-h-0 flex flex-col lg:grid lg:grid-cols-3 gap-5'>
                     <div className="lg:col-span-2 w-full h-[350px] lg:h-full min-h-0 bg-[#ffffff] p-5 shadow-lg rounded-xl font-akagi font-medium text-sm flex flex-col gap-4">
                         <h1 className='font-akagi font-medium text-gray text-xl lg:text-xl'>This month</h1>
                         <ResponsiveContainer width="100%" height="100%">
@@ -241,58 +253,30 @@ function Dashboard() {
                         </ResponsiveContainer>
                     </div>
 
-                    <div className='flex flex-col bg-[#ffffff] p-5 rounded-xl shadow-lg gap-4 font-akagi font-medium text-gray'>
+                    <div className='flex flex-col min-h-0 h-full overflow-y-auto
+                        bg-[#ffffff] p-5 rounded-xl shadow-lg gap-4
+                        font-akagi font-medium text-gray
+                        scrollbar-thin scrollbar-none
+                        scrollbar-thumb-[#B9B9B9] scrollbar-track-[#E2E2E2]'>
                         <h1 className='text-gray text-xl lg:text-xl'>
                             Available Bikes
                         </h1>
                         <div className='flex flex-col gap-4'>
-                            <div className='w-full flex flex-row justify-between items-center'>
-                                <div className='flex flex-row gap-3 items-center'>
-                                    <div className='rounded-lg bg-yellow p-2'>
-                                        <img src='https://res.cloudinary.com/dp3vkgxtb/image/upload/v1775884918/solo_bike_mhxxvb.png' className='w-10'/>
+
+                            {availableBikes.map((bikes) => (
+                                <div className='w-full flex flex-row justify-between items-center'>
+                                    <div className='flex flex-row gap-3 items-center'>
+                                        <div className='rounded-lg bg-yellow p-2'>
+                                            <img src={bikes?.image_url} className='w-10'/>
+                                        </div>
+                                        <h1 className='font-bold text-gray text-lg'>{bikes?.bike_type_name}</h1>
                                     </div>
-                                    <h1 className='font-bold text-gray text-lg'>Mountain Bike</h1>
+
+                                    <h1 className='text-lg text-blue'>{bikes?.available_count} bikes</h1>
+
                                 </div>
-
-                                <h1 className='text-lg text-blue'>31 bikes</h1>
-
-                            </div>
-
-                            <div className='w-full flex flex-row justify-between items-center'>
-                                <div className='flex flex-row gap-3 items-center'>
-                                    <div className='rounded-lg bg-yellow p-2'>
-                                        <img src='https://res.cloudinary.com/dp3vkgxtb/image/upload/v1775884918/solo_bike_mhxxvb.png' className='w-10'/>
-                                    </div>
-                                    <h1 className='font-bold text-gray text-lg'>Mountain Bike</h1>
-                                </div>
-
-                                <h1 className='text-lg text-blue'>31 bikes</h1>
-
-                            </div>
-
-                            <div className='w-full flex flex-row justify-between items-center'>
-                                <div className='flex flex-row gap-3 items-center'>
-                                    <div className='rounded-lg bg-yellow p-2'>
-                                        <img src='https://res.cloudinary.com/dp3vkgxtb/image/upload/v1775884918/solo_bike_mhxxvb.png' className='w-10'/>
-                                    </div>
-                                    <h1 className='font-bold text-gray text-lg'>Mountain Bike</h1>
-                                </div>
-
-                                <h1 className='text-lg text-blue'>31 bikes</h1>
-
-                            </div>
-
-                            <div className='w-full flex flex-row justify-between items-center'>
-                                <div className='flex flex-row gap-3 items-center'>
-                                    <div className='rounded-lg bg-yellow p-2'>
-                                        <img src='https://res.cloudinary.com/dp3vkgxtb/image/upload/v1775884918/solo_bike_mhxxvb.png' className='w-10'/>
-                                    </div>
-                                    <h1 className='font-bold text-gray text-lg'>Mountain Bike</h1>
-                                </div>
-
-                                <h1 className='text-lg text-blue'>31 bikes</h1>
-
-                            </div>
+                            ))}
+                            
                         </div>
                     </div>
                 </div>

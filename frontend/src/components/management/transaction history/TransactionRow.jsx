@@ -8,10 +8,9 @@ import { supabase } from "../../../lib/supabase"
 import Receipt from "./Receipt"
 import { MdOutlineReceiptLong } from "react-icons/md";
 
-function TransactionRow({totalBikes, transactionId, fullName, transactionType, timeAdded, assistedBy, status, transactionData, transactionPayment, extensionsData, changeBikesData, maintenanceData}) {
+function TransactionRow({totalBikes, transactionId, fullName, transactionType, timeAdded, assistedBy, status, transactionData, transactionPayment, overtimeData, extensionsData, changeBikesData, maintenanceData}) {
 
     const [dropDown, setDropDown] = useState(false);
-
     const [receipt, setReceipt] = useState(false);
 
     function formatTimeTo12Hour(time) {
@@ -353,6 +352,63 @@ function TransactionRow({totalBikes, transactionId, fullName, transactionType, t
                                         <div className='flex flex-col'>
                                             <h1 className='text-sm font-akagi font-bold text-gray'>END</h1>
                                             <h1 className='text-sm font-akagi font-medium text-gray'>{getEndTimeOnly(maintenanceData?.orders_mod?.reservation_range ?? undefined)}</h1>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className='flex justify-end py-2'>
+                                <div 
+                                    onClick={() => setReceipt(!receipt)}
+                                    className='flex gap-2 bg-blue px-2 py-1 rounded-lg font-akagi font-semibold cursor-pointer text-[#ffffff] text-sm'>
+                                    <MdOutlineReceiptLong className='text-lg'/>Receipt
+                                </div>
+                            </div>
+                            </>
+                        )}
+
+                        {transactionType === "overtime" && (
+                            <>
+                            <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-2 pb-5">
+
+                                <div className='w-full border shadow-md border-[#DBDBDB] p-3 rounded-lg flex flex-col gap-4 font-akagi font-bold text-gray'>
+
+                                    <div className='flex flex-row justify-between'>
+                                        <div className='flex flex-row gap-3 items-center'>
+                                            <div className='items-center bg-yellow p-1 rounded-lg'>
+                                                <img
+                                                    src={overtimeData?.original_transaction?.orders_mod?.bike_types_mod?.image_urll}
+                                                    className="w-6"
+                                                />
+
+                                            </div>
+
+                                            <h1 className='text-md font-akagi font-bold text-gray'>{overtimeData?.original_transaction?.orders_mod?.bike_types_mod?.name ?? "N/A"}</h1>
+                                        </div>
+                                    </div>
+
+                                    <div className='w-full grid grid-cols-3 gap-2'>
+                                        <div className='flex flex-col'>
+                                            <h1 className='text-sm font-akagi font-bold text-gray'>UNIT ID</h1>
+                                            <h1 className='text-sm font-akagi font-medium text-gray'>{overtimeData?.original_transaction?.orders_mod?.bikes_mod?.code ?? "N/A"}</h1>
+                                        </div>
+
+                                        <div className='flex flex-col'>
+                                            <h1 className='text-sm font-akagi font-bold text-gray'>GPS ID</h1>
+                                            <h1 className='text-sm font-akagi font-medium text-gray'>{overtimeData?.original_transaction?.orders_mod?.gps_mod?.code ?? "N/A"}</h1>
+                                        </div>
+
+                                        <div className='flex flex-col'>
+                                            <h1 className='text-sm font-akagi font-bold text-gray'>START</h1>
+                                            <h1 className='text-sm font-akagi font-medium text-gray'>{formatTimeTo12Hour(
+                                                overtimeData?.original_transaction?.orders_mod?.start_time ?? undefined
+                                            )}</h1>
+                                        </div>
+
+                                        <div className='flex flex-col'>
+                                            <h1 className='text-sm font-akagi font-bold text-gray'>END</h1>
+                                            <h1 className='text-sm font-akagi font-medium text-gray'>{getEndTimeOnly(
+                                                overtimeData?.original_transaction?.orders_mod?.reservation_range ?? undefined
+                                            )}</h1>
                                         </div>
                                     </div>
                                 </div>

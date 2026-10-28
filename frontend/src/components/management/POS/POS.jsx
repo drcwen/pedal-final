@@ -8,6 +8,8 @@ import { useState, useEffect, useRef } from 'react';
 import { motion } from "motion/react"
 import { useNavigate } from "react-router-dom";
 import { TbHistory } from "react-icons/tb";
+import { IoMdClose } from "react-icons/io";
+import { RiRefundFill } from "react-icons/ri";
 
 function POS() {
 
@@ -133,8 +135,6 @@ function POS() {
             console.error("Error fetching reservation details:", error);
             return;
         }
-
-        console.log("Fetched transactions:", data);
 
         if (error) {
             console.error("Error fetching reservation details:", error);
@@ -432,6 +432,7 @@ function POS() {
                                     </div>
                                 </div>
 
+
                                 {/*Add Transactions*/}
                                 <div className='flex flex-row gap-3'>
                                     {activeTab === "reservation" &&
@@ -451,6 +452,7 @@ function POS() {
                                 </div>
 
                             </div>
+
                         </div>
                     </div>
 
@@ -592,12 +594,19 @@ function POS() {
                     overflow-y-auto
                     scrollbar-thin
                     scrollbar-thumb-[#B9B9B9]
-                    scrollbar-track-[#E2E2E2] flex flex-col gap-5
+                    scrollbar-track-[#E2E2E2] 
+                    scrollbar-none flex flex-col gap-5
                     font-akagi
                     font-bold
                     text-blue
                 ">
-                    <h1 className='text-2xl text-blue'>Reservation History</h1>
+                    <div className='flex flex-row justify-between items-center'>
+                        <h1 className='text-2xl text-blue'>Reservation History</h1>
+                        <IoMdClose 
+                            onClick={() => {setHistory(false)}}
+                            className='text-xl text-gray'/>
+                    </div>
+                
 
                     <div className=''>
                         <motion.div 

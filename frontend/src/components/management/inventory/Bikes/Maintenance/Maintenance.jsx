@@ -67,7 +67,9 @@ function Maintenance( {setMaintenance }) {
         fetchMaintenanceBikes();
     }, []);
 
-    const bikesId = settle?.bikeCode ?? settle?.managementBikeId;
+    console.log("Maintenance",maintenanceInfo);
+
+    const bikesId = settle?.bikeCode ?? settle?.managementBikeCode;
 
     const handleSubmit = async () => {
         if (!settle) return;
@@ -171,18 +173,17 @@ function Maintenance( {setMaintenance }) {
                                 <MaintenanceRow
                                     key={info.id}
 
-                                    // Rental/order-related maintenance
                                     bikeId={info.orders_mod?.current_bike?.code}
                                     bikeCode={info.orders_mod?.current_bike?.id}
                                     bikeTypeId={info.orders_mod?.current_bike?.bike_types_mod?.name}
 
-                                    // Management/inventory-related maintenance
-                                    managementBikeId={info.bike_id}
-                                    managementBikeCode={info.bikes_mod?.code}
+                                    managementBikeId={info.bikes_mod?.code}
+                                    managementBikeCode={info.bikes_mod?.id}
                                     managementBikeTypeId={info.bikes_mod?.bike_types_mod?.name}
 
                                     inventoryBikeCode={info.bikes_mod?.code}
                                     inventoryBikeId={info.bike_id}
+                                    inventoryBikeTypeId={info?.bikes_mod?.bike_types_mod?.name}
 
                                     date={convertToPhilippineDate(info.created_at)}
                                     time={convertToPhilippineTime(info.created_at)}
@@ -218,7 +219,7 @@ function Maintenance( {setMaintenance }) {
                         <div className='bg-gray/20 p-3 rounded-lg flex flex-row justify-between items-center'>
                             <div className='flex flex-row gap-2'>
                                 <div className='bg-blue rounded-lg p-1 w-fit font-akagi font-bold text-[#ffffff] px-2'>
-                                    {settle.bikeId ?? settle.managementBikeCode}
+                                    {settle.bikeId ?? settle.managementBikeId}
                                 </div>
 
                                 <div className='font-akagi font-bold text-gray px-2 text-lg'>

@@ -115,8 +115,8 @@ function AssignChangeBikes({beforeType, changedType, setConfirmChange, changedIm
                     trans_id: transactionId,
                     assisted_by: user.id,
                     changed_bike_id: selectedBike,  
-                    changed_bike_type_id: changedBikeTypeId
-
+                    changed_bike_type_id: changedBikeTypeId,
+                    original_transaction_id: transaction
                 })
 
             if (error) {
@@ -128,7 +128,7 @@ function AssignChangeBikes({beforeType, changedType, setConfirmChange, changedIm
             console.error(err);
         }
     }
-
+    
     async function updateOrder() {
         try {
             console.log("Updating order:", {

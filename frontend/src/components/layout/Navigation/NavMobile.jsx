@@ -39,7 +39,7 @@ function NavMobile() {
 
               {/*Home*/}
               <div
-                onClick={() => navigate("/")} 
+                onClick={() => navigate("/reviews")} 
                 className='w-full px-4'>
                 <h1 className='text-2xl font-akagi font-bold text-white'>Reviews</h1>
               </div>

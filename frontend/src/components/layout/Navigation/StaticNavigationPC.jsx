@@ -64,7 +64,7 @@ function StaticNavigationPC() {
             <li className={navDesign} onClick={() => navigate("/")}>Home</li>
             <li className={navDesign} onClick={() => navigate("/reserve")}>Reserve</li>
             <li className={navDesign} onClick={() => navigate("/transactions")}>Transactions</li>
-            <li className={navDesign} onClick={() => navigate("/")}>Reviews</li>
+            <li className={navDesign} onClick={() => navigate("/reviews")}>Reviews</li>
           </ul>
 
           <div className='flex flex-row gap-8'>
