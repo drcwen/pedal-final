@@ -441,12 +441,14 @@ function TransactionCurrentRow({ bikeCount, date, method, total, status, transac
                                 ? "bg-yellow"
                                 : status?.toLowerCase() === "completed"
                                 ? "bg-gray-500"
+                                : status?.toLowerCase() === "started"
+                                ? "bg-blue" 
                                 : "bg-yellow"
                         }`}
                     >
                         <h1
                             className={`text-md font-akagi font-bold tracking-wide ${
-                                ["refunded", "refund rejected", "completed"].includes(
+                                ["refunded", "refund rejected", "completed", "started"].includes(
                                     status?.toLowerCase()
                                 )
                                     ? "text-[#ffffff]"
