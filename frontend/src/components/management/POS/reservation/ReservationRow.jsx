@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import AssignBikes from "./AssignBikes";
 import ReservationReceipt from "./ReservationReceipt";
 import { MdOutlineReceiptLong } from "react-icons/md";
+import { printReceipt } from "../../transaction history/printReceipt"
 
 function ReservationRow({
     name,

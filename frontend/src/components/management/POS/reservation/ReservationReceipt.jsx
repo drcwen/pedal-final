@@ -2,6 +2,7 @@
 import { IoIosArrowBack } from "react-icons/io";
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from "motion/react"
+import { printReceipt } from "../../transaction history/printReceipt"
 
 function ReservationReceipt({ setReceipt, startedBikes, transaction }) {
 
@@ -60,6 +61,30 @@ function ReservationReceipt({ setReceipt, startedBikes, transaction }) {
         });
     }
 
+    const groupedBikes = Object.values(
+        (startedBikes ?? []).reduce((groups, bike) => {
+            const bikeTypeId = bike.bike_type_id ?? bike.bike_types_mod?.id;
+
+            if (!groups[bikeTypeId]) {
+                groups[bikeTypeId] = {
+                    ...bike,
+                    quantity: 0,
+                };
+            }
+
+            groups[bikeTypeId].quantity += 1;
+
+            return groups;
+        }, {})
+    );
+
+    const updatedTotal = groupedBikes.reduce((total, bike) => {
+        const price = Number(bike.bike_types_mod?.price ?? 0);
+        const duration = Number(bike.duration_hours ?? 0);
+
+        return total + (price * duration * bike.quantity);
+    }, 0);
+
     return (
     <>
 
@@ -115,38 +140,46 @@ function ReservationReceipt({ setReceipt, startedBikes, transaction }) {
                         </div>
 
                         {/* Orders */}
-                        <div className='flex flex-col'>
-                            {startedBikes?.map((bike, index) => (
-                                <div
-                                    key={bike.id ?? index}
-                                    className='flex flex-row justify-between py-2 items-center'
-                                >
-                                    <div className='flex flex-col'>
-                                        <div className='flex flex-row gap-2'>
+                            <div className='flex flex-col'>
+                                {groupedBikes.map((bike, index) => (
+                                    <div
+                                        key={bike.bike_type_id ?? bike.bike_types_mod?.id ?? index}
+                                        className='flex flex-row justify-between py-2 items-center'
+                                    >
+                                        <div className='flex flex-col'>
+                                            <div className='flex flex-row gap-2'>
+                                                <h1>
+                                                    {bike.bike_types_mod?.name ?? "Unknown Bike"}
+                                                </h1>
+
+                                                <h1>
+                                                    x{bike.quantity}
+                                                </h1>
+                                            </div>
+
                                             <h1>
-                                                {bike.bike_types_mod?.name ?? "Unknown Bike"}
+                                                {formatDate(bike.reservation_date)}
                                             </h1>
 
                                             <h1>
-                                                x1
+                                                {bike.duration_hours === 1 ? bike.duration_hours + " hour": bike.duration_hours + " hours"}
+                                            </h1>
+
+                                            <h1>
+                                                {formatTime12Hour(bike.start_time)}
                                             </h1>
                                         </div>
 
                                         <h1>
-                                            {formatDate(bike.reservation_date) ?? "--"}
-                                        </h1>
-
-                                        <h1>
-                                            {formatTime12Hour(bike.start_time) ?? "--"}
+                                            P{(
+                                                Number(bike.bike_types_mod?.price ?? 0) *
+                                                Number(bike.duration_hours ?? 0) *
+                                                bike.quantity
+                                            ).toLocaleString("en-PH")}
                                         </h1>
                                     </div>
-
-                                    <h1>
-                                        P{bike.bike_types_mod?.price * bike?.duration_hours}
-                                    </h1>
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
 
                         <div className='flex flex-col py-5'>
                             <div className='w-full bg-gray/40 h-0.5 rounded-xl'></div>
@@ -154,7 +187,7 @@ function ReservationReceipt({ setReceipt, startedBikes, transaction }) {
 
                         <div className='flex flex-row justify-between'>
                             <h1>Total:</h1>
-                            <h1>P{transaction.total_amount}</h1>
+                            <h1>P{updatedTotal.toLocaleString("en-PH")}</h1>
                         </div>
 
                         <div className='flex flex-row justify-between'>
@@ -183,6 +216,13 @@ function ReservationReceipt({ setReceipt, startedBikes, transaction }) {
                     </div>
 
                     <div 
+                        onClick={() => {
+                            printReceipt({
+                                transaction,
+                                startedBikes,
+    
+                            });
+                        }}
                         className='flex gap-2 bg-blue text-[#ffffff] px-2 py-1 rounded-lg font-akagi font-semibold cursor-pointer text-sm'>
                             Print
                     </div>
