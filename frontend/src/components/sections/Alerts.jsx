@@ -31,7 +31,7 @@ function Alerts() {
                 bike_id: bike.id,
                 bike_type_id: bike?.bike_types_mod?.id,
                 concern: concern.trim(),
-                status: "Ongoing"
+                status: "Pending"
             });
 
         if (error) {
