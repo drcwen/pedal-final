@@ -23,6 +23,36 @@ function CartSection() {
 
     const groupedOrders = groupOrders(orders);
 
+    const [showRules, setShowRules] = useState(false);
+    const [agreeRules, setAgreeRules] = useState(false);
+
+    const [rentalRules, setRentalRules] = useState([]);
+    const [rulesLoading, setRulesLoading] = useState(false);
+    const [rulesError, setRulesError] = useState("");
+
+    async function fetchRentalRules() {
+        setRulesLoading(true);
+        setRulesError("");
+
+        const { data, error } = await supabase
+            .from("rental_rules_mod")
+            .select("id, title, content, display_order")
+            .eq("is_active", true)
+            .order("display_order", { ascending: true });
+
+        if (error) {
+            console.error("Error fetching rental rules:", error);
+            setRentalRules([]);
+            setRulesError(
+                "Unable to load the rules and regulations. Please try again."
+            );
+        } else {
+            setRentalRules(data || []);
+        }
+
+        setRulesLoading(false);
+    }
+
     function formatDate(date) {
         if (!date) return "";
 
@@ -90,22 +120,45 @@ function CartSection() {
         }));
     }
 
-    function handleCheckout() {
+    async function handleCheckout() {
         const selectedOrders = orders.filter(
             (order) => checkedItems[order.id]
         );
 
-        if(selectedOrders.length === 0 ) {
-            console.log("No items selected.");
+        if (selectedOrders.length === 0) {
+            setSelectionError(
+                "Please select at least one bike before checkout."
+            );
             return;
         }
+
+        setAgreeRules(false);
+        setShowRules(true);
+
+        await fetchRentalRules();
+    }
+
+    function handleContinueToCheckout() {
+        if (!agreeRules) return;
+
+        const selectedOrders = orders.filter(
+            (order) => checkedItems[order.id]
+        );
+
+        if (selectedOrders.length === 0) {
+            setShowRules(false);
+            setSelectionError("Please select at least one bike before checkout.");
+            return;
+        }
+
+        setShowRules(false);
 
         navigate("/checkout", {
             state: {
                 orders: selectedOrders,
                 total
             }
-        })
+        });
     }
     
 
@@ -177,10 +230,8 @@ function CartSection() {
             return;
         }
 
-        // Clear any previous error when selection is valid
         setSelectionError("");
 
-        // Select the group if the date and starting time match
         setCheckedItems((prev) => {
             const updated = { ...prev };
 
@@ -237,7 +288,6 @@ function CartSection() {
             .filter((id) => updatedChecked[id])
             .map((id) => Number(id)); 
 
-        // If nothing selected, reset total
         if (selectedIds.length === 0) {
             setTotal(0);
             return;
@@ -259,7 +309,6 @@ function CartSection() {
 
         const currentQuantity = order.quantity;
 
-        // ADD
         if (newQuantity > currentQuantity) {
 
             const { data: userData, error: userError } =
@@ -378,6 +427,119 @@ function CartSection() {
 
   return (
     <div className='w-full min-h-screen gap-5 flex flex-col'>
+
+        <AnimatePresence>
+            {showRules && (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 p-5"
+                >
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                        transition={{ duration: 0.2 }}
+                        className="flex max-h-[90vh] w-full max-w-2xl flex-col items-center gap-6 overflow-y-auto rounded-2xl bg-navyblue p-5 py-8 font-akagi font-bold text-[#ffffff] md:p-10"
+                    >
+                        <div className="text-center">
+                            <h1 className="text-3xl font-extrabold tracking-wide text-yellow md:text-4xl">
+                                RULES & REGULATIONS
+                            </h1>
+                        </div>
+
+                        <div className="w-full rounded-lg bg-[#ffffff] p-5 font-medium text-darkblue">
+                            {rulesLoading ? (
+                                <p className="py-5 text-center">
+                                    Loading rules and regulations...
+                                </p>
+                            ) : rulesError ? (
+                                <div className="flex flex-col items-center gap-3 py-5 text-center">
+                                    <p className="text-red-600">{rulesError}</p>
+
+                                    <button
+                                        type="button"
+                                        onClick={fetchRentalRules}
+                                        className="rounded-lg bg-blue px-4 py-2 text-[#ffffff]"
+                                    >
+                                        Try Again
+                                    </button>
+                                </div>
+                            ) : rentalRules.length === 0 ? (
+                                <p className="py-5 text-center">
+                                    No active rules and regulations are available.
+                                    Please contact the administrator.
+                                </p>
+                            ) : (
+                                <div className="flex flex-col gap-5">
+                                    {rentalRules.map((rule, index) => (
+                                        <div key={rule.id} className="flex flex-col gap-2">
+                                            <h2 className="text-lg font-bold">
+                                                {index + 1}. {rule.title}
+                                            </h2>
+
+                                            <p className="whitespace-pre-line leading-relaxed pl-5">
+                                                {rule.content}
+                                            </p>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        <label className="flex w-full cursor-pointer flex-row items-start gap-3 px-1 font-medium">
+                            <input
+                                type="checkbox"
+                                checked={agreeRules}
+                                onChange={(e) => setAgreeRules(e.target.checked)}
+                                className="mt-1 h-4 w-4 shrink-0 accent-yellow"
+                            />
+
+                            <span className="text-sm md:text-base">
+                                I agree to the rules and regulations, as well as the
+                                terms and conditions of renting bikes in 3Jremy's Rent
+                                A Bike!
+                            </span>
+                        </label>
+
+                        <div className="flex w-full items-center justify-between gap-3">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setShowRules(false);
+                                    setAgreeRules(false);
+                                }}
+                                className="cursor-pointer rounded-lg border-2 border-gray px-4 py-1 font-medium text-gray transition hover:bg-[#ffffff]/10"
+                            >
+                                Back
+                            </button>
+
+                            <button
+                                type="button"
+                                disabled={
+                                    !agreeRules ||
+                                    rulesLoading ||
+                                    !!rulesError ||
+                                    rentalRules.length === 0
+                                }
+                                onClick={handleContinueToCheckout}
+                                className={`rounded-lg border-2 px-4 py-1 font-medium transition ${
+                                    agreeRules &&
+                                    !rulesLoading &&
+                                    !rulesError &&
+                                    rentalRules.length > 0
+                                        ? "cursor-pointer border-yellow bg-yellow text-navyblue hover:opacity-90"
+                                        : "cursor-not-allowed border-gray bg-gray text-navyblue opacity-50"
+                                }`}
+                            >
+                                Continue
+                            </button>
+                        </div>
+                    </motion.div>
+                </motion.div>
+            )}
+        </AnimatePresence>
 
         <AnimatePresence>
             {selectionError && (
