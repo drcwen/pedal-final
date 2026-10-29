@@ -1688,7 +1688,10 @@ function DataReports({role}) {
                                         <div className='flex flex-col'>
 
                                             <h1 className='font-akagi font-bold text-gray'>
-                                                {deduction.type}
+                                                {deduction.type?.toLowerCase() === "maintenance"
+                                                    ? deduction.reason
+                                                    : deduction.type
+                                                }
                                             </h1>
 
                                             <h1 className='font-akagi text-sm text-[#777777]'>
@@ -1699,7 +1702,20 @@ function DataReports({role}) {
                                                 }
                                             </h1>
 
-                                            {deduction.occurence ? (
+                                            {deduction.type?.toLowerCase() === "maintenance" ? (
+
+                                                <h1 className='font-akagi text-xs text-[#999999]'>
+                                                    {deduction.created_at
+                                                        ? new Date(deduction.created_at).toLocaleDateString("en-US", {
+                                                            month: "long",
+                                                            day: "numeric",
+                                                            year: "numeric"
+                                                        })
+                                                        : ""
+                                                    }
+                                                </h1>
+
+                                            ) : deduction.occurence ? (
 
                                                 <h1 className='font-akagi text-xs text-[#999999]'>
                                                     {deduction.occurence}
@@ -1709,14 +1725,11 @@ function DataReports({role}) {
 
                                                 <h1 className='font-akagi text-xs text-[#999999]'>
                                                     Deadline:{" "}
-                                                    {new Date(deduction.deadline).toLocaleDateString(
-                                                        "en-US",
-                                                        {
-                                                            month: "long",
-                                                            day: "numeric",
-                                                            year: "numeric"
-                                                        }
-                                                    )}
+                                                    {new Date(deduction.deadline).toLocaleDateString("en-US", {
+                                                        month: "long",
+                                                        day: "numeric",
+                                                        year: "numeric"
+                                                    })}
                                                 </h1>
 
                                             ) : null}
