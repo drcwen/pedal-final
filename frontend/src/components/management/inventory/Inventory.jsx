@@ -293,7 +293,18 @@ function Inventory({role }) {
             `);
 
         if (!error) {
-            setBikeTypes(data || []);
+            const sortedBikeTypes = (data || []).map((bikeType) => ({
+                ...bikeType,
+                bikes_mod: [...(bikeType.bikes_mod || [])].sort((a, b) => {
+                    // Extract the numeric part starting from the second character
+                    const numberA = Number(a.code.slice(1));
+                    const numberB = Number(b.code.slice(1));
+
+                    return numberA - numberB;
+                }),
+            }));
+
+            setBikeTypes(sortedBikeTypes);
         } else {
             console.error("Error fetching bikes:", error);
         }

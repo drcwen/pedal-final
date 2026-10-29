@@ -27,6 +27,16 @@ function Refund({role}) {
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [pendingAction, setPendingAction] = useState(null);
 
+    const getReferenceMaxLength = (refundMethod) => {
+        const method = refundMethod?.toLowerCase().trim();
+
+        if (method === "gcash") return 13;
+        if (method === "bank transfer") return 20;
+        if (method === "maya") return 18;
+
+        return 20;
+    };
+
     const fetchRefunds = useCallback(async () => {
         setLoading(true);
         setErrorMessage("");
@@ -156,14 +166,30 @@ function Refund({role}) {
     };
 
     const confirmRefundAction = async () => {
-    if (!pendingAction) return;
+        if (!pendingAction) return;
 
-    const { refund, newStatus } = pendingAction;
-    const referenceNumber = refundReferenceNumber.trim();
+        const { refund, newStatus } = pendingAction;
+        const referenceNumber = refundReferenceNumber.trim();
 
-    if (newStatus === "approved" && !referenceNumber) {
-        setErrorMessage("Please enter the refund reference number.");
-        return;
+        if (newStatus === "approved") {
+        if (!referenceNumber) {
+            setErrorMessage("Please enter the refund reference number.");
+            return;
+        }
+
+        const maxLength = getReferenceMaxLength(refund.refund_method);
+
+        if (!/^\d+$/.test(referenceNumber)) {
+            setErrorMessage("Reference number must contain digits only.");
+            return;
+        }
+
+        if (referenceNumber.length > maxLength) {
+            setErrorMessage(
+                `${refund.refund_method} reference number must not exceed ${maxLength} digits.`
+            );
+            return;
+        }
     }
 
     setProcessingId(refund.id);
@@ -726,11 +752,27 @@ function Refund({role}) {
                                     <input
                                         id="refundReferenceNumber"
                                         type="text"
+                                        inputMode="numeric"
+                                        pattern="[0-9]*"
                                         value={refundReferenceNumber}
-                                        onChange={(event) =>
-                                            setRefundReferenceNumber(event.target.value)
-                                        }
-                                        placeholder="Enter refund transaction reference"
+                                        onChange={(event) => {
+                                            const maxLength = getReferenceMaxLength(
+                                                pendingAction.refund.refund_method
+                                            );
+
+                                            const digitsOnly = event.target.value
+                                                .replace(/\D/g, "")
+                                                .slice(0, maxLength);
+
+                                            setRefundReferenceNumber(digitsOnly);
+                                            setErrorMessage("");
+                                        }}
+                                        maxLength={getReferenceMaxLength(
+                                            pendingAction.refund.refund_method
+                                        )}
+                                        placeholder={`Enter reference number (max ${getReferenceMaxLength(
+                                            pendingAction.refund.refund_method
+                                        )} digits)`}
                                         required
                                         disabled={processingId !== null}
                                         className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm text-gray outline-none focus:border-blue focus:ring-1 focus:ring-blue disabled:opacity-50"

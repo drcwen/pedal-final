@@ -10,6 +10,7 @@ import { FaGoogle } from "react-icons/fa";
 import { supabase } from "../../lib/supabase"
 import { IoCloseSharp } from "react-icons/io5";
 import { FaExclamationCircle, FaCheckCircle } from "react-icons/fa";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 function LoginSection() {
 
@@ -17,6 +18,7 @@ function LoginSection() {
 
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
 
     const [popup, setPopup] = useState({
         show: false,
@@ -118,18 +120,6 @@ function LoginSection() {
 
                         <div className='flex flex-row gap-5 items-center justify-center'>
 
-                                    {/*Facebook*/}
-                                    <motion.button
-                                        whileHover={buttonClickBounce.whileHover}
-                                        whileTap={buttonClickBounce.whileTap}
-                                        onHoverStart={buttonClickBounce.onHoverStart}
-                                        type="submit"
-                                    >
-                                        <div className='w-fit px-2 py-2 flex rounded-xl bg-blue duration-300 transition-all'>
-                                            <FaFacebookF className='text-xl text-[#ffffff] '/>
-                                        </div>
-                                    </motion.button>
-
                                     {/*Google*/}
 
                                     <motion.button
@@ -139,8 +129,9 @@ function LoginSection() {
                                         type="submit"
                                         onClick={SignInWithGoogle}
                                     >
-                                        <div className='w-fit px-2 py-2 flex rounded-xl bg-[#ffffff] border border-gray-400 w-60 duration-300 transition-all'>
+                                        <div className='w-fit gap-2 px-4 py-2 flex rounded-xl bg-[#ffffff] border border-gray-400 w-60 duration-300 transition-all'>
                                             <FaGoogle className='text-xl text-red-400'/>
+                                            <h1 className='font-akagi text-gray font-semibold'>Sign in with Google</h1>
                                         </div>
 
                                     </motion.button>
@@ -159,11 +150,29 @@ function LoginSection() {
                                             value={username}
                                             onChange={(e) => setUsername(e.target.value)}/>
 
-                                {/*Password*/}
-                                <TextField type="password" 
-                                            placeholder="Password"
-                                            value={password}
-                                            onChange={(e) => setPassword(e.target.value)}/>
+                                {/* Password */}
+<div className="relative">
+    <TextField
+        type={showPassword ? "text" : "password"}
+        placeholder="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+    />
+
+    <button
+        type="button"
+        onClick={() => setShowPassword((previous) => !previous)}
+        className="absolute right-4 top-1/2 -translate-y-1/2
+        text-gray-400 hover:text-darkblue transition-all duration-300"
+        aria-label={showPassword ? "Hide password" : "Show password"}
+    >
+        {showPassword ? (
+            <FaEyeSlash className="text-lg" />
+        ) : (
+            <FaEye className="text-lg" />
+        )}
+    </button>
+</div>
                             </div>
 
                             {/*Login Button*/}

@@ -1,6 +1,6 @@
 import { MdModeEditOutline } from "react-icons/md";
 import { RiArrowDropDownLine, RiArrowDropUpLine } from "react-icons/ri";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react"
 import BikeInventoryInfo from "./BikeInventoryInfo"
 import { FaPlus } from "react-icons/fa";
@@ -17,6 +17,46 @@ function BikeRow({bikeType, capacity, price, image, bikes, bikeTypeId, setBikeEd
     const [bikeIdError, setBikeIdError] = useState("");
 
     const totalBikes = bikes.length;
+
+    const getNextBikeCode = () => {
+        if (!bikes || bikes.length === 0) {
+            return "";
+        }
+
+        const validBikes = bikes
+            .map((bike) => {
+                const match = bike.code.match(/^([A-Za-z]+)(\d+)$/);
+
+                if (!match) return null;
+
+                return {
+                    prefix: match[1],
+                    number: Number(match[2]),
+                };
+            })
+            .filter(Boolean);
+
+        if (validBikes.length === 0) {
+            return "";
+        }
+
+        // Use the prefix belonging to this bike type
+        const prefix = validBikes[0].prefix;
+
+        // Find the highest number for that prefix
+        const highestNumber = validBikes
+            .filter((bike) => bike.prefix === prefix)
+            .reduce((max, bike) => Math.max(max, bike.number), 0);
+
+        return `${prefix}${highestNumber + 1}`;
+    };
+
+    useEffect(() => {
+        if (addBike) {
+            setBikeId(getNextBikeCode());
+            setBikeIdError("");
+        }
+    }, [addBike, bikes]);
     
     const availableCount = bikes.filter(
         bike => bike.status === "Available"
@@ -284,9 +324,14 @@ function BikeRow({bikeType, capacity, price, image, bikes, bikeTypeId, setBikeEd
                                 </div>
 
                                 <div className='w-full flex flex-row gap-2 justify-end'>
-                                    <div 
-                                        onClick={() => {setAddBike(false)}}
-                                        className='bg-red-500 rounded-lg px-2 py-1 text-[#ffffff] transition-all duration-300 hover:scale-103 cursor-pointer'>
+                                    <div
+                                        onClick={() => {
+                                            setAddBike(false);
+                                            setBikeId("");
+                                            setBikeIdError("");
+                                        }}
+                                        className="bg-red-500 rounded-lg px-2 py-1 text-[#ffffff] transition-all duration-300 hover:scale-103 cursor-pointer"
+                                    >
                                         Cancel
                                     </div>
 
