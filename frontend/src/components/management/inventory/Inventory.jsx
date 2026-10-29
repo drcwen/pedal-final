@@ -820,25 +820,35 @@ return (
                                     </div>
 
                                     <div className='flex flex-col gap-2'>
-                                        {filteredGPS.map((jipies) => (
-                                            <GPSRow
-                                                key={jipies.id}
-                                                name={jipies.code}
-                                                status={jipies.status}
-                                                battery={jipies.battery_life + "%"}
-                                                simNumber={jipies.sim_number}
-                                                availableData={jipies.available_data}
-                                                gpsId={jipies.id}
-                                                fetchGPS={fetchGPS}
-                                                onEditStatus={() => {
-                                                    setSelectedGpsId(jipies.id);
-                                                    setSelectedGpsName(jipies.code);
-                                                    setSelectedGpsStatus(jipies.status);
-                                                    setGpsStatusError("");
-                                                    setGpsEdit(true);
-                                                }}
-                                            />
-                                        ))}
+                                        {filteredGPS.length > 0 ? (
+                                            filteredGPS.map((jipies) => (
+                                                <GPSRow
+                                                    key={jipies.id}
+                                                    name={jipies.code}
+                                                    status={jipies.status}
+                                                    battery={jipies.battery_life + "%"}
+                                                    simNumber={jipies.sim_number}
+                                                    availableData={jipies.available_data}
+                                                    gpsId={jipies.id}
+                                                    fetchGPS={fetchGPS}
+                                                    onEditStatus={() => {
+                                                        setSelectedGpsId(jipies.id);
+                                                        setSelectedGpsName(jipies.code);
+                                                        setSelectedGpsStatus(jipies.status);
+                                                        setGpsStatusError("");
+                                                        setGpsEdit(true);
+                                                    }}
+                                                />
+                                            ))
+                                        ) : (
+                                            <div className="flex flex-col items-center justify-center py-10 text-gray font-akagi">
+                                                <p className="text-sm font-medium text-gray/60">
+                                                    {gpsStatusFilter === "All"
+                                                        ? "No GPS devices have been added yet."
+                                                        : `There are currently no GPS devices with ${gpsStatusFilter.toLowerCase()} status.`}
+                                                </p>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             }
