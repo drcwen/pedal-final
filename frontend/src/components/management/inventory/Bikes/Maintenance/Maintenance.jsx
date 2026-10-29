@@ -211,7 +211,7 @@ function Maintenance( {setMaintenance }) {
                                 key={filter.value}
                                 type="button"
                                 onClick={() => setStatusFilter(filter.value)}
-                                className={`rounded-lg px-4 py-2 font-akagi font-medium
+                                className={`rounded-lg px-4 py-2 font-akagi font-bold
                                     transition-all duration-200
                                     ${
                                         statusFilter === filter.value
