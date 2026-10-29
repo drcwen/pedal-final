@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from "motion/react"
 
 function ReservationReceipt({ setReceipt, startedBikes, transaction }) {
 
+    console.log(startedBikes)
+
     function formatDate(dateString) {
         if (!dateString) return "-";
 
@@ -140,7 +142,7 @@ function ReservationReceipt({ setReceipt, startedBikes, transaction }) {
                                     </div>
 
                                     <h1>
-                                        P{bike.bike_types_mod?.price ?? 0}
+                                        P{bike.bike_types_mod?.price * bike?.duration_hours}
                                     </h1>
                                 </div>
                             ))}
