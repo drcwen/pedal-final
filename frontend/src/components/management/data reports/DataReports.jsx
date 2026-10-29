@@ -40,6 +40,7 @@ function DataReports({role}) {
     const [deductions, setDeductions] = useState([]);
 
     const [maintenanceInfo, setMaintenanceInfo] = useState([]);
+    const [maintenanceFilter, setMaintenanceFilter] = useState("All");
 
     const [bikeTypes, setBikeTypes] = useState([]);
     const [gpsList, setGpsList] = useState([]);
@@ -1839,217 +1840,146 @@ function DataReports({role}) {
 
                     </div>
 
-                    <div className='bg-[#ffffff] shadow-md rounded-xl p-5 flex flex-col gap-4'>
+                    <div className="bg-[#ffffff] shadow-md rounded-xl p-5 flex flex-col gap-4">
 
-                        <div className='flex flex-row justify-between items-center gap-5'>
-                            <h1 className='font-akagi font-bold text-lg text-gray'>
-                                Maintenance
-                            </h1>
+    {/* Header */}
+    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+        <h1 className="font-akagi font-bold text-lg text-gray">
+            Maintenance
+        </h1>
 
-                            <h1 className='font-akagi font-medium text-sm text-gray'>
-                                {dates?.[0] && dates?.[1]
-                                    ? `${formatDisplayDate(dates[0])} – ${formatDisplayDate(dates[1])}`
-                                    : ""
-                                }
-                            </h1>
-                        </div>
+        <h1 className="font-akagi font-medium text-sm text-gray">
+            {dates?.[0] && dates?.[1]
+                ? `${formatDisplayDate(dates[0])} – ${formatDisplayDate(dates[1])}`
+                : ""}
+        </h1>
+    </div>
 
-                        <div className="flex flex-col gap-6">
+    {/* Maintenance Filters */}
+    <div className="flex flex-wrap gap-2">
+        {["All", "Customer", "Management"].map((filter) => (
+            <button
+                key={filter}
+                type="button"
+                onClick={() => setMaintenanceFilter(filter)}
+                className={`px-5 py-2 rounded-lg font-akagi font-bold text-sm transition-all ${
+                    maintenanceFilter === filter
+                        ? "bg-blue text-[#ffffff] shadow-md"
+                        : "bg-[#F2F2F2] text-gray hover:bg-[#E2E2E2]"
+                }`}
+            >
+                {filter}
+            </button>
+        ))}
+    </div>
 
-                            {/* Customer-Paid Maintenance */}
-                            <div className="flex flex-col gap-3 bg-gray/15 rounded-lg p-3 shadow-lg py-5">
-                                <h2 className="font-akagi font-medium text-md text-gray">
-                                    Customer
-                                </h2>
+    {/* Filtered Maintenance Records */}
+    {(() => {
+        const filteredMaintenance = maintenanceInfo.filter((maintenance) => {
+            const paymentBy = maintenance.payment_by?.toLowerCase();
 
-                                <div className="flex flex-col gap-2">
-                                    {(() => {
-                                        const customerMaintenance = maintenanceInfo.filter(
-                                            (maintenance) =>
-                                                maintenance.payment_by?.toLowerCase() === "customer"
+            if (maintenanceFilter === "Customer") {
+                return paymentBy === "customer";
+            }
+
+            if (maintenanceFilter === "Management") {
+                return paymentBy === "management";
+            }
+
+            return true;
+        });
+
+        const groupedMaintenance =
+            groupMaintenanceByDate(filteredMaintenance);
+
+        const groupedDates = Object.keys(groupedMaintenance);
+
+        if (filteredMaintenance.length === 0) {
+            return (
+                <p className="font-akagi text-sm text-gray text-center py-8">
+                    No {maintenanceFilter === "All"
+                        ? ""
+                        : maintenanceFilter.toLowerCase() + " "
+                    }maintenance found for the selected dates.
+                </p>
+            );
+        }
+
+        return (
+            <div className="flex flex-col gap-5">
+                {groupedDates.map((date) => (
+                    <div key={date} className="flex flex-col gap-3">
+                        <h3 className="font-akagi font-medium text-gray border-b border-[#E2E2E2] pb-2">
+                            {date}
+                        </h3>
+
+                        <div className="flex flex-col gap-2">
+                            {groupedMaintenance[date].map((maintenance) => {
+                                const customerTransaction =
+                                    maintenance.orders_mod?.transaction;
+
+                                const customerProfile =
+                                    customerTransaction?.profile;
+
+                                const walkInCustomer = Array.isArray(
+                                    customerTransaction?.walk_in
+                                )
+                                    ? customerTransaction.walk_in[0]
+                                    : customerTransaction?.walk_in;
+
+                                const customerName = customerProfile
+                                    ? (
+                                        customerProfile.full_name ??
+                                        `${customerProfile.first_name ?? ""} ${customerProfile.last_name ?? ""}`.trim()
+                                    ) || "Unknown Customer"
+                                    : walkInCustomer?.full_name ??
+                                        (
+                                            maintenance.payment_by?.toLowerCase() === "management"
+                                                ? "Management"
+                                                : "Customer details unavailable"
                                         );
 
-                                        const groupedMaintenance =
-                                            groupMaintenanceByDate(customerMaintenance);
-
-                                        const dates = Object.keys(groupedMaintenance);
-
-                                        if (dates.length === 0) {
-                                            return (
-                                                <p className="font-akagi text-sm text-gray text-center py-5">
-                                                    No customer maintenance found.
-                                                </p>
-                                            );
+                                return (
+                                    <MaintenanceRow
+                                        key={maintenance.id}
+                                        bikeId={maintenance?.orders_mod?.current_bike?.code}
+                                        bikeTypeId={maintenance?.orders_mod?.current_bike?.bike_types_mod?.name}
+                                        reason={maintenance?.reason}
+                                        status={maintenance?.status}
+                                        isSettled={
+                                            maintenance?.status?.toLowerCase() === "settled"
                                         }
-
-                                        return dates.map((date) => (
-                                            <div key={date} className="flex flex-col gap-3">
-                                                <h3 className="font-akagi font-bold text-gray border-b border-[#E2E2E2] pb-2">
-                                                    {date}
-                                                </h3>
-
-                                                <div className="flex flex-col gap-2">
-                                                    {groupedMaintenance[date].map((maintenance) => {
-
-                                                        const originalTransaction = maintenance.orders_mod?.transaction;
-                                                        const customerTransaction =
-                                                            maintenance?.orders_mod?.transaction;
-
-                                                        const customerProfile =
-                                                            customerTransaction?.profile;
-
-                                                        const walkInCustomer =
-                                                            Array.isArray(customerTransaction?.walk_in)
-                                                                ? customerTransaction.walk_in[0]
-                                                                : customerTransaction?.walk_in;
-
-                                                        const customerName = customerProfile
-                                                            ? (
-                                                                customerProfile.full_name ??
-                                                                `${customerProfile.first_name ?? ""} ${customerProfile.last_name ?? ""}`.trim()
-                                                            )
-                                                            : walkInCustomer?.full_name ?? "Management";
-
-                                                        return (
-                                                            <MaintenanceRow
-                                                                key={maintenance.id}
-                                                                bikeId={maintenance?.orders_mod?.current_bike?.code}
-                                                                bikeTypeId={maintenance?.orders_mod?.current_bike?.bike_types_mod?.name}
-                                                                reason={maintenance?.reason}
-                                                                status={maintenance?.status}
-                                                                isSettled={
-                                                                    maintenance?.status?.toLowerCase() === "settled"
-                                                                }
-                                                                disableDropdown={true}
-                                                                price={maintenance?.price}
-                                                                paidBy={maintenance?.payment_by}
-                                                                payment={maintenance?.transactions_mod?.total_amount}
-                                                                change={maintenance?.transactions_mod?.change_amount}
-                                                                method={maintenance?.transactions_mod?.payment_method}
-                                                                bikeCode={maintenance?.orders_mod?.code}
-                                                                maintenanceId={maintenance?.id}
-                                                                date={convertToPhilippineDate(maintenance?.created_at)}
-                                                                time={convertToPhilippineTime(maintenance?.created_at)}
-                                                                managementBikeId={maintenance?.bike_id}
-                                                                managementBikeCode={maintenance?.bikes_mod?.code}
-                                                                managementBikeTypeId={maintenance?.bikes_mod?.bike_types_mod?.name}
-                                                                inventoryBikeCode={maintenance?.bikes_mod?.code}
-                                                                inventoryBikeTypeId={maintenance?.bikes_mod?.bike_types_mod?.name}
-
-                                                                customerName={customerName}
-                                                                customerProfile={customerProfile}
-                                                                walkInCustomer={walkInCustomer}
-                                                                customerTransaction={customerTransaction}
-                                                                originalTransaction={originalTransaction}
-                                                                
-                                                            />
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-                                        ));
-                                    })()}
-                                </div>
-                            </div>
-
-                            {/* Management-Paid Maintenance */}
-                            <div className="flex flex-col gap-3 bg-gray/15 rounded-lg p-3 shadow-lg py-5">
-                                <h2 className="font-akagi font-bold text-xl text-[#ffffff] bg-blue px-3 py-1 rounded-lg w-fit">
-                                    Management
-                                </h2>
-
-                                <div className="flex flex-col gap-5 px-5">
-                                    {(() => {
-                                        const managementMaintenance = maintenanceInfo.filter(
-                                            (maintenance) =>
-                                                maintenance.payment_by?.toLowerCase() === "management"
-                                        );
-
-                                        const groupedMaintenance =
-                                            groupMaintenanceByDate(managementMaintenance);
-
-                                        const dates = Object.keys(groupedMaintenance);
-
-                                        if (dates.length === 0) {
-                                            return (
-                                                <p className="font-akagi text-sm text-gray text-center py-5">
-                                                    No management maintenance found.
-                                                </p>
-                                            );
-                                        }
-
-                                        return dates.map((date) => (
-                                            <div key={date} className="flex flex-col gap-3">
-                                                <h3 className="font-akagi font-medium text-gray border-b border-[#E2E2E2] pb-2">
-                                                    {date}
-                                                </h3>
-
-                                                <div className="flex flex-col gap-2">
-                                                    {groupedMaintenance[date].map((maintenance) => {
-
-                                                        const originalTransaction = maintenance.orders_mod?.transaction;
-                                                        const customerTransaction =
-                                                            maintenance?.orders_mod?.transaction;
-
-                                                        const customerProfile =
-                                                            customerTransaction?.profile;
-
-                                                        const walkInCustomer =
-                                                            Array.isArray(customerTransaction?.walk_in)
-                                                                ? customerTransaction.walk_in[0]
-                                                                : customerTransaction?.walk_in;
-
-                                                        const customerName = customerProfile
-                                                            ? (
-                                                                customerProfile.full_name ??
-                                                                `${customerProfile.first_name ?? ""} ${customerProfile.last_name ?? ""}`.trim()
-                                                            )
-                                                            : walkInCustomer?.full_name ?? "Management";
-
-                                                        return (
-                                                            <MaintenanceRow
-                                                                key={maintenance.id}
-                                                                bikeId={maintenance?.orders_mod?.current_bike?.code}
-                                                                bikeTypeId={maintenance?.orders_mod?.current_bike?.bike_types_mod?.name}
-                                                                reason={maintenance?.reason}
-                                                                status={maintenance?.status}
-                                                                isSettled={
-                                                                    maintenance?.status?.toLowerCase() === "settled"
-                                                                }
-                                                                disableDropdown={true}
-                                                                price={maintenance?.price}
-                                                                paidBy={maintenance?.payment_by}
-                                                                payment={maintenance?.transactions_mod?.total_amount}
-                                                                change={maintenance?.transactions_mod?.change_amount}
-                                                                method={maintenance?.transactions_mod?.payment_method}
-                                                                bikeCode={maintenance?.orders_mod?.code}
-                                                                maintenanceId={maintenance?.id}
-                                                                date={convertToPhilippineDate(maintenance?.created_at)}
-                                                                time={convertToPhilippineTime(maintenance?.created_at)}
-                                                                managementBikeId={maintenance?.bike_id}
-                                                                managementBikeCode={maintenance?.bikes_mod?.code}
-                                                                managementBikeTypeId={maintenance?.bikes_mod?.bike_types_mod?.name}
-                                                                inventoryBikeCode={maintenance?.bikes_mod?.code}
-                                                                inventoryBikeTypeId={maintenance?.bikes_mod?.bike_types_mod?.name}
-
-                                                                customerName={customerName}
-                                                                customerProfile={customerProfile}
-                                                                walkInCustomer={walkInCustomer}
-                                                                customerTransaction={customerTransaction}
-                                                                originalTransaction={originalTransaction}
-                                                                
-                                                            />
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-                                        ));
-                                    })()}
-                                </div>
-                            </div>
-
+                                        disableDropdown={true}
+                                        price={maintenance?.price}
+                                        paidBy={maintenance?.payment_by}
+                                        payment={maintenance?.transactions_mod?.total_amount}
+                                        change={maintenance?.transactions_mod?.change_amount}
+                                        method={maintenance?.transactions_mod?.payment_method}
+                                        bikeCode={maintenance?.orders_mod?.code}
+                                        maintenanceId={maintenance?.id}
+                                        date={convertToPhilippineDate(maintenance?.created_at)}
+                                        time={convertToPhilippineTime(maintenance?.created_at)}
+                                        managementBikeId={maintenance?.bike_id}
+                                        managementBikeCode={maintenance?.bikes_mod?.code}
+                                        managementBikeTypeId={maintenance?.bikes_mod?.bike_types_mod?.name}
+                                        inventoryBikeCode={maintenance?.bikes_mod?.code}
+                                        inventoryBikeTypeId={maintenance?.bikes_mod?.bike_types_mod?.name}
+                                        customerName={customerName}
+                                        customerProfile={customerProfile}
+                                        walkInCustomer={walkInCustomer}
+                                        customerTransaction={customerTransaction}
+                                        originalTransaction={customerTransaction}
+                                    />
+                                );
+                            })}
                         </div>
                     </div>
+                ))}
+            </div>
+        );
+    })()}
+
+</div>
                     </>
                 }
 
