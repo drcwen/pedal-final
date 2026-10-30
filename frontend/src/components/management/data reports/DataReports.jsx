@@ -1027,14 +1027,17 @@ function DataReports({role}) {
         "unattended",
         "started",
         "pending",
+        "refunded"
     ]);
 
     const statusOptions = [
+        { label: "Pending", value: "pending" },
+        { label: "Started", value: "started" },
         { label: "Completed", value: "completed" },
+        { label: "Refunded", value: "refunded" },
         { label: "Refund Rejected", value: "refund_rejected" },
         { label: "Unattended", value: "unattended" },
-        { label: "Started", value: "started" },
-        { label: "Pending", value: "pending" },
+        
     ];
 
     const handleStatusFilter = (status) => {
