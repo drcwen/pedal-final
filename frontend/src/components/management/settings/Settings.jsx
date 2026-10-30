@@ -4,8 +4,6 @@ import SidebarMobile from "../sidebar/SidebarMobile"
 import { FaPlus } from "react-icons/fa6";
 import { useState, useEffect } from 'react';
 import { motion } from "motion/react"
-import { useNavigate } from "react-router-dom";
-import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import { IoMdArrowDropdown } from "react-icons/io";
 import { IoMdRemove } from "react-icons/io";
 import { RiArrowDropDownLine } from "react-icons/ri";
@@ -91,6 +89,14 @@ function Settings({role}) {
     });
 
     const isAdmin = String(role).toLowerCase() === "admin";
+
+    const [voidSetting, setVoidSetting] = useState(null);
+    const [voidLoading, setVoidLoading] = useState(true);
+    const [voidSaving, setVoidSaving] = useState(false);
+    const [voidMessage, setVoidMessage] = useState({
+        type: "",
+        text: ""
+    });
 
     const handleAdd = async () => {
         const {data, error} = await supabase
@@ -577,15 +583,101 @@ function Settings({role}) {
         });
     };
 
+    // FETCH VOID SETTING
+    const fetchVoidSetting = async () => {
+        try {
+            setVoidLoading(true);
+
+            const { data, error } = await supabase
+                .from("void_mod")
+                .select("*")
+                .order("id", { ascending: true })
+                .limit(1)
+                .maybeSingle();
+
+            if (error) throw error;
+
+            // Create the default setting if no record exists.
+            if (!data) {
+                const { data: newSetting, error: insertError } = await supabase
+                    .from("void_mod")
+                    .insert({
+                        is_implemented: false
+                    })
+                    .select()
+                    .single();
+
+                if (insertError) throw insertError;
+
+                setVoidSetting(newSetting);
+            } else {
+                setVoidSetting(data);
+            }
+
+        } catch (error) {
+            console.error("Error fetching void setting:", error);
+
+            setVoidMessage({
+                type: "error",
+                text: "Failed to load the void setting. Please try again."
+            });
+        } finally {
+            setVoidLoading(false);
+        }
+    };
+
+
+    // TOGGLE VOID IMPLEMENTATION
+    const toggleVoidSetting = async () => {
+        if (!isAdmin || !voidSetting || voidSaving) return;
+
+        try {
+            setVoidSaving(true);
+
+            setVoidMessage({
+                type: "",
+                text: ""
+            });
+
+            const newValue = !voidSetting.is_implemented;
+
+            const { data, error } = await supabase
+                .from("void_mod")
+                .update({
+                    is_implemented: newValue
+                })
+                .eq("id", voidSetting.id)
+                .select()
+                .single();
+
+            if (error) throw error;
+
+            setVoidSetting(data);
+
+            setVoidMessage({
+                type: "success",
+                text: `Void functionality has been ${newValue ? "enabled" : "disabled"} successfully.`
+            });
+
+        } catch (error) {
+            console.error("Error updating void setting:", error);
+
+            setVoidMessage({
+                type: "error",
+                text: "Failed to update the void setting. Please try again."
+            });
+        } finally {
+            setVoidSaving(false);
+        }
+    };
+
     useEffect(() => {
         fetchSchedule();
         fetchRevenueDeductions();
         fetchNonWorking();
         fetchRentalRules();
+        fetchVoidSetting();
     }, []);
-
-    console.log("event", event);
-        console.log("date",date);
 
   return (
     <>
@@ -632,9 +724,149 @@ function Settings({role}) {
                         >
                             Rules & Regulations
                         </h1>
+
+                        <h1
+                            onClick={() => setActiveTab("void")}
+                            className={`hover:underline duration-300 transition-all cursor-pointer ${
+                                activeTab === "void"
+                                    ? "text-navyblue text-bold"
+                                    : "text-gray/90"
+                            }`}
+                        >
+                            Void
+                        </h1>
                         
                         
                     </div>
+
+                    {activeTab === "void" && (
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                        className="w-full flex-1 min-h-0 overflow-y-auto rounded-xl border border-gray/60 bg-[#ebebeb]"
+                    >
+                        <div className="flex flex-col gap-6 p-5">
+
+                            {/* HEADER */}
+                            <div className="flex flex-col gap-1">
+                                <h1 className="text-xl font-akagi font-bold tracking-wide text-blue md:text-2xl">
+                                    Void Settings
+                                </h1>
+
+                                <p className="text-sm font-akagi font-medium text-gray">
+                                    Control whether administrators can void transactions
+                                    through the transaction management page.
+                                </p>
+                            </div>
+
+                            {!isAdmin ? (
+                                <div className="rounded-xl border border-gray/40 bg-[#ffffff] p-5 font-akagi text-gray">
+                                    Only administrators can manage void settings.
+                                </div>
+                            ) : (
+                                <div className="flex flex-col gap-5 rounded-xl border border-gray/40 bg-[#ffffff] p-5">
+
+                                    <div className="flex flex-col gap-2">
+                                        <h2 className="text-lg font-akagi font-bold text-blue">
+                                            Enable Void Button
+                                        </h2>
+
+                                        <p className="text-sm font-akagi font-medium leading-relaxed text-gray">
+                                            When enabled, the Void button will be available
+                                            in each transaction. When disabled, the Void
+                                            button will not be available.
+                                        </p>
+                                    </div>
+
+                                    {voidLoading ? (
+                                        <div className="py-4 font-akagi font-medium text-gray">
+                                            Loading void settings...
+                                        </div>
+                                    ) : voidSetting ? (
+                                        <div className="flex flex-col gap-4">
+
+                                            <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-gray/30 bg-gray/5 p-4">
+
+                                                <div className="flex flex-col gap-1">
+                                                    <h3 className="font-akagi font-bold text-blue">
+                                                        Void Implementation
+                                                    </h3>
+
+                                                    <span
+                                                        className={`w-fit rounded-full px-3 py-1 text-xs font-akagi font-bold ${
+                                                            voidSetting.is_implemented
+                                                                ? "bg-green-100 text-green-700"
+                                                                : "bg-red-100 text-red-600"
+                                                        }`}
+                                                    >
+                                                        {voidSetting.is_implemented
+                                                            ? "Enabled"
+                                                            : "Disabled"}
+                                                    </span>
+                                                </div>
+
+                                                {/* TOGGLE BUTTON */}
+                                                <button
+                                                    type="button"
+                                                    role="switch"
+                                                    aria-checked={!!voidSetting.is_implemented}
+                                                    onClick={toggleVoidSetting}
+                                                    disabled={voidSaving}
+                                                    className={`relative h-8 w-16 shrink-0 rounded-full transition-all duration-300 ${
+                                                        voidSetting.is_implemented
+                                                            ? "bg-blue"
+                                                            : "bg-gray-300"
+                                                    } ${
+                                                        voidSaving
+                                                            ? "cursor-not-allowed opacity-50"
+                                                            : "cursor-pointer"
+                                                    }`}
+                                                >
+                                                    <span
+                                                        className={`absolute top-1 h-6 w-6 rounded-full bg-[#ffffff] shadow-md transition-all duration-300 ${
+                                                            voidSetting.is_implemented
+                                                                ? "left-9"
+                                                                : "left-1"
+                                                        }`}
+                                                    />
+                                                </button>
+
+                                            </div>
+
+                                            {voidSaving && (
+                                                <p className="font-akagi text-sm font-medium text-gray">
+                                                    Updating void settings...
+                                                </p>
+                                            )}
+
+                                            {voidMessage.text && (
+                                                <div
+                                                    role="status"
+                                                    aria-live="polite"
+                                                    className={`rounded-lg border px-3 py-2 font-akagi text-sm font-medium ${
+                                                        voidMessage.type === "success"
+                                                            ? "border-blue bg-blue/10 text-blue"
+                                                            : "border-red-200 bg-red-50 text-red-700"
+                                                    }`}
+                                                >
+                                                    {voidMessage.text}
+                                                </div>
+                                            )}
+
+                                        </div>
+                                    ) : (
+                                        <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 font-akagi text-sm font-medium text-red-700">
+                                            Unable to load the void settings.
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                        </div>
+                    </motion.div>
+                )}
 
                     {activeTab === "operatingHours" &&
                         <motion.div

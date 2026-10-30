@@ -567,6 +567,28 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
         fetchAvailableExtensionHours(extendOrder.end);
     }, [extendOrder]);
 
+    const [voidEnabled, setVoidEnabled] = useState(false);
+
+    useEffect(() => {
+        const fetchVoidSetting = async () => {
+            const { data, error } = await supabase
+                .from("void_mod")
+                .select("is_implemented")
+                .order("id", { ascending: true })
+                .limit(1)
+                .maybeSingle();
+
+            if (error) {
+                console.error("Error fetching void setting:", error);
+                return;
+            }
+
+            setVoidEnabled(data?.is_implemented === true);
+        };
+
+        fetchVoidSetting();
+    }, []);
+
   return (
     <>
         <div 
@@ -640,11 +662,13 @@ function OngoingRow({ name, ordercount, start, bikeDetails, refreshOngoing, tran
 
                         <div className='flex gap-3 justify-end items-center'>
 
-                             <div 
-                                onClick={() => setVoidConfirmation(!voidConfirmation)}
-                                className='flex gap-2 bg-red-400 px-2 py-1 rounded-lg font-akagi font-semibold cursor-pointer text-[#ffffff] text-sm'>
-                                <MdDeleteForever className='text-lg'/>Void
-                            </div>
+                            {voidEnabled && (
+                                <div 
+                                    onClick={() => setVoidConfirmation(!voidConfirmation)}
+                                    className='flex gap-2 bg-red-400 px-2 py-1 rounded-lg font-akagi font-semibold cursor-pointer text-[#ffffff] text-sm'>
+                                    <MdDeleteForever className='text-lg'/>Void
+                                </div>
+                            )}
 
                             <div 
                                 onClick={() => setReceipt(!receipt)}
