@@ -5,7 +5,7 @@ import LandingBikes from "../components/sections/LandingBikes"
 import GallerySection from "../components/sections/GallerySection"
 import { useEffect, useState } from "react"
 import Lenis from "lenis";
-
+import Footer from "../components/layout/Footer"
 
 function LandingPage() {
 
@@ -47,7 +47,7 @@ function LandingPage() {
               title="Gallery" 
               description="Explore the experience waiting for you at La Mesa Eco Park." 
             />
-
+            <Footer />
         </div>
         
 
