@@ -331,7 +331,7 @@ function POS({ role }) {
 
 
         <div className='w-full h-screen bg-[#F2F2F2] flex'>
-            <Sidebar active={'pos'} userRole={role}/>
+            <Sidebar active={'pos'} userRole={role} />
             
 
             <motion.div
