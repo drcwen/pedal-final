@@ -28,6 +28,8 @@ function Sidebar({ active, userRole }) {
 
     const [openAlerts, setOpenAlerts] = useState(false);
 
+    const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
+
     const handleLogout = async () => {
       const { error } = await supabase.auth.signOut()
 
@@ -111,6 +113,72 @@ function Sidebar({ active, userRole }) {
           supabase.removeChannel(channel);
       };
   }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+    let channel;
+
+    const initializeNotifications = async () => {
+        const {
+            data: { user },
+            error: userError,
+        } = await supabase.auth.getUser();
+
+        if (userError) {
+            console.error("Error getting logged-in user:", userError.message);
+            return;
+        }
+
+        if (!user || !isMounted) return;
+
+        const fetchUnreadNotificationsCount = async () => {
+            const { count, error } = await supabase
+                .from("notifications_mod")
+                .select("id", { count: "exact", head: true })
+                .eq("recipient_id", user.id)
+                .eq("is_read", false);
+
+            if (error) {
+                console.error("Error fetching unread notifications:", error.message);
+                return;
+            }
+
+            if (isMounted) {
+                setUnreadNotificationsCount(count ?? 0);
+            }
+        };
+
+        await fetchUnreadNotificationsCount();
+
+        if (!isMounted) return;
+
+        channel = supabase
+            .channel(`sidebar-notifications-${user.id}`)
+            .on(
+                "postgres_changes",
+                {
+                    event: "*",
+                    schema: "public",
+                    table: "notifications_mod",
+                    filter: `recipient_id=eq.${user.id}`,
+                },
+                () => {
+                    fetchUnreadNotificationsCount();
+                }
+            )
+            .subscribe();
+    };
+
+    initializeNotifications();
+
+    return () => {
+        isMounted = false;
+
+        if (channel) {
+            supabase.removeChannel(channel);
+        }
+    };
+}, []);
 
     const menu = [
       {
@@ -197,7 +265,7 @@ function Sidebar({ active, userRole }) {
               {
                   event: "*",
                   schema: "public",
-                  table: "refunds_mod",
+                  table: "refund_mod",
               },
               () => {
                   fetchPendingRefundsCount();
@@ -245,10 +313,12 @@ function Sidebar({ active, userRole }) {
                       >
                         <HiMiniBellAlert className="text-2xl text-darkblue" />
 
-                        {pendingAlertsCount > 0 && (
-                          <div className="absolute -top-2 -right-2 min-w-5 h-5 px-1 rounded-full bg-yellow flex items-center justify-center font-akagi font-bold text-red-600 text-xs">
-                              {pendingAlertsCount > 99 ? "99+" : pendingAlertsCount}
-                          </div>
+                        {pendingAlertsCount + unreadNotificationsCount > 0 && (
+                            <div className="absolute -top-2 -right-2 min-w-5 h-5 px-1 rounded-full bg-yellow flex items-center justify-center font-akagi font-bold text-red-600 text-xs">
+                                {pendingAlertsCount + unreadNotificationsCount > 99
+                                    ? "99+"
+                                    : pendingAlertsCount + unreadNotificationsCount}
+                            </div>
                         )}
                     </div>
                   </div>
@@ -290,10 +360,6 @@ function Sidebar({ active, userRole }) {
             </div>
         </div>
 
-        {openAlerts &&
-          <Alerts />
-        }
-      
     </>
   )
 }

@@ -6,6 +6,7 @@ import Sidebar from "./sidebar/Sidebar";
 import SidebarMobile from "./sidebar/SidebarMobile";
 import { IoMdLocate } from "react-icons/io";
 import { RiArrowDropDownLine } from "react-icons/ri";
+import { HiOutlineBell, HiOutlineClock } from "react-icons/hi";
 
 function Alerts({role}) {
     const [activeAlerts, setActiveAlerts] = useState([]);
@@ -16,6 +17,12 @@ function Alerts({role}) {
     const [errorMessage, setErrorMessage] = useState("");
 
     const [activeTab, setActiveTab] = useState("Pending");
+
+    const [activeMainTab, setActiveMainTab] = useState("Alert");
+    const [adminNotifications, setAdminNotifications] = useState([]);
+    const [notificationLoading, setNotificationLoading] = useState(true);
+    const [notificationError, setNotificationError] = useState("");
+    const [adminUserId, setAdminUserId] = useState(null);
 
     const tabs = [
         {
@@ -176,8 +183,127 @@ function Alerts({role}) {
         setLoading(false);
     };
 
+    const getAdminNotifications = async (recipientId) => {
+        if (!recipientId) return;
+
+        try {
+            setNotificationLoading(true);
+            setNotificationError("");
+
+            const { data, error } = await supabase
+                .from("notifications_mod")
+                .select("*")
+                .eq("recipient_id", recipientId)
+                .order("created_at", { ascending: false });
+
+            if (error) throw error;
+
+            setAdminNotifications(data || []);
+        } catch (error) {
+            console.error("Error fetching admin notifications:", error);
+            setNotificationError("Failed to load notifications. Please try again.");
+        } finally {
+            setNotificationLoading(false);
+        }
+    };
+
+    const markNotificationAsRead = async (notification) => {
+        if (notification.is_read || !adminUserId) return;
+
+        setAdminNotifications((prev) =>
+            prev.map((item) =>
+                item.id === notification.id
+                    ? { ...item, is_read: true }
+                    : item
+            )
+        );
+
+        const { error } = await supabase
+            .from("notifications_mod")
+            .update({
+                is_read: true,
+                read_at: new Date().toISOString(),
+            })
+            .eq("id", notification.id)
+            .eq("recipient_id", adminUserId);
+
+        if (error) {
+            console.error("Error marking notification as read:", error);
+
+            setAdminNotifications((prev) =>
+                prev.map((item) =>
+                    item.id === notification.id
+                        ? { ...item, is_read: false }
+                        : item
+                )
+            );
+        }
+    };
+
     useEffect(() => {
         getActiveAlerts();
+    }, []);
+
+    useEffect(() => {
+        let channel;
+        let isMounted = true;
+
+        const initializeAdminNotifications = async () => {
+            try {
+                const {
+                    data: { user },
+                    error,
+                } = await supabase.auth.getUser();
+
+                if (error) throw error;
+
+                if (!user) {
+                    if (isMounted) {
+                        setNotificationLoading(false);
+                    }
+                    return;
+                }
+
+                if (!isMounted) return;
+
+                setAdminUserId(user.id);
+
+                channel = supabase
+                    .channel(`admin-notifications-${user.id}`)
+                    .on(
+                        "postgres_changes",
+                        {
+                            event: "*",
+                            schema: "public",
+                            table: "notifications_mod",
+                            filter: `recipient_id=eq.${user.id}`,
+                        },
+                        () => {
+                            getAdminNotifications(user.id);
+                        }
+                    )
+                    .subscribe();
+
+                await getAdminNotifications(user.id);
+            } catch (error) {
+                console.error("Error initializing admin notifications:", error);
+
+                if (isMounted) {
+                    setNotificationError("Failed to load notifications.");
+                    setNotificationLoading(false);
+                }
+            }
+        };
+
+        initializeAdminNotifications();
+
+        return () => {
+            isMounted = false;
+
+            if (channel) {
+                supabase.removeChannel(channel);
+            }
+        };
     }, []);
 
     const updateAlertStatus = async (alertId, status) => {
@@ -244,6 +370,67 @@ function Alerts({role}) {
                     }}
                     className="flex flex-col flex-1 min-w-0 min-h-0 lg:h-screen lg:py-15 lg:px-10 p-5 md:p-7 gap-5"
                 >
+                    {/* Main Tabs */}
+                    <div className="flex gap-2 border-b border-gray/20 pb-3 font-akagi">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setActiveMainTab("Alert");
+                                setSelectedAlert(null);
+                            }}
+                            className={`px-5 py-2 rounded-lg font-bold transition flex items-center gap-2 ${
+                                activeMainTab === "Alert"
+                                    ? "bg-blue text-[#ffffff]"
+                                    : "bg-gray/10 text-gray hover:bg-gray/20"
+                            }`}
+                        >
+                            Alerts
+
+                            {activeAlerts.filter(
+                                (alert) => (alert.status || "Pending") === "Pending"
+                            ).length > 0 && (
+                                <span
+                                    className={`text-xs rounded-full px-2 py-0.5 ${
+                                        activeMainTab === "Alert"
+                                            ? "bg-[#ffffff] text-blue"
+                                            : "bg-red-500 text-[#ffffff]"
+                                    }`}
+                                >
+                                    {activeAlerts.filter(
+                                        (alert) => (alert.status || "Pending") === "Pending"
+                                    ).length}
+                                </span>
+                            )}
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setActiveMainTab("Notification");
+                                setSelectedAlert(null);
+                            }}
+                            className={`px-5 py-2 rounded-lg font-bold transition flex items-center gap-2 ${
+                                activeMainTab === "Notification"
+                                    ? "bg-blue text-[#ffffff]"
+                                    : "bg-gray/10 text-gray hover:bg-gray/20"
+                            }`}
+                        >
+                            Notifications
+
+                            {adminNotifications.filter((item) => !item.is_read).length > 0 && (
+                                <span className={`text-xs rounded-full px-2 py-0.5 ${
+                                    activeMainTab === "Notification"
+                                        ? "bg-[#ffffff] text-blue"
+                                        : "bg-blue text-[#ffffff]"
+                                }`}>
+                                    {adminNotifications.filter((item) => !item.is_read).length}
+                                </span>
+                            )}
+                        </button>
+                    </div>
+
+                    {activeMainTab === "Alert" ? (
+                    <>
                     <div className="flex flex-col gap-1 font-akagi">
                         <h1 className="md:text-4xl text-2xl font-bold tracking-wide text-blue">
                             Alerts
@@ -390,11 +577,130 @@ function Alerts({role}) {
                                 </div>
                             ))}
                         </div>
-                    </div>
+                                        </div>
+                    </>
+                    ) : (
+                        /* Notifications Tab */
+                        <div className="w-full flex-1 min-h-0 min-w-0 bg-[#ffffff] rounded-xl p-5 overflow-y-auto flex flex-col gap-4 font-akagi">
+
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                <div>
+                                    <h2 className="text-xl font-bold text-blue">
+                                        Notifications
+                                    </h2>
+
+                                    <p className="text-sm text-gray font-medium mt-1">
+                                        Updates and announcements for administrators and cashiers.
+                                    </p>
+                                </div>
+
+                                <span className="text-sm font-bold text-gray">
+                                    {adminNotifications.filter((item) => !item.is_read).length} unread
+                                </span>
+                            </div>
+
+                            {notificationLoading ? (
+                                <div className="flex justify-center items-center py-16 text-gray">
+                                    Loading notifications...
+                                </div>
+                            ) : notificationError ? (
+                                <div className="text-center text-red-500 py-10">
+                                    <p>{notificationError}</p>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => getAdminNotifications(adminUserId)}
+                                        className="mt-2 underline font-bold"
+                                    >
+                                        Try again
+                                    </button>
+                                </div>
+                            ) : adminNotifications.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center py-16 text-center gap-2">
+                                    <HiOutlineBell className="text-5xl text-gray-300" />
+
+                                    <h2 className="text-xl font-bold text-blue">
+                                        No Notifications
+                                    </h2>
+
+                                    <p className="text-gray font-medium">
+                                        You don't have any notifications yet.
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="flex flex-col gap-3">
+                                    {adminNotifications.map((notification) => (
+                                        <button
+                                            key={notification.id}
+                                            type="button"
+                                            onClick={() => markNotificationAsRead(notification)}
+                                            className={`w-full text-left flex gap-4 items-start p-4 rounded-xl border transition ${
+                                                notification.is_read
+                                                    ? "bg-[#ffffff] border-gray-200 hover:bg-gray-50"
+                                                    : "bg-blue/5 border-blue/30 hover:bg-blue/10"
+                                            }`}
+                                        >
+                                            <div
+                                                className={`shrink-0 rounded-full p-3 ${
+                                                    notification.is_read
+                                                        ? "bg-gray-100 text-gray-500"
+                                                        : "bg-blue/10 text-blue"
+                                                }`}
+                                            >
+                                                <HiOutlineBell className="text-xl" />
+                                            </div>
+
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                                    <h3 className="font-bold text-blue">
+                                                        {notification.title || "Notification"}
+                                                    </h3>
+
+                                                    {!notification.is_read && (
+                                                        <span className="bg-blue text-[#ffffff] text-xs font-bold px-3 py-1 rounded-full">
+                                                            NEW
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                <p className="text-sm text-gray font-medium mt-2 leading-relaxed">
+                                                    {notification.message}
+                                                </p>
+
+                                                <div className="flex flex-wrap gap-2 items-center mt-3 text-xs text-gray-500">
+                                                    <HiOutlineClock className="text-base" />
+
+                                                    <span>
+                                                        {formatTime(notification.created_at)}
+                                                    </span>
+
+                                                    <span>•</span>
+
+                                                    <span>
+                                                        {formatRelativeDate(notification.created_at)}
+                                                    </span>
+
+                                                    {notification.type && (
+                                                        <>
+                                                            <span>•</span>
+
+                                                            <span className="capitalize">
+                                                                {notification.type.replace(/_/g, " ")}
+                                                            </span>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </motion.div>
             </div>
 
-            {selectedAlert && (
+            {activeMainTab === "Alert" && selectedAlert && (
                 <div
                     className="fixed inset-0 bg-black/50 flex justify-center items-center z-[100] p-5"
                     onClick={closeDetails}

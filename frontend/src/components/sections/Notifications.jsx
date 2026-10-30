@@ -85,6 +85,7 @@ function Notifications() {
 
     useEffect(() => {
         let channel;
+        let isMounted = true;
 
         const initializeNotifications = async () => {
             try {
@@ -96,16 +97,18 @@ function Notifications() {
                 if (error) throw error;
 
                 if (!user) {
+                    if (!isMounted) return;
+
                     setErrorMessage("Please log in to view your notifications.");
                     setLoading(false);
                     return;
                 }
 
+                if (!isMounted) return;
+
                 setUserId(user.id);
 
-                await fetchNotifications(user.id);
-
-                // Listen for new or updated notifications.
+                // Subscribe to Realtime changes.
                 channel = supabase
                     .channel(`customer-notifications-${user.id}`)
                     .on(
@@ -116,19 +119,38 @@ function Notifications() {
                             table: "notifications_mod",
                             filter: `recipient_id=eq.${user.id}`,
                         },
-                        () => fetchNotifications(user.id)
+                        (payload) => {
+                            console.log("Notification Realtime Event:", payload);
+
+                            fetchNotifications(user.id);
+                        }
                     )
-                    .subscribe();
+                    .subscribe((status, error) => {
+                        console.log("Notification Subscription Status:", status);
+
+                        if (error) {
+                            console.error("Realtime Subscription Error:", error);
+                        }
+                    });
+
+                // Fetch existing notifications.
+                await fetchNotifications(user.id);
+
             } catch (error) {
                 console.error("Error initializing notifications:", error);
-                setErrorMessage("Unable to load your notifications.");
-                setLoading(false);
+
+                if (isMounted) {
+                    setErrorMessage("Unable to load your notifications.");
+                    setLoading(false);
+                }
             }
         };
 
         initializeNotifications();
 
         return () => {
+            isMounted = false;
+
             if (channel) {
                 supabase.removeChannel(channel);
             }
