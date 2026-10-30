@@ -11,7 +11,7 @@ import { supabase } from "../../../lib/supabase"
 import { RiArrowDropDownLine } from "react-icons/ri";
 import { IoCloseSharp } from "react-icons/io5";
 
-function ManageAccount() {
+function ManageAccount({role}) {
 
     const [activeTab, setActiveTab] = useState("Cashier");
     const navigate = useNavigate();
@@ -24,7 +24,7 @@ function ManageAccount() {
     const [cashierAccounts, setCashierAccounts] = useState([]);
 
     const [roleDropDown, setRoleDropDown]= useState(false);
-    const [role, setRole] = useState("Set Role");
+    const [roles, setRoles] = useState("Set Role");
     
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
@@ -90,7 +90,7 @@ function ManageAccount() {
                     lastName: lastName,
                     username: username,
                     contact: contact,
-                    role: role
+                    role: roles
                 }
             }
         );
@@ -122,7 +122,7 @@ function ManageAccount() {
     <>
 
         <div className='w-full h-screen md:bg-[#F2F2F2] flex'>
-            <Sidebar active={'accounts'}/>
+            <Sidebar active={'accounts'} userRole={role}/>
 
             <motion.div
                 initial={{ height: 0, opacity: 0 }}
@@ -293,19 +293,19 @@ function ManageAccount() {
                                         <div 
                                             onClick={() => {setRoleDropDown(!roleDropDown)}}
                                             className='relative rounded-lg border border-gray px-3 py-1 flex flex-row justify-between items-center'>
-                                            {role}
+                                            {roles}
                                             <RiArrowDropDownLine className='text-xl'/>
 
                                             {roleDropDown ? 
                                                 <div className='absolute top-full left-0 w-full bg-white rounded-lg border border-[#9E9E9E] z-50 mt-1 '>
                                                     <div 
-                                                        onClick={() => {setRole("cashier")}}
+                                                        onClick={() => {setRoles("cashier")}}
                                                         className='px-3 py-1 hover:bg-gray/70 hover:text-[#ffffff] rounded-md'>
                                                         Cashier
                                                     </div>
 
                                                     <div 
-                                                        onClick={() => {setRole("admin")}}
+                                                        onClick={() => {setRoles("admin")}}
                                                         className='px-3 py-1 hover:bg-gray/70 hover:text-[#ffffff] rounded-md'>
                                                         Admin
                                                     </div>

@@ -10,7 +10,7 @@ import { IoMdArrowDropdown } from "react-icons/io";
 import { IoMdRemove } from "react-icons/io";
 import { RiArrowDropDownLine } from "react-icons/ri";
 
-function Settings() {
+function Settings({role}) {
 
     const [activeTab, setActiveTab] = useState("operatingHours");
 
@@ -67,6 +67,24 @@ function Settings() {
     const handleChange = (event) => {
         setPaymentOccurence(event.target.value);
     };
+
+    const [rentalRules, setRentalRules] = useState([]);
+    const [rulesLoading, setRulesLoading] = useState(false);
+    const [rulesSaving, setRulesSaving] = useState(false);
+
+    const [newRuleTitle, setNewRuleTitle] = useState("");
+    const [newRuleContent, setNewRuleContent] = useState("");
+
+    const [editingRuleId, setEditingRuleId] = useState(null);
+    const [editRuleTitle, setEditRuleTitle] = useState("");
+    const [editRuleContent, setEditRuleContent] = useState("");
+
+    const [rulesMessage, setRulesMessage] = useState({
+        type: "",
+        text: ""
+    });
+
+    const isAdmin = String(role).toLowerCase() === "admin";
 
     const handleAdd = async () => {
         const {data, error} = await supabase
@@ -241,12 +259,219 @@ function Settings() {
         }
     }
 
+    const fetchRentalRules = async () => {
+        setRulesLoading(true);
+
+        const { data, error } = await supabase
+            .from("rental_rules_mod")
+            .select("id, title, content, display_order, is_active")
+            .order("display_order", { ascending: true });
+
+        if (error) {
+            console.error("Error fetching rental rules:", error);
+
+            setRulesMessage({
+                type: "error",
+                text: "Failed to load rules and regulations."
+            });
+        } else {
+            setRentalRules(data || []);
+        }
+
+        setRulesLoading(false);
+    };
+
+    // ADD A NEW RULE
+    const addRentalRule = async () => {
+        if (rulesSaving) return;
+
+        const title = newRuleTitle.trim();
+        const content = newRuleContent.trim();
+
+        if (!title || !content) {
+            setRulesMessage({
+                type: "error",
+                text: "Please enter both a rule title and description."
+            });
+            return;
+        }
+
+        try {
+            setRulesSaving(true);
+            setRulesMessage({ type: "", text: "" });
+
+            const nextOrder =
+                rentalRules.length > 0
+                    ? Math.max(
+                        ...rentalRules.map((rule) => rule.display_order || 0)
+                    ) + 1
+                    : 1;
+
+            const { error } = await supabase
+                .from("rental_rules_mod")
+                .insert({
+                    title,
+                    content,
+                    display_order: nextOrder,
+                    is_active: true
+                });
+
+            if (error) throw error;
+
+            setNewRuleTitle("");
+            setNewRuleContent("");
+
+            await fetchRentalRules();
+
+            setRulesMessage({
+                type: "success",
+                text: "New rule added successfully!"
+            });
+        } catch (error) {
+            console.error("Error adding rental rule:", error);
+
+            setRulesMessage({
+                type: "error",
+                text: "Failed to add the rule. Please try again."
+            });
+        } finally {
+            setRulesSaving(false);
+        }
+    };
+
+    // START EDITING A RULE
+    const startEditingRule = (rule) => {
+        setEditingRuleId(rule.id);
+        setEditRuleTitle(rule.title);
+        setEditRuleContent(rule.content);
+        setRulesMessage({ type: "", text: "" });
+    };
+
+    // CANCEL EDITING
+    const cancelEditingRule = () => {
+        setEditingRuleId(null);
+        setEditRuleTitle("");
+        setEditRuleContent("");
+    };
+
+    // SAVE CHANGES TO AN EXISTING RULE
+    const saveRentalRule = async (id) => {
+        if (rulesSaving) return;
+
+        const title = editRuleTitle.trim();
+        const content = editRuleContent.trim();
+
+        if (!title || !content) {
+            setRulesMessage({
+                type: "error",
+                text: "The title and description cannot be empty."
+            });
+            return;
+        }
+
+        try {
+            setRulesSaving(true);
+            setRulesMessage({ type: "", text: "" });
+
+            const { error } = await supabase
+                .from("rental_rules_mod")
+                .update({
+                    title,
+                    content
+                })
+                .eq("id", id);
+
+            if (error) throw error;
+
+            setEditingRuleId(null);
+            setEditRuleTitle("");
+            setEditRuleContent("");
+
+            await fetchRentalRules();
+
+            setRulesMessage({
+                type: "success",
+                text: "Rule updated successfully!"
+            });
+        } catch (error) {
+            console.error("Error updating rental rule:", error);
+
+            setRulesMessage({
+                type: "error",
+                text: "Failed to update the rule. Please try again."
+            });
+        } finally {
+            setRulesSaving(false);
+        }
+    };
+
+    // ACTIVATE OR DEACTIVATE A RULE
+    const toggleRentalRule = async (rule) => {
+        setRulesMessage({ type: "", text: "" });
+
+        const { error } = await supabase
+            .from("rental_rules_mod")
+            .update({
+                is_active: !rule.is_active
+            })
+            .eq("id", rule.id);
+
+        if (error) {
+            console.error("Error changing rule status:", error);
+
+            setRulesMessage({
+                type: "error",
+                text: "Failed to update the rule status."
+            });
+            return;
+        }
+
+        await fetchRentalRules();
+
+        setRulesMessage({
+            type: "success",
+            text: `Rule ${rule.is_active ? "deactivated" : "activated"} successfully!`
+        });
+    };
+
+    // DELETE A RULE
+    const deleteRentalRule = async (id) => {
+        const confirmed = window.confirm(
+            "Are you sure you want to permanently delete this rule?"
+        );
+
+        if (!confirmed) return;
+
+        setRulesMessage({ type: "", text: "" });
+
+        const { error } = await supabase
+            .from("rental_rules_mod")
+            .delete()
+            .eq("id", id);
+
+        if (error) {
+            console.error("Error deleting rule:", error);
+
+            setRulesMessage({
+                type: "error",
+                text: "Failed to delete the rule. Please try again."
+            });
+            return;
+        }
+
+        setRentalRules((prev) => prev.filter((rule) => rule.id !== id));
+
+        setRulesMessage({
+            type: "success",
+            text: "Rule deleted successfully!"
+        });
+    };
+
     useEffect(() => {
-    
         fetchSchedule();
         fetchRevenueDeductions();
         fetchNonWorking();
-        
+        fetchRentalRules();
     }, []);
 
     console.log("event", event);
@@ -256,7 +481,7 @@ function Settings() {
     <>
 
         <div className='w-full h-screen bg-[#F2F2F2] flex'>
-            <Sidebar active={'settings'}/>
+            <Sidebar active={'settings'} userRole={role}/>
             
 
             <motion.div
@@ -283,7 +508,20 @@ function Settings() {
                             onClick={() => {setActiveTab("revenueDeductions")}}
                             className={`hover:underline duration-300 transition-all cursor-pointer
                             ${activeTab === "revenueDeductions" ? "text-navyblue text-bold" : "text-gray/90"}`}
-                        >Revenue Deductions</h1>
+                        >
+                            Revenue Deductions
+                        </h1>
+
+                        <h1
+                            onClick={() => setActiveTab("rentalRules")}
+                            className={`hover:underline duration-300 transition-all cursor-pointer ${
+                                activeTab === "rentalRules"
+                                    ? "text-navyblue text-bold"
+                                    : "text-gray/90"
+                            }`}
+                        >
+                            Rules & Regulations
+                        </h1>
                         
                         
                     </div>
@@ -699,6 +937,267 @@ function Settings() {
                             </motion.div>
                         </>
                     }
+
+                    {activeTab === "rentalRules" && (
+                        <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.3, ease: "easeInOut" }}
+                            className="w-full flex-1 min-h-0 overflow-y-auto rounded-xl border border-gray/60 bg-[#ebebeb]"
+                        >
+                            <div className="flex flex-col gap-6 p-5">
+
+                                {/* HEADER */}
+                                <div className="flex flex-col gap-1">
+                                    <h1 className="text-xl font-akagi font-bold tracking-wide text-blue md:text-2xl">
+                                        Rules & Regulations
+                                    </h1>
+
+                                    <p className="text-sm font-akagi font-medium text-gray">
+                                        Manage the rules displayed to customers before checkout.
+                                        Changes apply to the active rules stored in Supabase.
+                                    </p>
+                                </div>
+
+                                {/* FEEDBACK MESSAGE */}
+                                {rulesMessage.text && (
+                                    <div
+                                        role="status"
+                                        aria-live="polite"
+                                        className={`rounded-lg border px-3 py-2 font-akagi text-sm font-medium ${
+                                            rulesMessage.type === "success"
+                                                ? "border-blue bg-blue/10 text-blue"
+                                                : "border-red-200 bg-red-50 text-red-700"
+                                        }`}
+                                    >
+                                        {rulesMessage.text}
+                                    </div>
+                                )}
+
+                                {!isAdmin ? (
+                                    <div className="rounded-xl border border-gray/40 bg-[#ffffff] p-5 font-akagi text-gray">
+                                        Only administrators can manage rules and regulations.
+                                    </div>
+                                ) : (
+                                    <>
+                                        {/* ADD NEW RULE */}
+                                        <div className="flex flex-col gap-4 rounded-xl border border-gray/40 bg-[#ffffff] p-5">
+                                            <h2 className="font-akagi text-lg font-bold text-blue">
+                                                Add a New Rule
+                                            </h2>
+
+                                            <div className="flex flex-col gap-1 font-akagi font-bold text-gray">
+                                                <label htmlFor="newRuleTitle">
+                                                    Rule Title
+                                                </label>
+
+                                                <input
+                                                    id="newRuleTitle"
+                                                    type="text"
+                                                    value={newRuleTitle}
+                                                    onChange={(e) =>
+                                                        setNewRuleTitle(e.target.value)
+                                                    }
+                                                    placeholder="e.g. Return Your Bike on Time"
+                                                    maxLength={150}
+                                                    className="w-full rounded-lg border border-gray px-3 py-2 font-medium focus:outline-none focus:border-blue"
+                                                />
+                                            </div>
+
+                                            <div className="flex flex-col gap-1 font-akagi font-bold text-gray">
+                                                <label htmlFor="newRuleContent">
+                                                    Rule Description
+                                                </label>
+
+                                                <textarea
+                                                    id="newRuleContent"
+                                                    value={newRuleContent}
+                                                    onChange={(e) =>
+                                                        setNewRuleContent(e.target.value)
+                                                    }
+                                                    placeholder="Enter the rule and its details..."
+                                                    rows={4}
+                                                    className="w-full resize-y rounded-lg border border-gray px-3 py-2 font-medium focus:outline-none focus:border-blue"
+                                                />
+                                            </div>
+
+                                            <button
+                                                type="button"
+                                                onClick={addRentalRule}
+                                                disabled={rulesSaving}
+                                                className={`flex w-fit items-center gap-2 rounded-lg px-4 py-2 font-akagi font-bold text-navyblue transition ${
+                                                    rulesSaving
+                                                        ? "cursor-not-allowed bg-yellow/50"
+                                                        : "cursor-pointer bg-yellow hover:opacity-80"
+                                                }`}
+                                            >
+                                                <FaPlus />
+                                                {rulesSaving ? "Saving..." : "Add Rule"}
+                                            </button>
+                                        </div>
+
+                                        {/* EXISTING RULES */}
+                                        <div className="flex flex-col gap-4">
+                                            <div className="flex items-center justify-between">
+                                                <h2 className="font-akagi text-lg font-bold text-blue">
+                                                    Existing Rules
+                                                </h2>
+
+                                                <span className="font-akagi text-sm text-gray">
+                                                    {rentalRules.length} total
+                                                </span>
+                                            </div>
+
+                                            {rulesLoading ? (
+                                                <div className="rounded-xl bg-[#ffffff] p-8 text-center font-akagi text-gray">
+                                                    Loading rules...
+                                                </div>
+                                            ) : rentalRules.length === 0 ? (
+                                                <div className="rounded-xl bg-[#ffffff] p-8 text-center font-akagi text-gray">
+                                                    No rules have been added yet.
+                                                </div>
+                                            ) : (
+                                                rentalRules.map((rule, index) => (
+                                                    <div
+                                                        key={rule.id}
+                                                        className="flex flex-col gap-4 rounded-xl border border-gray/40 bg-[#ffffff] p-4 md:p-5"
+                                                    >
+                                                        {editingRuleId === rule.id ? (
+                                                            <>
+                                                                <div className="flex flex-col gap-1 font-akagi font-bold text-gray">
+                                                                    <label>
+                                                                        Rule Title
+                                                                    </label>
+
+                                                                    <input
+                                                                        type="text"
+                                                                        value={editRuleTitle}
+                                                                        onChange={(e) =>
+                                                                            setEditRuleTitle(
+                                                                                e.target.value
+                                                                            )
+                                                                        }
+                                                                        maxLength={150}
+                                                                        className="w-full rounded-lg border border-gray px-3 py-2 font-medium focus:outline-none focus:border-blue"
+                                                                    />
+                                                                </div>
+
+                                                                <div className="flex flex-col gap-1 font-akagi font-bold text-gray">
+                                                                    <label>
+                                                                        Rule Description
+                                                                    </label>
+
+                                                                    <textarea
+                                                                        value={editRuleContent}
+                                                                        onChange={(e) =>
+                                                                            setEditRuleContent(
+                                                                                e.target.value
+                                                                            )
+                                                                        }
+                                                                        rows={4}
+                                                                        className="w-full resize-y rounded-lg border border-gray px-3 py-2 font-medium focus:outline-none focus:border-blue"
+                                                                    />
+                                                                </div>
+
+                                                                <div className="flex flex-wrap gap-2">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() =>
+                                                                            saveRentalRule(rule.id)
+                                                                        }
+                                                                        disabled={rulesSaving}
+                                                                        className="rounded-lg bg-yellow px-4 py-2 font-akagi font-bold text-navyblue transition hover:opacity-80 disabled:opacity-50"
+                                                                    >
+                                                                        {rulesSaving
+                                                                            ? "Saving..."
+                                                                            : "Save Changes"}
+                                                                    </button>
+
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={cancelEditingRule}
+                                                                        disabled={rulesSaving}
+                                                                        className="rounded-lg border border-gray px-4 py-2 font-akagi font-bold text-gray transition hover:bg-gray/10"
+                                                                    >
+                                                                        Cancel
+                                                                    </button>
+                                                                </div>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <div className="flex flex-wrap items-start justify-between gap-3">
+                                                                    <div className="flex min-w-0 flex-1 flex-col gap-2">
+                                                                        <h3 className="font-akagi text-lg font-bold text-blue">
+                                                                            {index + 1}. {rule.title}
+                                                                        </h3>
+
+                                                                        <p className="whitespace-pre-line break-words font-akagi font-medium leading-relaxed text-gray">
+                                                                            {rule.content}
+                                                                        </p>
+
+                                                                        <span
+                                                                            className={`w-fit rounded-full px-3 py-1 text-xs font-akagi font-bold ${
+                                                                                rule.is_active
+                                                                                    ? "bg-blue/10 text-blue"
+                                                                                    : "bg-gray/20 text-gray"
+                                                                            }`}
+                                                                        >
+                                                                            {rule.is_active
+                                                                                ? "Active"
+                                                                                : "Inactive"}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="flex flex-wrap gap-2 border-t border-gray/20 pt-4">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() =>
+                                                                            startEditingRule(rule)
+                                                                        }
+                                                                        className="rounded-lg bg-blue px-4 py-2 font-akagi font-bold text-[#ffffff] transition hover:opacity-80"
+                                                                    >
+                                                                        Edit
+                                                                    </button>
+
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() =>
+                                                                            toggleRentalRule(rule)
+                                                                        }
+                                                                        className={`rounded-lg px-4 py-2 font-akagi font-bold transition hover:opacity-80 ${
+                                                                            rule.is_active
+                                                                                ? "bg-gray/20 text-gray"
+                                                                                : "bg-yellow text-navyblue"
+                                                                        }`}
+                                                                    >
+                                                                        {rule.is_active
+                                                                            ? "Deactivate"
+                                                                            : "Activate"}
+                                                                    </button>
+
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() =>
+                                                                            deleteRentalRule(rule.id)
+                                                                        }
+                                                                        className="rounded-lg bg-red-100 px-4 py-2 font-akagi font-bold text-red-600 transition hover:bg-red-200"
+                                                                    >
+                                                                        Delete
+                                                                    </button>
+                                                                </div>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        </motion.div>
+                    )}
                     
                 </div>
             </motion.div>

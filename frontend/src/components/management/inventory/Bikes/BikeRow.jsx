@@ -1,6 +1,6 @@
 import { MdModeEditOutline } from "react-icons/md";
 import { RiArrowDropDownLine, RiArrowDropUpLine } from "react-icons/ri";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react"
 import BikeInventoryInfo from "./BikeInventoryInfo"
 import { FaPlus } from "react-icons/fa";
@@ -12,11 +12,58 @@ function BikeRow({bikeType, capacity, price, image, bikes, bikeTypeId, setBikeEd
     const [dropDown, setDropDown] = useState(false);
     const [addBike, setAddBike] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [bikeStatusFilter, setBikeStatusFilter] = useState("All");
 
     const [bikeId, setBikeId] = useState("");
     const [bikeIdError, setBikeIdError] = useState("");
 
     const totalBikes = bikes.length;
+
+    const getNextBikeCode = () => {
+        if (!bikes || bikes.length === 0) {
+            return "";
+        }
+
+        const validBikes = bikes
+            .map((bike) => {
+                const match = bike.code.match(/^([A-Za-z]+)(\d+)$/);
+
+                if (!match) return null;
+
+                return {
+                    prefix: match[1],
+                    number: Number(match[2]),
+                };
+            })
+            .filter(Boolean);
+
+        if (validBikes.length === 0) {
+            return "";
+        }
+
+        // Use the prefix belonging to this bike type
+        const prefix = validBikes[0].prefix;
+
+        // Find the highest number for that prefix
+        const highestNumber = validBikes
+            .filter((bike) => bike.prefix === prefix)
+            .reduce((max, bike) => Math.max(max, bike.number), 0);
+
+        return `${prefix}${highestNumber + 1}`;
+    };
+
+    const filteredBikes = bikes.filter((bike) => {
+        if (bikeStatusFilter === "All") return true;
+
+        return bike.status === bikeStatusFilter;
+    });
+
+    useEffect(() => {
+        if (addBike) {
+            setBikeId(getNextBikeCode());
+            setBikeIdError("");
+        }
+    }, [addBike, bikes]);
     
     const availableCount = bikes.filter(
         bike => bike.status === "Available"
@@ -32,6 +79,10 @@ function BikeRow({bikeType, capacity, price, image, bikes, bikeTypeId, setBikeEd
 
     const lostCount = bikes.filter(
         bike => bike.status === "Lost"
+    ).length;
+
+    const damagedCount = bikes.filter(
+        (bike) => bike.status === "Damaged"
     ).length;
 
     const handleNewBikeSubmit = async () => {
@@ -158,35 +209,89 @@ function BikeRow({bikeType, capacity, price, image, bikes, bikeTypeId, setBikeEd
                                 className='flex flex-col gap-7 py-5'
                             >
                                 <div className='flex flex-col gap-3'>
-                                    <div className='xl:px-8 grid md:grid-cols-3 xl:grid-cols-5 grid-cols-2 gap-2 text-center font-akagi text-md font-bold text-gray'>
-                                        <div className='border border-[#c9c9c9] hover:scale-103 hover:shadow-2xl duration-300 transition-all rounded-lg shadow-lg flex flex-col gap-2 py-2 items-center'>
+                                    <div className='xl:px-8 grid md:grid-cols-3 xl:grid-cols-6 grid-cols-2 gap-2 text-center font-akagi text-md font-bold text-gray'>
+                                        <div
+                                            onClick={() => setBikeStatusFilter("All")}
+                                            className={`cursor-pointer border hover:scale-103 hover:shadow-2xl duration-300 transition-all rounded-lg shadow-lg flex flex-col gap-2 py-2 items-center
+                                                ${
+                                                    bikeStatusFilter === "All"
+                                                        ? "bg-blue text-[#ffffff] border-blue"
+                                                        : "bg-[#EBEBEB] text-gray border-[#c9c9c9]"
+                                                }`}
+                                        >
                                             <h1>Total Qty</h1>
                                             <h1 className='text-xl'>{totalBikes}</h1>
                                         </div>
 
-                                        <div className='border border-[#c9c9c9] hover:scale-103 hover:shadow-2xl duration-300 transition-all rounded-lg shadow-lg flex flex-col gap-2 py-2 items-center'>
+                                        <div
+                                            onClick={() => setBikeStatusFilter("Available")}
+                                            className={`cursor-pointer border hover:scale-103 hover:shadow-2xl duration-300 transition-all rounded-lg shadow-lg flex flex-col gap-2 py-2 items-center
+                                                ${
+                                                    bikeStatusFilter === "Available"
+                                                        ? "bg-blue text-[#ffffff] border-blue"
+                                                        : "bg-[#EBEBEB] text-gray border-[#c9c9c9]"
+                                                }`}
+                                        >
                                             <h1>Available</h1>
                                             <h1 className='text-xl'>{availableCount}</h1>
                                         </div>
 
-                                        <div className='border border-[#c9c9c9] hover:scale-103 hover:shadow-2xl duration-300 transition-all rounded-lg shadow-lg flex flex-col gap-2 py-2 items-center'>
+                                        <div
+                                            onClick={() => setBikeStatusFilter("Rented")}
+                                            className={`cursor-pointer border hover:scale-103 hover:shadow-2xl duration-300 transition-all rounded-lg shadow-lg flex flex-col gap-2 py-2 items-center
+                                                ${
+                                                    bikeStatusFilter === "Rented"
+                                                        ? "bg-blue text-[#ffffff] border-blue"
+                                                        : "bg-[#EBEBEB] text-gray border-[#c9c9c9]"
+                                                }`}
+                                        >
                                             <h1>Currently Rented</h1>
                                             <h1 className='text-xl'>{rentedCount}</h1>
                                         </div>
 
-                                        <div className='border border-[#c9c9c9] hover:scale-103 hover:shadow-2xl duration-300 transition-all rounded-lg shadow-lg flex flex-col gap-2 py-2 items-center'>
+                                        <div
+                                            onClick={() => setBikeStatusFilter("Under Maintenance")}
+                                            className={`cursor-pointer border hover:scale-103 hover:shadow-2xl duration-300 transition-all rounded-lg shadow-lg flex flex-col gap-2 py-2 items-center
+                                                ${
+                                                    bikeStatusFilter === "Under Maintenance"
+                                                        ? "bg-blue text-[#ffffff] border-blue"
+                                                        : "bg-[#EBEBEB] text-gray border-[#c9c9c9]"
+                                                }`}
+                                        >
                                             <h1>Under Maintenance</h1>
                                             <h1 className='text-xl'>{maintenanceCount}</h1>
                                         </div>
 
-                                        <div className='border border-[#c9c9c9] hover:scale-103 hover:shadow-2xl duration-300 transition-all rounded-lg shadow-lg flex flex-col gap-2 py-2 items-center'>
+                                        <div
+                                            onClick={() => setBikeStatusFilter("Lost")}
+                                            className={`cursor-pointer border hover:scale-103 hover:shadow-2xl duration-300 transition-all rounded-lg shadow-lg flex flex-col gap-2 py-2 items-center
+                                                ${
+                                                    bikeStatusFilter === "Lost"
+                                                        ? "bg-blue text-[#ffffff] border-blue"
+                                                        : "bg-[#EBEBEB] text-gray border-[#c9c9c9]"
+                                                }`}
+                                        >
                                             <h1>Lost</h1>
                                             <h1 className='text-xl'>{lostCount}</h1>
+                                        </div>
+
+                                        <div
+                                            onClick={() => setBikeStatusFilter("Damaged")}
+                                            className={`cursor-pointer border hover:scale-103 hover:shadow-2xl duration-300 transition-all rounded-lg shadow-lg flex flex-col gap-2 py-2 items-center
+                                                ${
+                                                    bikeStatusFilter === "Damaged"
+                                                        ? "bg-blue text-[#ffffff] border-blue"
+                                                        : "bg-[#EBEBEB] text-gray border-[#c9c9c9]"
+                                                }`}
+                                        >
+                                            <h1>Damaged</h1>
+                                            <h1 className='text-xl'>{damagedCount}</h1>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div className='flex flex-col gap-3'>
+                                    
                                     <div className='hidden px-3 md:grid md:grid-cols-[1fr_1fr_1fr_1fr_30px] gap-2 font-akagi font-bold text-gray/50 text-md text-center'>
                                         <div className=''>
                                             ID
@@ -209,10 +314,10 @@ function BikeRow({bikeType, capacity, price, image, bikes, bikeTypeId, setBikeEd
                                         </div>
                                     </div>
 
-                                    <div className='flex flex-col gap-2'>
-                                        {
-                                            bikes.map((bike) => (
-                                                <BikeInventoryInfo 
+                                    <div className="flex flex-col gap-2">
+                                        {filteredBikes.length > 0 ? (
+                                            filteredBikes.map((bike) => (
+                                                <BikeInventoryInfo
                                                     key={bike.id}
                                                     bikeId={bike.id}
                                                     bikeCode={bike.code}
@@ -227,7 +332,11 @@ function BikeRow({bikeType, capacity, price, image, bikes, bikeTypeId, setBikeEd
                                                     setFetchImage={setFetchImage}
                                                 />
                                             ))
-                                        }
+                                        ) : (
+                                            <div className="text-center py-6 font-akagi font-medium text-gray">
+                                                No {bikeStatusFilter === "All" ? "" : bikeStatusFilter.toLowerCase() + " "}bikes found.
+                                            </div>
+                                        )}
                                     </div>
 
                                     <div className='w-full flex items-center justify-center'>
@@ -284,9 +393,14 @@ function BikeRow({bikeType, capacity, price, image, bikes, bikeTypeId, setBikeEd
                                 </div>
 
                                 <div className='w-full flex flex-row gap-2 justify-end'>
-                                    <div 
-                                        onClick={() => {setAddBike(false)}}
-                                        className='bg-red-500 rounded-lg px-2 py-1 text-[#ffffff] transition-all duration-300 hover:scale-103 cursor-pointer'>
+                                    <div
+                                        onClick={() => {
+                                            setAddBike(false);
+                                            setBikeId("");
+                                            setBikeIdError("");
+                                        }}
+                                        className="bg-red-500 rounded-lg px-2 py-1 text-[#ffffff] transition-all duration-300 hover:scale-103 cursor-pointer"
+                                    >
                                         Cancel
                                     </div>
 

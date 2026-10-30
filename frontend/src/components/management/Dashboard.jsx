@@ -12,7 +12,7 @@ import {
     Tooltip,
     ResponsiveContainer } from "recharts";
 
-function Dashboard() {
+function Dashboard({ role }) {
 
     const today = new Date();
 
@@ -110,7 +110,7 @@ function Dashboard() {
     <>
 
         <div className='w-full h-screen bg-[#F2F2F2] flex'>
-            <Sidebar active={'dashboard'}/>
+            <Sidebar active="dashboard" userRole={role} />
 
             <motion.div
                 initial={{ height: 0, opacity: 0 }}

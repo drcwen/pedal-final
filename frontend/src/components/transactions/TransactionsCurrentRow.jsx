@@ -10,7 +10,7 @@ import { MdRateReview } from "react-icons/md";
 import { supabase } from "../../lib/supabase";
 import { FaStar } from "react-icons/fa";
 
-function TransactionCurrentRow({ bikeCount, date, method, total, status, transactions, startedBikes }) {
+function TransactionCurrentRow({ bikeCount, date, method, total, status, transactions, fetchTransactions, startedBikes }) {
 
     const [openReceipt, setOpenReceipt] = useState(false);
     const [openRefund, setOpenRefund] = useState(false);
@@ -49,6 +49,19 @@ function TransactionCurrentRow({ bikeCount, date, method, total, status, transac
             minute: "2-digit",
             hour12: true
         });
+    }
+
+    function formatDate(date) {
+        if (!date) return "";
+
+        const [year, month, day] = date.split("-").map(Number);
+
+        return new Date(year, month - 1, day)
+            .toLocaleDateString("en-US", {
+                month: "long",
+                day: "2-digit",
+                year: "numeric"
+            });
     }
 
     function getReservationDatePH(range) {
@@ -94,6 +107,61 @@ function TransactionCurrentRow({ bikeCount, date, method, total, status, transac
     const [showTransaction, setShowTransaction] = useState(false);
 
     const [refundSubmitting, setRefundSubmitting] = useState(false);
+
+    const sendRefundNotifications = async (transactionId) => {
+        try {
+            // Get the currently logged-in customer
+            const {
+                data: { user },
+                error: userError
+            } = await supabase.auth.getUser();
+
+            if (userError) throw userError;
+
+            if (!user) {
+                throw new Error("Unable to identify the logged-in user.");
+            }
+
+            // Get all admins and cashiers
+            const { data: employees, error: employeesError } = await supabase
+                .from("profiles_mod")
+                .select("id, role")
+                .in("role", ["admin", "cashier"]);
+
+            if (employeesError) throw employeesError;
+
+            if (!employees || employees.length === 0) {
+                throw new Error("No admins or cashiers were found.");
+            }
+
+            // Get the first order associated with this transaction
+            const orderId = transactions?.orders_mod?.[0]?.id ?? null;
+
+            // Create one notification for each employee
+            const notifications = employees.map((employee) => ({
+                recipient_id: employee.id,
+                sender_id: user.id,
+                order_id: orderId,
+                transaction_id: transactionId,
+                type: "refund_request",
+                title: "New Refund Request",
+                message: `A customer has submitted a refund request for transaction #${transactionId}. Please review the request.`,
+                is_read: false
+            }));
+
+            // Insert notifications
+            const { error: notificationError } = await supabase
+                .from("notifications_mod")
+                .insert(notifications);
+
+            if (notificationError) throw notificationError;
+
+            console.log("Refund notifications successfully sent!");
+
+        } catch (error) {
+            console.error("Error sending refund notifications:", error);
+        }
+    };
 
     const handleSubmit = async () => {
         if (existingRefund || refundSubmitting) {
@@ -154,42 +222,80 @@ function TransactionCurrentRow({ bikeCount, date, method, total, status, transac
         try {
             setRefundSubmitting(true);
 
+            // Insert the refund request
             const refundRequest = {
-                original_transaction_id: transactions.id,
-                reason: refundReason,
+                original_transaction_id: originalTransactionId,
+                reason: refundReason.trim(),
                 additional_details: refundNotes.trim(),
                 refund_method: refundMethod,
                 account_holder_name: refundAccountName.trim(),
                 account_number: accountDigits,
-                status: existingRefund?.status ?? "pending",
+                status: "pending",
             };
 
-            let data;
-            let error;
-
-            if (existingRefund) {
-                setRefundError("A refund request already exists for this transaction.");
-                return;
-            }
-
-            ({ data, error } = await supabase
+            const { data, error: refundErrorResult } = await supabase
                 .from("refund_mod")
                 .insert([refundRequest])
                 .select()
-                .single());
+                .single();
 
-            if (error) {
-                console.error("Supabase refund error:", error);
-                setRefundError(error.message || "Failed to save the refund request.");
+            if (refundErrorResult) {
+                console.error("Supabase refund error:", refundErrorResult);
+                setRefundError(
+                    refundErrorResult.message ||
+                    "Failed to save the refund request."
+                );
                 return;
             }
 
+            console.log("Transaction ID:", originalTransactionId);
+            console.log("Transaction ID type:", typeof originalTransactionId);
+
+            const {
+                data: updatedTransaction,
+                error: transactionError,
+            } = await supabase
+                .from("transactions_mod")
+                .update({ status: "pending refund" })
+                .eq("id", originalTransactionId)
+                .select("id, status");
+
+            console.log("Updated transaction:", updatedTransaction);
+            console.log("Update error:", transactionError);
+
+            if (transactionError) {
+                setExistingRefund(data);
+                setRefundError(
+                    `Refund request saved, but transaction update failed: ${transactionError.message}`
+                );
+                return;
+            }
+
+            if (!updatedTransaction || updatedTransaction.length === 0) {
+                setExistingRefund(data);
+                setRefundError(
+                    "Refund request saved, but no transaction was updated. Check the transaction ID and RLS policies."
+                );
+                return;
+            }
+
+            // Both operations succeeded
             setExistingRefund(data);
+
+            // Notify all admins and cashiers
+            await sendRefundNotifications(originalTransactionId);
+
             setOpenRefund(false);
             setShowTransaction(false);
+
+            await fetchTransactions();
+
         } catch (error) {
             console.error("Refund submission error:", error);
-            setRefundError("Something went wrong while saving your refund request.");
+            setRefundError(
+                error.message ||
+                "Something went wrong while saving your refund request."
+            );
         } finally {
             setRefundSubmitting(false);
         }
@@ -374,6 +480,8 @@ function TransactionCurrentRow({ bikeCount, date, method, total, status, transac
         }
     };
 
+    console.log("transactions", transactions)
+
     return (
         <>
         <div
@@ -385,7 +493,7 @@ function TransactionCurrentRow({ bikeCount, date, method, total, status, transac
                 </div>
 
                     <div className='flex justify-center'>
-                        <h1 className='text-xl font-akagi font-bold text-[#6D7172]'>{date}</h1>
+                        <h1 className='text-xl font-akagi font-bold text-[#6D7172]'>{formatDate(transactions?.orders_mod[0]?.reservation_date)}</h1>
                     </div>
 
                 <div className='flex justify-center'>
@@ -396,10 +504,33 @@ function TransactionCurrentRow({ bikeCount, date, method, total, status, transac
                     <h1 className='text-xl font-akagi font-bold text-[#6D7172]'>{total}</h1>
                 </div>
 
-                <div className='flex justify-center rounded-lg'>
-                    
-                    <div className='rounded-lg py-1 px-3 bg-yellow'>
-                        <h1 className='text-md font-akagi font-bold text-navyblue'>{status}</h1>
+                <div className="flex justify-center rounded-lg">
+                    <div
+                        className={`rounded-full uppercase py-1 px-3 ${
+                            status?.toLowerCase() === "refunded"
+                                ? "bg-green-600"
+                                : status?.toLowerCase() === "refund rejected"
+                                ? "bg-red-600"
+                                : status?.toLowerCase() === "pending"
+                                ? "bg-yellow"
+                                : status?.toLowerCase() === "completed"
+                                ? "bg-gray-500"
+                                : status?.toLowerCase() === "started"
+                                ? "bg-blue" 
+                                : "bg-yellow"
+                        }`}
+                    >
+                        <h1
+                            className={`text-md font-akagi font-bold tracking-wide ${
+                                ["refunded", "refund rejected", "completed", "started"].includes(
+                                    status?.toLowerCase()
+                                )
+                                    ? "text-[#ffffff]"
+                                    : "text-navyblue"
+                            }`}
+                        >
+                            {status}
+                        </h1>
                     </div>
                 </div>
 
@@ -408,25 +539,56 @@ function TransactionCurrentRow({ bikeCount, date, method, total, status, transac
                 </div>
             </div>
 
-            <div className='lg:hidden grid grid-cols-4 justify-between items-center'>
-                <div className='w-fit rounded-lg px-3 py-1 bg-yellow'>
-                    <h1 className='text-lg font-akagi font-black text-navyblue'>{bikeCount}</h1>
+            <div className="lg:hidden grid grid-cols-[auto_1fr_1fr_auto] items-center gap-2">
+                {/* Bike count */}
+                <div className="w-fit rounded-lg px-2 sm:px-3 py-1 bg-yellow">
+                    <h1 className="text-base sm:text-lg font-akagi font-black text-navyblue">
+                        {bikeCount}
+                    </h1>
                 </div>
 
-                <div className=''>
-                    <div className='flex justify-center'>
-                        <h1 className='text-md font-akagi font-bold text-[#6D7172]'>{date}</h1>
+                {/* Date */}
+                <div className="min-w-0 flex justify-center">
+                    <h1 className="text-sm sm:text-md font-akagi font-bold text-[#6D7172] text-center whitespace-nowrap">
+                        {date}
+                    </h1>
+                </div>
+
+                {/* Status */}
+                <div className="flex justify-center">
+                    <div
+                        className={`w-fit rounded-full uppercase py-1 px-2 sm:px-3 ${
+                            status?.toLowerCase() === "refunded"
+                                ? "bg-green-600"
+                                : status?.toLowerCase() === "refund rejected"
+                                ? "bg-red-600"
+                                : status?.toLowerCase() === "pending"
+                                ? "bg-yellow"
+                                : status?.toLowerCase() === "completed"
+                                ? "bg-gray-500"
+                                : status?.toLowerCase() === "started"
+                                ? "bg-blue"
+                                : "bg-yellow"
+                        }`}
+                    >
+                        <h1
+                            className={`text-[10px] sm:text-sm font-akagi font-bold tracking-normal text-center leading-tight whitespace-nowrap ${
+                                ["refunded", "refund rejected", "completed", "started"].includes(
+                                    status?.toLowerCase()
+                                )
+                                    ? "text-[#ffffff]"
+                                    : "text-navyblue"
+                            }`}
+                        >
+                            {status}
+                        </h1>
                     </div>
                 </div>
 
-                <div className='flex justify-center'>
-                    <h1 className='text-md font-akagi font-bold text-[#6D7172]'>{method}</h1>
+                {/* Arrow */}
+                <div className="flex justify-end">
+                    <FaArrowRight className="text-base sm:text-lg text-[#6D7172]" />
                 </div>
-
-                <div className='flex justify-end'>
-                    <FaArrowRight className='text-lg text-[#6D7172]'/>
-                </div>
-
             </div>
 
             <div className='h-0.5 w-full bg-black/10 rounded-lg'/>
@@ -459,14 +621,34 @@ function TransactionCurrentRow({ bikeCount, date, method, total, status, transac
                             className='text-xl cursor-pointer'/>
                     </div>
 
-                    <div className='flex flex-col gap-2'>
+                    <div className='lg:grid lg:grid-cols-2 flex flex-col gap-1'>
                         <div className='grid grid-cols-[120px_1fr]'>
                             <h1>Payment Date:</h1>
-                            <h1>{date}</h1>
+                            <h1 className='font-medium'>{date}</h1>
+                        </div>
+                        <div className='grid grid-cols-[120px_1fr]'>
+                            <h1>Rent Date:</h1>
+                            <h1 className='font-medium'>{formatDate(transactions?.orders_mod[0]?.reservation_date)}</h1>
+                        </div>
+                        <div className='grid grid-cols-[120px_1fr]'>
+                            <h1>Method:</h1>
+                            <h1 className='font-medium'>{transactions?.payment_method}</h1>
+                        </div>
+                        <div className='grid grid-cols-[120px_1fr]'>
+                            <h1>Reference No:</h1>
+                            <h1 className='font-medium'>{transactions?.reference_number}</h1>
                         </div>
                         <div className='grid grid-cols-[120px_1fr]'>
                             <h1>Status:</h1>
-                            <h1>{status}</h1>
+                            <h1 className='font-medium'>
+                                {status
+                                    ? status
+                                        .split(" ")
+                                        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                                        .join(" ")
+                                    : ""
+                                }
+                            </h1>
                         </div>
 
                     </div>
@@ -484,12 +666,26 @@ function TransactionCurrentRow({ bikeCount, date, method, total, status, transac
 
                                     <div className='flex flex-col'>
                                         <h1 className='text-sm font-akagi font-bold text-gray'>BIKE ID</h1>
-                                        <h1 className='text-sm font-akagi font-medium text-gray'>{orders?.bikes_mod?.code ?? "WAITING"}</h1>
+                                        <h1 className='text-sm font-akagi font-medium text-gray'>
+                                            {status === "pending"
+                                                ? "WAITING"
+                                                : ["refunded", "refund rejected", "completed"].includes(status)
+                                                    ? (orders?.bikes_mod?.code ?? "N/A")
+                                                    : (orders?.bikes_mod?.code ?? "WAITING")
+                                            }
+                                        </h1>
                                     </div>
 
                                     <div className='flex flex-col'>
                                         <h1 className='text-sm font-akagi font-bold text-gray'>GPS ID</h1>
-                                        <h1 className='text-sm font-akagi font-medium text-gray'>{orders?.gps_mod?.code ?? "WAITING"}</h1>
+                                        <h1 className='text-sm font-akagi font-medium text-gray'>
+                                            {status === "pending"
+                                                ? "WAITING"
+                                                : ["refunded", "refund rejected", "completed"].includes(status)
+                                                    ? (orders?.gps_mod?.code ?? "N/A")
+                                                    : (orders?.gps_mod?.code ?? "WAITING")
+                                            }
+                                        </h1>
                                     </div>
 
                                     <div className='flex flex-col'>
@@ -522,7 +718,9 @@ function TransactionCurrentRow({ bikeCount, date, method, total, status, transac
                         {(
                             status === "pending" ||
                             status === "refund rejected" ||
-                            status === "refunded"
+                            status === "refunded" ||
+                            status === "pending refund" || 
+                            status === "unattended"
                         ) && (
                             <div
                                 onClick={async (e) => {
@@ -764,6 +962,84 @@ function TransactionCurrentRow({ bikeCount, date, method, total, status, transac
                                     />
                                 </div>
 
+                                <div
+                                            className={`rounded-lg p-3 flex gap-2 items-start border ${
+                                                !existingRefund
+                                                    ? "bg-red-50 border-red-200"
+                                                    : existingRefund.status?.toLowerCase() === "rejected"
+                                                        ? "bg-red-50 border-red-200"
+                                                        : existingRefund.status?.toLowerCase() === "approved"
+                                                            ? "bg-green-50 border-green-200"
+                                                            : "bg-yellow-50 border-yellow-200"
+                                            }`}
+                                        >
+                                            <RiRefundFill
+                                                className={`text-xl shrink-0 mt-0.5 ${
+                                                    !existingRefund
+                                                        ? "text-red-400"
+                                                        : existingRefund.status?.toLowerCase() === "rejected"
+                                                            ? "text-red-500"
+                                                            : existingRefund.status?.toLowerCase() === "approved"
+                                                                ? "text-green-600"
+                                                                : "text-yellow-600"
+                                                }`}
+                                            />
+
+                                            <p
+                                                className={`text-xs md:text-sm font-medium ${
+                                                    !existingRefund
+                                                        ? "text-red-500"
+                                                        : existingRefund.status?.toLowerCase() === "rejected"
+                                                            ? "text-red-600"
+                                                            : existingRefund.status?.toLowerCase() === "approved"
+                                                                ? "text-green-700"
+                                                                : "text-yellow-700"
+                                                }`}
+                                            >
+                                                {!existingRefund ? (
+                                                    <>
+                                                        Submitting this form does not guarantee approval.
+                                                        Your refund request will be reviewed by the 3Jremy's POS administrator.
+                                                        Please double-check your refund amount and account details.
+                                                    </>
+                                                ) : existingRefund.status?.toLowerCase() === "rejected" ? (
+                                                    <>
+                                                        Your refund request has been rejected by 3Jremy's POS administrator.
+                                                        Please review the reason below.
+                                                    </>
+                                                ) : existingRefund.status?.toLowerCase() === "approved" ? (
+                                                    <>
+                                                        Your refund request has been approved by 3Jremy's POS administrator.
+                                                        Please wait for the refund to be processed.
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        Your refund request has been submitted successfully!
+                                                        Please check back here once the 3Jremy's POS administrator responds to your request. Thank you for your patience!
+                                                    </>
+                                                )}
+                                            </p>
+                                        </div>
+
+                                        {/* Admin Rejection Reason */}
+                                        {existingRefund?.status?.toLowerCase() === "rejected" && (
+                                            <div className="rounded-lg border border-red-200 bg-red-50 p-4 flex flex-col gap-2">
+                                                <h2 className="text-sm font-bold text-red-600">
+                                                    Reason for Rejection
+                                                </h2>
+
+                                                <p className="text-sm font-medium text-red-700 whitespace-pre-wrap break-words">
+                                                    {existingRefund.rejection_reason || "No rejection reason was provided."}
+                                                </p>
+                                            </div>
+                                        )}
+
+                                    {refundError && (
+                                        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                                            {refundError}
+                                        </p>
+                                    )}
+
                                 {/* Refund information */}
                                 <div className="flex flex-col gap-4">
 
@@ -938,70 +1214,7 @@ function TransactionCurrentRow({ bikeCount, date, method, total, status, transac
                                     </div>
 
                                     {/* Refund Status Notice */}
-                                        <div
-                                            className={`rounded-lg p-3 flex gap-2 items-start border ${
-                                                !existingRefund
-                                                    ? "bg-red-50 border-red-200"
-                                                    : existingRefund.status?.toLowerCase() === "rejected"
-                                                        ? "bg-red-50 border-red-200"
-                                                        : existingRefund.status?.toLowerCase() === "approved"
-                                                            ? "bg-green-50 border-green-200"
-                                                            : "bg-yellow-50 border-yellow-200"
-                                            }`}
-                                        >
-                                            <RiRefundFill
-                                                className={`text-xl shrink-0 mt-0.5 ${
-                                                    !existingRefund
-                                                        ? "text-red-400"
-                                                        : existingRefund.status?.toLowerCase() === "rejected"
-                                                            ? "text-red-500"
-                                                            : existingRefund.status?.toLowerCase() === "approved"
-                                                                ? "text-green-600"
-                                                                : "text-yellow-600"
-                                                }`}
-                                            />
-
-                                            <p
-                                                className={`text-xs md:text-sm font-medium ${
-                                                    !existingRefund
-                                                        ? "text-red-500"
-                                                        : existingRefund.status?.toLowerCase() === "rejected"
-                                                            ? "text-red-600"
-                                                            : existingRefund.status?.toLowerCase() === "approved"
-                                                                ? "text-green-700"
-                                                                : "text-yellow-700"
-                                                }`}
-                                            >
-                                                {!existingRefund ? (
-                                                    <>
-                                                        Submitting this form does not guarantee approval.
-                                                        Your refund request will be reviewed by the 3Jremy's POS administrator.
-                                                        Please double-check your refund amount and account details.
-                                                    </>
-                                                ) : existingRefund.status?.toLowerCase() === "rejected" ? (
-                                                    <>
-                                                        Your refund request has been rejected by 3Jremy's POS administrator.
-                                                        Please contact the administrator if you need more information.
-                                                    </>
-                                                ) : existingRefund.status?.toLowerCase() === "approved" ? (
-                                                    <>
-                                                        Your refund request has been approved by 3Jremy's POS administrator.
-                                                        Please wait for the refund to be processed.
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        Your refund request has been submitted successfully!
-                                                        Please check back here once the 3Jremy's POS administrator responds to your request. Thank you for your patience!
-                                                    </>
-                                                )}
-                                            </p>
-                                        </div>
-
-                                    {refundError && (
-                                        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-                                            {refundError}
-                                        </p>
-                                    )}
+                                        
 
                                     {/* Actions */}
                                     <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2">

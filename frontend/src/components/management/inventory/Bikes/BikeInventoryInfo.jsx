@@ -244,13 +244,13 @@ function BikeInventoryInfo({
                     12/22/2026
                 </div>
 
-                <div className="hidden md:flex justify-center">
+                <div className="flex justify-center">
                     <div
                         onClick={() => setOpenQr(true)}
                         className="p-1 px-2 bg-blue text-[#ffffff] cursor-pointer w-fit rounded-lg flex gap-2 items-center font-medium text-sm"
                     >
                         <IoQrCode className="text-md" />
-                        View QR
+                        <h1 className='hidden md:block'>View QR</h1>
                     </div>
                 </div>
 

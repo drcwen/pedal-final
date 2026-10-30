@@ -3,8 +3,11 @@
 import { motion } from "motion/react"
 import { fadeScale } from "../../animations/fadeScale"
 import {buttonClickBounce} from "../../animations/buttonClickBounce"
+import { useNavigate } from 'react-router-dom';
 
 function HeroSection() {
+
+  const navigate = useNavigate();
   
   return (
     <>
@@ -43,7 +46,9 @@ function HeroSection() {
                   whileTap={{ scale: 0.95 }}
                   onHoverStart={() => console.log('hover started!')}
                 >
-                  <div className='bg-yellow border-yellow border-3 px-10 py-3 rounded-sm text-center shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer'>
+                  <div
+                    onClick={() => {navigate("/reserve")}} 
+                    className='bg-yellow border-yellow border-3 px-10 py-3 rounded-sm text-center shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer'>
                     <h1 className='text-xl font-akagi font-black text-darkblue'>Reserve Now!</h1>
                   </div>
                 </motion.button>

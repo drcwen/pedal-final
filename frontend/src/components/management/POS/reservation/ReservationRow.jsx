@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import AssignBikes from "./AssignBikes";
 import ReservationReceipt from "./ReservationReceipt";
 import { MdOutlineReceiptLong } from "react-icons/md";
+import { printReceipt } from "../../transaction history/printReceipt"
 
 function ReservationRow({
     name,
@@ -14,7 +15,8 @@ function ReservationRow({
     start,
     bikeDetails,
     customer,
-    transaction
+    transaction,
+    refreshTransactions
 }) {
     const [dropdown, setDropdown] = useState(false);
     const [startRow, setStartRow] = useState(false);
@@ -271,16 +273,15 @@ function ReservationRow({
 
                 {startRow && (
                     <AssignBikes
-                        key={customer.id}
+                        key={customer?.id}
                         fullName={
-                            customer.first_name === null
-                                ? customer.full_name
-                                : customer.first_name +
-                                  " " +
-                                  customer.last_name
+                            customer?.first_name
+                                ? customer.first_name + " " + customer.last_name
+                                : customer?.full_name
                         }
                         bikeDetails={bikeDetails}
                         transaction={transaction}
+                        refreshTransactions={refreshTransactions}
                         onClose={() => setStartRow(false)}
                     />
                 )}

@@ -9,7 +9,7 @@ import BikesTile from "./BikesTile"
 import ProceedWalkInRent from "./proceed/ProceedWalkInRent"
 import { FaTrash } from "react-icons/fa";
 
-function WalkInRent() {
+function WalkInRent({role}) {
     
     const navigate = useNavigate();
     const [info, setInfo] = useState([]);
@@ -244,11 +244,27 @@ function WalkInRent() {
         setOpenBikeId(bikeId);
     };
 
+    const handlePayment = () => {
+        if (grandTotal <= 0) return;
+
+        // Cash payment
+        if (method === "Cash") {
+            const tendered = Number(cashAmount);
+
+            if (!cashAmount || isNaN(tendered) || tendered < grandTotal) {
+                alert("Please enter an amount equal to or greater than the total.");
+                return;
+            }
+
+            setProceed(true);
+        }
+    };
+
   return (
     <>
 
         <div className='w-full h-screen bg-[#F2F2F2] flex'>
-            <Sidebar active={'pos'}/>
+            <Sidebar active={'pos'} userRole={role}/>
             <SidebarMobile active={'pos'}/>
 
             <div className='flex-1 p-4 pb-30 overflow-y-scroll scrollbar-thin scrollbar-thumb-[#B9B9B9] scrollbar-track-[#E2E2E2] min-[1330px]:pr-60'>
@@ -524,8 +540,17 @@ function WalkInRent() {
                                     }
                                 </div>
 
-                                <div className='w-fit self-end bg-yellow rounded-xl px-8 py-3 text-center'>
-                                    <h1 className='text-xl font-bold font-akagi text-darkblue'>Payment</h1>
+                                <div
+                                    onClick={handlePayment}
+                                    className={`w-fit self-end rounded-xl px-8 py-3 text-center transition-all duration-300 ${
+                                        grandTotal > 0 && method === "Cash"
+                                            ? "bg-yellow hover:scale-105 cursor-pointer"
+                                            : "bg-yellow/50 cursor-not-allowed"
+                                    }`}
+                                >
+                                    <h1 className='text-xl font-bold font-akagi text-darkblue'>
+                                        Payment
+                                    </h1>
                                 </div>
 
                                 {proceed && 

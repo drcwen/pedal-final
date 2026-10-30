@@ -202,7 +202,7 @@ function AccountDetails({ fullName, role, email, contact, id, branch, firstName,
         <div 
             className='w-full h-screen md:bg-[#F2F2F2] flex'
         >
-            <Sidebar active={'accounts'}/>
+            <Sidebar active={'accounts'} userRole={role}/>
 
             <motion.div
                 initial={{ height: 0, opacity: 0 }}

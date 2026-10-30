@@ -25,8 +25,14 @@ function MaintenanceRow({
 
     inventoryBikeCode,
     inventoryBikeTypeId,
-    inventoryBikeId
+    inventoryBikeId,
     
+    customerName,
+    customer,
+    originalTransaction,
+    walkInCustomerIdType,
+
+    isSettled
 }) {
 
     const [dropDown, setDropDown] = useState(false);
@@ -57,66 +63,61 @@ function MaintenanceRow({
 
                     <div className='w-full flex justify-center'>
 
-                        <div className='relative'>
-
-                            <div
-                                onClick={() =>
-                                    setStatusDropDown(!statusDropDown)
-                                }
-                                className={`w-fit ${
-                                    status === "Ongoing"
-                                        ? 'bg-red-400'
-                                        : 'bg-green-400'
-                                } rounded-full text-xs flex flex-row gap-2 items-center text-[#ffffff] px-3 py-2 cursor-pointer select-none`}
-                            >
-
-                                {status}
-
-                                {statusDropDown ? (
-                                    <RiArrowDropUpLine className='text-lg' />
-                                ) : (
-                                    <RiArrowDropDownLine className='text-lg' />
-                                )}
-
-                            </div>
-
-                            {statusDropDown && (
-                                <div className='absolute top-full left-1/2 -translate-x-1/2 mt-2 min-w-[120px] bg-gray rounded-lg shadow-lg z-[100] overflow-hidden'>
-
+                        <div className="relative">
+                            {isSettled ? (
+                                // Settled records display a status label only.
+                                <div className="w-fit bg-green-400 rounded-full text-xs flex items-center text-[#ffffff] px-3 py-2 select-none">
+                                    Settled
+                                </div>
+                            ) : (
+                                <>
                                     <div
-                                        onClick={() => {
-                                            setStatusDropDown(false);
-                                        }}
-                                        className='text-[#ffffff] px-3 py-2 cursor-pointer hover:bg-blue transition-colors'
+                                        onClick={() => setStatusDropDown(!statusDropDown)}
+                                        className="w-fit bg-red-400 rounded-full text-xs flex flex-row gap-2 items-center text-[#ffffff] px-3 py-2 cursor-pointer select-none"
                                     >
                                         Ongoing
+
+                                        {statusDropDown ? (
+                                            <RiArrowDropUpLine className="text-lg" />
+                                        ) : (
+                                            <RiArrowDropDownLine className="text-lg" />
+                                        )}
                                     </div>
 
-                                    <div
-                                        onClick={() => {
-                                            setStatusDropDown(false);
-                                            setSettle({
-                                                bikeId,
-                                                bikeTypeId,
-                                                reason,
-                                                status,
-                                                settle,
-                                                bikeCode,
-                                                maintenanceId,
-                                                managementBikeId,
-                                                managementBikeCode,
-                                                managementBikeTypeId
-                                            }
-                                            )
-                                        }}
-                                        className='text-[#ffffff] px-3 py-2 cursor-pointer hover:bg-yellow transition-colors'
-                                    >
-                                        Settled
-                                    </div>
+                                    {statusDropDown && (
+                                        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 min-w-[120px] bg-gray rounded-lg shadow-lg z-[100] overflow-hidden">
+                                            <div
+                                                onClick={() => setStatusDropDown(false)}
+                                                className="text-[#ffffff] px-3 py-2 cursor-pointer hover:bg-blue transition-colors"
+                                            >
+                                                Ongoing
+                                            </div>
 
-                                </div>
+                                            <div
+                                                onClick={() => {
+                                                    setStatusDropDown(false);
+
+                                                    setSettle({
+                                                        bikeId,
+                                                        bikeTypeId,
+                                                        reason,
+                                                        status,
+                                                        settle,
+                                                        bikeCode,
+                                                        maintenanceId,
+                                                        managementBikeId,
+                                                        managementBikeCode,
+                                                        managementBikeTypeId,
+                                                    });
+                                                }}
+                                                className="text-[#ffffff] px-3 py-2 cursor-pointer hover:bg-yellow transition-colors"
+                                            >
+                                                Settled
+                                            </div>
+                                        </div>
+                                    )}
+                                </>
                             )}
-
                         </div>
                     </div>
                 </div>
@@ -154,21 +155,22 @@ function MaintenanceRow({
                                     Customer Details
                                 </h1>
 
-                                <div className={` flex flex-col gap-1 px-5`}>
+                                <div className="flex flex-col gap-1 px-5">
 
-                                    <div className='grid grid-cols-[100px_1fr]'>
+                                    <div className="grid grid-cols-[100px_1fr]">
                                         <h1>Name:</h1>
-                                        <h1>Wendel Derraco</h1>
+                                        <h1 className='font-medium'>{customerName}</h1>
                                     </div>
 
-                                    <div className='grid grid-cols-[100px_1fr]'>
+                                    <div className="grid grid-cols-[100px_1fr]">
                                         <h1>Type:</h1>
-                                        <h1>Walk-in</h1>
-                                    </div>
-
-                                    <div className='grid grid-cols-[100px_1fr]'>
-                                        <h1>Name:</h1>
-                                        <h1>Wendel Derraco</h1>
+                                        <h1 className='font-medium'>
+                                            {originalTransaction?.profile
+                                                ? "Reservation Customer"
+                                                : originalTransaction?.walk_in
+                                                    ? "Walk-in Customer"
+                                                    : "Customer type unavailable"}
+                                        </h1>
                                     </div>
 
                                 </div>
@@ -185,17 +187,17 @@ function MaintenanceRow({
 
                                     <div className='grid grid-cols-[80px_1fr]'>
                                         <h1>Reason:</h1>
-                                        <h1>{reason}</h1>
+                                        <h1 className='font-medium'>{reason}</h1>
                                     </div>
 
                                     <div className='grid grid-cols-[80px_1fr]'>
                                         <h1>Price:</h1>
-                                        <h1>P{price}</h1>
+                                        <h1 className='font-medium'>P{price}</h1>
                                     </div>
 
                                     <div className='grid grid-cols-[80px_1fr]'>
                                         <h1>Paid by:</h1>
-                                        <h1>{paidBy}</h1>
+                                        <h1 className='font-medium'>{paidBy}</h1>
                                     </div>
 
                                 </div>
@@ -212,32 +214,32 @@ function MaintenanceRow({
 
                                     <div className='grid grid-cols-[100px_1fr]'>
                                         <h1>Total:</h1>
-                                        <h1>P{price}</h1>
+                                        <h1 className='font-medium'>P{price}</h1>
                                     </div>
 
                                     <div className='grid grid-cols-[100px_1fr]'>
                                         <h1>Payment:</h1>
-                                        <h1>P{payment}</h1>
+                                        <h1 className='font-medium'>P{payment}</h1>
                                     </div>
 
                                     <div className='grid grid-cols-[100px_1fr]'>
                                         <h1>Change:</h1>
-                                        <h1>P{change}</h1>
+                                        <h1 className='font-medium'>P{change}</h1>
                                     </div>
 
                                     <div className='grid grid-cols-[100px_1fr]'>
                                         <h1>Method:</h1>
-                                        <h1>{method}</h1>
+                                        <h1 className='font-medium'>{method}</h1>
                                     </div>
 
                                     <div className='grid grid-cols-[100px_1fr]'>
                                         <h1>Date:</h1>
-                                        <h1>{date}</h1>
+                                        <h1 className='font-medium'>{date}</h1>
                                     </div>
 
                                     <div className='grid grid-cols-[100px_1fr]'>
                                         <h1>Time:</h1>
-                                        <h1>{time}</h1>
+                                        <h1 className='font-medium'>{time}</h1>
                                     </div>
                                 </div>
                             </div>

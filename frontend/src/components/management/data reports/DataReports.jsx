@@ -26,8 +26,9 @@ import { FaPrint } from "react-icons/fa6";
 import MaintenanceRow from "../inventory/Bikes/Maintenance/MaintenanceRow"
 import BikeRowDataReports from "./BikeRowDataReports"
 import GPSRowDataReports from "./GPSRowDataReports"
+import * as XLSX from "xlsx";
 
-function DataReports() {
+function DataReports({role}) {
 
     const [dashboardData, setDashboardData] = useState([]);
 
@@ -39,12 +40,161 @@ function DataReports() {
     const [deductions, setDeductions] = useState([]);
 
     const [maintenanceInfo, setMaintenanceInfo] = useState([]);
+    const [maintenanceFilter, setMaintenanceFilter] = useState("All");
 
     const [bikeTypes, setBikeTypes] = useState([]);
     const [gpsList, setGpsList] = useState([]);
     const [gpsStats, setGpsStats] = useState([]);
     const [gpsRentalStats, setGpsRentalStats] = useState([]);
     const [gpsStatsLoading, setGpsStatsLoading] = useState(false);
+
+    const handleExportExcel = () => {
+    // Export only the transaction types currently selected.
+    const filteredTransactions = transactionData.filter((transaction) =>
+        selectedTypes.includes(transaction.type)
+    );
+
+    if (filteredTransactions.length === 0) {
+        alert("No transactions available to export.");
+        return;
+    }
+
+    const excelData = filteredTransactions.map((transaction) => {
+        // Get customer details for extensions, changes, and overtime.
+        const extensionTransaction =
+            transaction.type === "extend"
+                ? transaction.extensions_mod?.[0]?.orders_mod?.transaction
+                : null;
+
+        const changeTransaction =
+            transaction.type === "change"
+                ? transaction.change_bikes_mod?.[0]?.orders_mod?.transaction
+                : null;
+
+        const maintenanceTransaction =
+            transaction.type === "maintenance"
+                ? transaction.maintenance_mod?.[0]?.orders_mod?.transaction
+                : null;
+
+        const overtimeTransaction =
+            transaction.type === "overtime"
+                ? transaction.overtime_mod?.[0]?.original_transaction
+                : null;
+
+        const relatedTransaction =
+            extensionTransaction ??
+            changeTransaction ??
+            maintenanceTransaction ??
+            overtimeTransaction;
+
+        const profile =
+            relatedTransaction?.profile ?? transaction.profile;
+
+        const walkIn =
+            relatedTransaction?.walk_in ?? transaction.walk_in;
+
+        const customerName = profile
+            ? (
+                profile.full_name ??
+                `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim()
+            )
+            : (
+                walkIn?.[0]?.full_name ??
+                (transaction.type === "maintenance"
+                    ? "Management"
+                    : "Unknown Customer")
+            );
+
+        // Get bike codes associated with the transaction.
+        const bikeCodes = [
+            ...(transaction.orders_mod ?? []).map(
+                (order) =>
+                    order.bikes_mod?.code ??
+                    order.current_bike?.code
+            ),
+            ...(transaction.change_bikes_mod ?? []).flatMap((change) => [
+                change.original_bike?.code,
+                change.changed_bike?.code,
+            ]),
+            ...(transaction.extensions_mod ?? []).map(
+                (extension) => extension.bikes_mod?.code
+            ),
+            ...(transaction.maintenance_mod ?? []).map(
+                (maintenance) =>
+                    maintenance.orders_mod?.current_bike?.code ??
+                    maintenance.bikes_mod?.code
+            ),
+        ].filter(Boolean);
+
+        const createdAt = transaction.created_at
+            ? new Date(transaction.created_at)
+            : null;
+
+        return {
+            "Transaction ID": transaction.id,
+            "Date": createdAt
+                ? createdAt.toLocaleDateString("en-PH", {
+                    timeZone: "Asia/Manila",
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                })
+                : "",
+            "Time": createdAt
+                ? createdAt.toLocaleTimeString("en-PH", {
+                    timeZone: "Asia/Manila",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: true,
+                })
+                : "",
+            "Transaction Type": transaction.type,
+            "Customer Name": customerName,
+            "Bike Codes": [...new Set(bikeCodes)].join(", "),
+            "Status": transaction.status ?? "",
+            "Payment Method": transaction.payment_method ?? "",
+            "Total Amount": Number(
+                transaction.total_amount ?? 0
+            ),
+            "Assisted By":
+                transaction.assisted_by_profile?.full_name ??
+                "Unknown",
+        };
+    });
+
+    // Create the Excel workbook and worksheet.
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(
+        workbook,
+        worksheet,
+        "Transactions"
+    );
+
+    // Set readable column widths.
+    worksheet["!cols"] = [
+        { wch: 16 }, // Transaction ID
+        { wch: 14 }, // Date
+        { wch: 14 }, // Time
+        { wch: 18 }, // Transaction Type
+        { wch: 25 }, // Customer Name
+        { wch: 22 }, // Bike Codes
+        { wch: 15 }, // Status
+        { wch: 18 }, // Payment Method
+        { wch: 16 }, // Total Amount
+        { wch: 22 }, // Assisted By
+    ];
+
+    // Generate a filename using the selected date range.
+    const startDate = formatDate(dates[0]) || "start";
+    const endDate = formatDate(dates[1]) || "end";
+
+    XLSX.writeFile(
+        workbook,
+        `3JRemys_Transactions_${startDate}_to_${endDate}.xlsx`
+    );
+};
 
     const [gpsInventoryCount, setGpsInventoryCount] = useState({
         total_gps: 0,
@@ -519,7 +669,11 @@ function DataReports() {
                     ),
                     orders_mod (
                         *,
-                        transaction:transactions_mod (*),
+                        transaction:transactions_mod (
+                            *,
+                            profile:profiles_mod!transactions_mod_user_id_fkey1 (*),
+                            walk_in:walk_ins_users_mod (*)
+                        ),
                         current_bike:bikes_mod!orders_mod_bike_id_fkey (
                             *,
                             bike_types_mod (*)
@@ -841,11 +995,36 @@ function DataReports() {
         };
     }, [activeTab, dates?.[0], dates?.[1]]);
 
+    const getMaintenanceDateLabel = (date) => {
+        if (!date) return "Unknown Date";
+
+        return new Date(date).toLocaleDateString("en-PH", {
+            timeZone: "Asia/Manila",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+        });
+    };
+
+    const groupMaintenanceByDate = (maintenanceRecords) => {
+        return maintenanceRecords.reduce((groups, maintenance) => {
+            const dateLabel = getMaintenanceDateLabel(maintenance.created_at);
+
+            if (!groups[dateLabel]) {
+                groups[dateLabel] = [];
+            }
+
+            groups[dateLabel].push(maintenance);
+
+            return groups;
+        }, {});
+    };
+
   return (
     <>
 
         <div className='w-full h-screen bg-[#F2F2F2] flex'>
-            <Sidebar active={'datareports'}/>
+            <Sidebar active={'datareports'} userRole={role}/>
             
 
             <motion.div
@@ -1288,10 +1467,15 @@ function DataReports() {
                                     </div>
                                 </div>
 
-                                <div className='flex flex-row cursor-pointer gap-2 rounded-lg bg-blue font-akagi font-bold text-md px-3 py-1 items-center text-[#ffffff]'>
-                                    <FaPrint className='text-sm'/>
+                                
+                                <button
+                                    type="button"
+                                    onClick={handleExportExcel}
+                                    className="flex flex-row cursor-pointer gap-2 rounded-lg bg-blue font-akagi font-bold text-md px-3 py-1 items-center text-[#ffffff] hover:bg-blue/80 transition-all"
+                                >
+                                    <FaPrint className="text-sm" />
                                     Export
-                                </div>
+                                </button>
                             </div>
 
                             {/* All Transactions */}
@@ -1534,7 +1718,10 @@ function DataReports() {
                                         <div className='flex flex-col'>
 
                                             <h1 className='font-akagi font-bold text-gray'>
-                                                {deduction.type}
+                                                {deduction.type?.toLowerCase() === "maintenance"
+                                                    ? deduction.reason
+                                                    : deduction.type
+                                                }
                                             </h1>
 
                                             <h1 className='font-akagi text-sm text-[#777777]'>
@@ -1545,7 +1732,20 @@ function DataReports() {
                                                 }
                                             </h1>
 
-                                            {deduction.occurence ? (
+                                            {deduction.type?.toLowerCase() === "maintenance" ? (
+
+                                                <h1 className='font-akagi text-xs text-[#999999]'>
+                                                    {deduction.created_at
+                                                        ? new Date(deduction.created_at).toLocaleDateString("en-US", {
+                                                            month: "long",
+                                                            day: "numeric",
+                                                            year: "numeric"
+                                                        })
+                                                        : ""
+                                                    }
+                                                </h1>
+
+                                            ) : deduction.occurence ? (
 
                                                 <h1 className='font-akagi text-xs text-[#999999]'>
                                                     {deduction.occurence}
@@ -1555,14 +1755,11 @@ function DataReports() {
 
                                                 <h1 className='font-akagi text-xs text-[#999999]'>
                                                     Deadline:{" "}
-                                                    {new Date(deduction.deadline).toLocaleDateString(
-                                                        "en-US",
-                                                        {
-                                                            month: "long",
-                                                            day: "numeric",
-                                                            year: "numeric"
-                                                        }
-                                                    )}
+                                                    {new Date(deduction.deadline).toLocaleDateString("en-US", {
+                                                        month: "long",
+                                                        day: "numeric",
+                                                        year: "numeric"
+                                                    })}
                                                 </h1>
 
                                             ) : null}
@@ -1643,101 +1840,146 @@ function DataReports() {
 
                     </div>
 
-                    <div className='bg-[#ffffff] shadow-md rounded-xl p-5 flex flex-col gap-4'>
+                    <div className="bg-[#ffffff] shadow-md rounded-xl p-5 flex flex-col gap-4">
 
-                        <div className='flex flex-row justify-between items-center gap-5'>
-                            <h1 className='font-akagi font-bold text-lg text-gray'>
-                                Maintenance
-                            </h1>
+    {/* Header */}
+    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+        <h1 className="font-akagi font-bold text-lg text-gray">
+            Maintenance
+        </h1>
 
-                            <h1 className='font-akagi font-medium text-sm text-gray'>
-                                {dates?.[0] && dates?.[1]
-                                    ? `${formatDisplayDate(dates[0])} – ${formatDisplayDate(dates[1])}`
-                                    : ""
-                                }
-                            </h1>
-                        </div>
+        <h1 className="font-akagi font-medium text-sm text-gray">
+            {dates?.[0] && dates?.[1]
+                ? `${formatDisplayDate(dates[0])} – ${formatDisplayDate(dates[1])}`
+                : ""}
+        </h1>
+    </div>
 
-                        <div className="flex flex-col gap-6">
+    {/* Maintenance Filters */}
+    <div className="flex flex-wrap gap-2">
+        {["All", "Customer", "Management"].map((filter) => (
+            <button
+                key={filter}
+                type="button"
+                onClick={() => setMaintenanceFilter(filter)}
+                className={`px-5 py-2 rounded-lg font-akagi font-bold text-sm transition-all ${
+                    maintenanceFilter === filter
+                        ? "bg-blue text-[#ffffff] shadow-md"
+                        : "bg-[#F2F2F2] text-gray hover:bg-[#E2E2E2]"
+                }`}
+            >
+                {filter}
+            </button>
+        ))}
+    </div>
 
-                            {/* Customer-Paid Maintenance */}
-                            <div className="flex flex-col gap-3 bg-gray/15 rounded-lg p-3 shadow-lg py-5">
-                                <h2 className="font-akagi font-medium text-md text-gray">
-                                    Customer
-                                </h2>
+    {/* Filtered Maintenance Records */}
+    {(() => {
+        const filteredMaintenance = maintenanceInfo.filter((maintenance) => {
+            const paymentBy = maintenance.payment_by?.toLowerCase();
 
-                                <div className="flex flex-col gap-2">
-                                    {maintenanceInfo
-                                        .filter(
-                                            (maintenance) =>
-                                                maintenance.payment_by?.toLowerCase() === "customer"
-                                        )
-                                        .map((maintenance) => (
-                                            <MaintenanceRow
-                                                key={maintenance.id}
-                                                bikeId={maintenance?.orders_mod?.current_bike?.code}
-                                                bikeTypeId={maintenance?.orders_mod?.current_bike?.bike_types_mod?.name}
-                                                reason={maintenance?.reason}
-                                                status={maintenance?.status}
-                                                price={maintenance?.price}
-                                                paidBy={maintenance?.payment_by}
-                                                payment={maintenance?.transactions_mod?.total_amount}
-                                                change={maintenance?.transactions_mod?.change_amount}
-                                                method={maintenance?.transactions_mod?.payment_method}
-                                                bikeCode={maintenance?.orders_mod?.code}
-                                                maintenanceId={maintenance?.id}
-                                                date={convertToPhilippineDate(maintenance?.created_at)}
-                                                time={convertToPhilippineTime(maintenance?.created_at)}
-                                                managementBikeId={maintenance?.bike_id}
-                                                managementBikeCode={maintenance?.bikes_mod?.code}
-                                                managementBikeTypeId={maintenance?.bikes_mod?.bike_types_mod?.name}
-                                                inventoryBikeCode={maintenance?.bikes_mod?.code}
-                                                inventoryBikeId={maintenance?.bike_id}
-                                            />
-                                        ))}
-                                </div>
-                            </div>
+            if (maintenanceFilter === "Customer") {
+                return paymentBy === "customer";
+            }
 
-                            {/* Management-Paid Maintenance */}
-                            <div className="flex flex-col gap-3 bg-gray/15 rounded-lg p-3 shadow-lg py-5">
-                                <h2 className="font-akagi font-medium text-md text-gray">
-                                    Management
-                                </h2>
+            if (maintenanceFilter === "Management") {
+                return paymentBy === "management";
+            }
 
-                                <div className="flex flex-col gap-2">
-                                    {maintenanceInfo
-                                        .filter(
-                                            (maintenance) =>
-                                                maintenance.payment_by?.toLowerCase() === "management"
-                                        )
-                                        .map((maintenance) => (
-                                            <MaintenanceRow
-                                                key={maintenance.id}
-                                                bikeId={maintenance?.orders_mod?.current_bike?.code}
-                                                bikeTypeId={maintenance?.orders_mod?.current_bike?.bike_types_mod?.name}
-                                                reason={maintenance?.reason}
-                                                status={maintenance?.status}
-                                                price={maintenance?.price}
-                                                paidBy={maintenance?.payment_by}
-                                                payment={maintenance?.transactions_mod?.total_amount}
-                                                change={maintenance?.transactions_mod?.change_amount}
-                                                method={maintenance?.transactions_mod?.payment_method}
-                                                bikeCode={maintenance?.orders_mod?.code}
-                                                maintenanceId={maintenance?.id}
-                                                date={convertToPhilippineDate(maintenance?.created_at)}
-                                                time={convertToPhilippineTime(maintenance?.created_at)}
-                                                managementBikeId={maintenance?.bike_id}
-                                                managementBikeCode={maintenance?.bikes_mod?.code}
-                                                managementBikeTypeId={maintenance?.bikes_mod?.bike_types_mod?.name}
-                                                inventoryBikeCode={maintenance?.bikes_mod?.code}
-                                                inventoryBikeTypeId={maintenance?.bikes_mod?.bike_types_mod?.name}
-                                            />
-                                        ))}
-                                </div>
-                            </div>
+            return true;
+        });
 
+        const groupedMaintenance =
+            groupMaintenanceByDate(filteredMaintenance);
+
+        const groupedDates = Object.keys(groupedMaintenance);
+
+        if (filteredMaintenance.length === 0) {
+            return (
+                <p className="font-akagi text-sm text-gray text-center py-8">
+                    No {maintenanceFilter === "All"
+                        ? ""
+                        : maintenanceFilter.toLowerCase() + " "
+                    }maintenance found for the selected dates.
+                </p>
+            );
+        }
+
+        return (
+            <div className="flex flex-col gap-5">
+                {groupedDates.map((date) => (
+                    <div key={date} className="flex flex-col gap-3">
+                        <h3 className="font-akagi font-medium text-gray border-b border-[#E2E2E2] pb-2">
+                            {date}
+                        </h3>
+
+                        <div className="flex flex-col gap-2">
+                            {groupedMaintenance[date].map((maintenance) => {
+                                const customerTransaction =
+                                    maintenance.orders_mod?.transaction;
+
+                                const customerProfile =
+                                    customerTransaction?.profile;
+
+                                const walkInCustomer = Array.isArray(
+                                    customerTransaction?.walk_in
+                                )
+                                    ? customerTransaction.walk_in[0]
+                                    : customerTransaction?.walk_in;
+
+                                const customerName = customerProfile
+                                    ? (
+                                        customerProfile.full_name ??
+                                        `${customerProfile.first_name ?? ""} ${customerProfile.last_name ?? ""}`.trim()
+                                    ) || "Unknown Customer"
+                                    : walkInCustomer?.full_name ??
+                                        (
+                                            maintenance.payment_by?.toLowerCase() === "management"
+                                                ? "Management"
+                                                : "Customer details unavailable"
+                                        );
+
+                                return (
+                                    <MaintenanceRow
+                                        key={maintenance.id}
+                                        bikeId={maintenance?.orders_mod?.current_bike?.code}
+                                        bikeTypeId={maintenance?.orders_mod?.current_bike?.bike_types_mod?.name}
+                                        reason={maintenance?.reason}
+                                        status={maintenance?.status}
+                                        isSettled={
+                                            maintenance?.status?.toLowerCase() === "settled"
+                                        }
+                                        disableDropdown={true}
+                                        price={maintenance?.price}
+                                        paidBy={maintenance?.payment_by}
+                                        payment={maintenance?.transactions_mod?.total_amount}
+                                        change={maintenance?.transactions_mod?.change_amount}
+                                        method={maintenance?.transactions_mod?.payment_method}
+                                        bikeCode={maintenance?.orders_mod?.code}
+                                        maintenanceId={maintenance?.id}
+                                        date={convertToPhilippineDate(maintenance?.created_at)}
+                                        time={convertToPhilippineTime(maintenance?.created_at)}
+                                        managementBikeId={maintenance?.bike_id}
+                                        managementBikeCode={maintenance?.bikes_mod?.code}
+                                        managementBikeTypeId={maintenance?.bikes_mod?.bike_types_mod?.name}
+                                        inventoryBikeCode={maintenance?.bikes_mod?.code}
+                                        inventoryBikeTypeId={maintenance?.bikes_mod?.bike_types_mod?.name}
+                                        customerName={customerName}
+                                        customerProfile={customerProfile}
+                                        walkInCustomer={walkInCustomer}
+                                        customerTransaction={customerTransaction}
+                                        originalTransaction={customerTransaction}
+                                    />
+                                );
+                            })}
                         </div>
                     </div>
+                ))}
+            </div>
+        );
+    })()}
+
+</div>
                     </>
                 }
 

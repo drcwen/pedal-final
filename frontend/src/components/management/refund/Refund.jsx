@@ -13,7 +13,7 @@ import {
     HiOutlineEye,
 } from "react-icons/hi";
 
-function Refund() {
+function Refund({role}) {
     const [refunds, setRefunds] = useState([]);
     const [loading, setLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState("");
@@ -21,11 +21,22 @@ function Refund() {
     const [search, setSearch] = useState("");
     const [selectedRefund, setSelectedRefund] = useState(null);
     const [processingId, setProcessingId] = useState(null);
+    const [rejectionReason, setRejectionReason] = useState("");
 
     const [refundReferenceNumber, setRefundReferenceNumber] = useState("");
 
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [pendingAction, setPendingAction] = useState(null);
+
+    const getReferenceMaxLength = (refundMethod) => {
+        const method = refundMethod?.toLowerCase().trim();
+
+        if (method === "gcash") return 13;
+        if (method === "bank transfer") return 20;
+        if (method === "maya") return 18;
+
+        return 20;
+    };
 
     const fetchRefunds = useCallback(async () => {
         setLoading(true);
@@ -151,106 +162,182 @@ function Refund() {
     const updateRefundStatus = (refund, newStatus) => {
         setPendingAction({ refund, newStatus });
         setRefundReferenceNumber("");
+        setRejectionReason("");
         setErrorMessage("");
         setShowConfirmModal(true);
     };
 
-    const confirmRefundAction = async () => {
-    if (!pendingAction) return;
+    const notifyCustomer = async (refund, newStatus) => {
+        try {
+            const customerId = refund.profile?.id;
 
-    const { refund, newStatus } = pendingAction;
-    const referenceNumber = refundReferenceNumber.trim();
+            if (!customerId) {
+                console.error("Unable to find the customer profile ID.");
+                return;
+            }
 
-    if (newStatus === "approved" && !referenceNumber) {
-        setErrorMessage("Please enter the refund reference number.");
-        return;
-    }
+            const {
+                data: { user },
+                error: userError,
+            } = await supabase.auth.getUser();
 
-    setProcessingId(refund.id);
-    setErrorMessage("");
+            if (userError) throw userError;
+            if (!user) throw new Error("Unable to identify the logged-in user.");
 
-    try {
-        if (!refund.original_transaction_id) {
-            throw new Error("The original transaction ID is missing.");
+            const isApproved = newStatus === "approved";
+
+            const notification = {
+                recipient_id: customerId,
+                sender_id: user.id,
+                order_id: refund.order?.id ?? null,
+                transaction_id: refund.original_transaction_id,
+                type: isApproved ? "refund_approved" : "refund_rejected",
+                title: isApproved ? "Refund Approved" : "Refund Rejected",
+                message: isApproved
+                    ? `Your refund request for transaction #${refund.original_transaction_id} has been approved.`
+                    : `Your refund request for transaction #${refund.original_transaction_id} has been rejected.`,
+                is_read: false,
+            };
+
+            const { error } = await supabase
+                .from("notifications_mod")
+                .insert(notification);
+
+            if (error) throw error;
+
+            console.log("Customer notification sent successfully.");
+        } catch (error) {
+            // Do not undo a successfully processed refund if notification fails.
+            console.error("Error sending customer notification:", error);
         }
+    };
 
-        const updateData = {
-            status: newStatus,
-        };
+    const confirmRefundAction = async () => {
+        if (!pendingAction) return;
+
+        const { refund, newStatus } = pendingAction;
+        const referenceNumber = refundReferenceNumber.trim();
+        const rejectionReasonText = rejectionReason.trim();
 
         if (newStatus === "approved") {
-            updateData.refund_reference_number = referenceNumber;
+            if (!referenceNumber) {
+                setErrorMessage("Please enter the refund reference number.");
+                return;
+            }
+
+            const maxLength = getReferenceMaxLength(refund.refund_method);
+
+            if (!/^\d+$/.test(referenceNumber)) {
+                setErrorMessage("Reference number must contain digits only.");
+                return;
+            }
+
+            if (referenceNumber.length > maxLength) {
+                setErrorMessage(
+                    `${refund.refund_method} reference number must not exceed ${maxLength} digits.`
+                );
+                return;
+            }
         }
 
-        // 1. Update the refund request.
-        const { data: refundData, error: refundError } = await supabase
-            .from("refund_mod")
-            .update(updateData)
-            .eq("id", refund.id)
-            .eq("status", "pending")
-            .select("id");
+        if (newStatus === "rejected" && !rejectionReasonText) {
+            setErrorMessage("Please provide a reason for rejecting this refund.");
+            return;
+        }
 
-        if (refundError) throw refundError;
+        setProcessingId(refund.id);
 
-        if (!refundData || refundData.length === 0) {
-            throw new Error(
-                "This refund has already been processed or you don't have permission to update it."
+        try {
+            if (!refund.original_transaction_id) {
+                throw new Error("The original transaction ID is missing.");
+            }
+
+            const updateData = {
+                status: newStatus,
+            };
+
+            if (newStatus === "approved") {
+                updateData.refund_reference_number = referenceNumber;
+                updateData.rejection_reason = null;
+            }
+
+            if (newStatus === "rejected") {
+                updateData.rejection_reason = rejectionReasonText;
+            }
+
+            // 1. Update the refund request.
+            const { data: refundData, error: refundError } = await supabase
+                .from("refund_mod")
+                .update(updateData)
+                .eq("id", refund.id)
+                .eq("status", "pending")
+                .select("id");
+
+            if (refundError) throw refundError;
+
+            if (!refundData || refundData.length === 0) {
+                throw new Error(
+                    "This refund has already been processed or you don't have permission to update it."
+                );
+            }
+
+            // Close the confirmation modal after the refund status is saved.
+            setShowConfirmModal(false);
+            setPendingAction(null);
+            setRefundReferenceNumber("");
+            setRejectionReason("");
+            setSelectedRefund(null);
+
+            // 2. Update the original transaction for approval or rejection.
+            const transactionStatus =
+                newStatus === "approved"
+                    ? "refunded"
+                    : "refund rejected";
+
+            console.log("Updating transaction:", {
+                transactionId: refund.original_transaction_id,
+                newStatus: transactionStatus,
+            });
+
+            const {
+                data: updatedTransaction,
+                error: transactionError,
+            } = await supabase
+                .from("transactions_mod")
+                .update({ status: transactionStatus })
+                .eq("id", refund.original_transaction_id)
+                .select("id, status");
+
+            if (transactionError) {
+                console.error("Transaction update error:", transactionError);
+                throw transactionError;
+            }
+
+            if (!updatedTransaction || updatedTransaction.length === 0) {
+                throw new Error(
+                    `No transaction was updated. Transaction ID: ${refund.original_transaction_id}. Check the ID and your Supabase RLS policies.`
+                );
+            }
+
+            console.log("Transaction successfully updated:", updatedTransaction);
+
+            // 3. Notify the customer.
+            await notifyCustomer(refund, newStatus);
+
+            // 4. Refresh the list.
+            await fetchRefunds();
+        } catch (error) {
+            console.error("Error processing refund:", error);
+
+            setErrorMessage(
+                error.message || "Unable to update the refund request."
             );
+
+            await fetchRefunds();
+        } finally {
+            setProcessingId(null);
         }
-
-        // Close the confirmation modal after the refund status is saved.
-        setShowConfirmModal(false);
-        setPendingAction(null);
-        setRefundReferenceNumber("");
-        setSelectedRefund(null);
-
-         // 2. Update the original transaction for approval or rejection.
-        const transactionStatus =
-            newStatus === "approved"
-                ? "refunded"
-                : "refund rejected";
-
-        console.log("Updating transaction:", {
-            transactionId: refund.original_transaction_id,
-            newStatus: transactionStatus,
-        });
-
-        const {
-            data: updatedTransaction,
-            error: transactionError,
-        } = await supabase
-            .from("transactions_mod")
-            .update({ status: transactionStatus })
-            .eq("id", refund.original_transaction_id)
-            .select("id, status");
-
-        if (transactionError) {
-            console.error("Transaction update error:", transactionError);
-            throw transactionError;
-        }
-
-        if (!updatedTransaction || updatedTransaction.length === 0) {
-            throw new Error(
-                `No transaction was updated. Transaction ID: ${refund.original_transaction_id}. Check the ID and your Supabase RLS policies.`
-            );
-        }
-
-        console.log("Transaction successfully updated:", updatedTransaction);
-
-        // 3. Refresh the list.
-        await fetchRefunds();
-    } catch (error) {
-        console.error("Error processing refund:", error);
-
-        setErrorMessage(
-            error.message || "Unable to update the refund request."
-        );
-
-        await fetchRefunds();
-    } finally {
-        setProcessingId(null);
-    }
-};
+    };
 
     const cancelRefundAction = () => {
         if (processingId) return;
@@ -346,7 +433,7 @@ function Refund() {
 
     return (
         <div className="w-full h-screen md:bg-[#F2F2F2] flex">
-            <Sidebar active="refund" />
+            <Sidebar active="refund" userRole={role}/>
 
             <motion.div
                 initial={{ height: 0, opacity: 0 }}
@@ -726,14 +813,56 @@ function Refund() {
                                     <input
                                         id="refundReferenceNumber"
                                         type="text"
+                                        inputMode="numeric"
+                                        pattern="[0-9]*"
                                         value={refundReferenceNumber}
-                                        onChange={(event) =>
-                                            setRefundReferenceNumber(event.target.value)
-                                        }
-                                        placeholder="Enter refund transaction reference"
+                                        onChange={(event) => {
+                                            const maxLength = getReferenceMaxLength(
+                                                pendingAction.refund.refund_method
+                                            );
+
+                                            const digitsOnly = event.target.value
+                                                .replace(/\D/g, "")
+                                                .slice(0, maxLength);
+
+                                            setRefundReferenceNumber(digitsOnly);
+                                            setErrorMessage("");
+                                        }}
+                                        maxLength={getReferenceMaxLength(
+                                            pendingAction.refund.refund_method
+                                        )}
+                                        placeholder={`Enter reference number (max ${getReferenceMaxLength(
+                                            pendingAction.refund.refund_method
+                                        )} digits)`}
                                         required
                                         disabled={processingId !== null}
                                         className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm text-gray outline-none focus:border-blue focus:ring-1 focus:ring-blue disabled:opacity-50"
+                                    />
+                                </div>
+                            )}
+
+                              {pendingAction.newStatus === "rejected" && (
+                                <div className="w-full mt-5 text-left">
+                                    <label
+                                        htmlFor="rejectionReason"
+                                        className="block text-sm font-bold text-gray mb-2"
+                                    >
+                                        Reason for Rejection
+                                        <span className="text-red-500 ml-1">*</span>
+                                    </label>
+
+                                    <textarea
+                                        id="rejectionReason"
+                                        value={rejectionReason}
+                                        onChange={(event) => {
+                                            setRejectionReason(event.target.value);
+                                            setErrorMessage("");
+                                        }}
+                                        placeholder="Explain why this refund request is being rejected..."
+                                        rows={4}
+                                        required
+                                        disabled={processingId !== null}
+                                        className="w-full resize-none border border-gray-300 rounded-xl px-4 py-3 text-sm text-gray outline-none focus:border-blue focus:ring-1 focus:ring-blue disabled:opacity-50"
                                     />
                                 </div>
                             )}

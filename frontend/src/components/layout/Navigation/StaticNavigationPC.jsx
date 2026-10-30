@@ -7,6 +7,7 @@ import { IoClose } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../../lib/supabase"
 import ProfileClickOptions from "./ProfileClickOptions"
+import { HiMiniBellAlert } from "react-icons/hi2";
 
 function StaticNavigationPC() {
 
@@ -18,22 +19,68 @@ function StaticNavigationPC() {
 
   const navigate = useNavigate();
 
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
+  const [cartItemsCount, setCartItemsCount] = useState(0);
+  const [firstName, setFirstName] = useState("");
 
-  //Supabase
   useEffect(() => {
+    let isMounted = true;
+    let requestId = 0;
 
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user)
-    })
+    const fetchUserProfile = async (authUser) => {
+        const currentRequest = ++requestId;
 
+        if (!authUser) {
+            setUser(null);
+            setFirstName("");
+            return;
+        }
+
+        setUser(authUser);
+        setFirstName("");
+
+        const { data, error } = await supabase
+            .from("profiles_mod")
+            .select("id, first_name")
+            .eq("id", authUser.id)
+            .single();
+
+        if (!isMounted || currentRequest !== requestId) return;
+
+        if (error) {
+            console.error("Profile fetch error:", error);
+            return;
+        }
+
+        console.log("Logged-in user ID:", authUser.id);
+        console.log("Profile retrieved:", data);
+
+        setFirstName(data.first_name || "");
+    };
+
+    // Get the currently logged-in user
+    supabase.auth.getUser().then(({ data, error }) => {
+        if (error) {
+            console.error("Auth error:", error.message);
+            return;
+        }
+
+        fetchUserProfile(data.user);
+    });
+
+    // Listen for login/logout events
     const {
-      data: { subscription }
+        data: { subscription }
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-    })
+        fetchUserProfile(session?.user ?? null);
+    });
 
-    return () => subscription.unsubscribe()
-  }, [])
+    return () => {
+        isMounted = false;
+        requestId++;
+        subscription.unsubscribe();
+    };
+}, []);
 
   const navDesign =
     'font-akagi text-lg font-bold text-white text-shadow-lg hover:text-yellow transition-all duration-300 hover:scale-105 cursor-pointer';
@@ -68,16 +115,45 @@ function StaticNavigationPC() {
           </ul>
 
           <div className='flex flex-row gap-8'>
-            <IoMdCart className='text-white text-xl text-shadow-lg hover:text-yellow transition-all cursor-pointer duration-300 hover:scale-110'
-              onClick={() => navigate("/cart")} />
 
-            
+            {/* Notifications Bell */}
+            <div
+              onClick={() => navigate("/notifications")}
+              className="relative cursor-pointer"
+            >
+              <HiMiniBellAlert className="text-white text-xl text-shadow-lg hover:text-yellow transition-all duration-300 hover:scale-110" />
+
+              {unreadNotificationsCount > 0 && (
+                <div className="absolute -top-2 -right-3 min-w-4 h-4 px-1 rounded-full bg-red-500 flex items-center justify-center font-akagi font-bold text-white text-xs">
+                  {unreadNotificationsCount > 99
+                    ? "99+"
+                    : unreadNotificationsCount}
+                </div>
+              )}
+            </div>
+
+            {/* Shopping Cart */}
+            <div
+              onClick={() => navigate("/cart")}
+              className="relative cursor-pointer"
+            >
+              <IoMdCart className="text-white text-xl text-shadow-lg hover:text-yellow transition-all duration-300 hover:scale-110" />
+
+              {cartItemsCount > 0 && (
+                <div className="absolute -top-2 -right-3 min-w-4 h-4 px-1 rounded-full bg-yellow flex items-center justify-center font-akagi font-bold text-red-600 text-xs">
+                  {cartItemsCount > 99
+                    ? "99+"
+                    : cartItemsCount}
+                </div>
+              )}
+            </div>
+
             { user ? (
               <div onClick={() => setShowProfileOptions(prev => !prev)}
               className='cursor-pointer'>
 
                 <h1 className='text-white font-akagi font-bold hover:text-yellow transition-all'>
-                  {user.user_metadata.first_name || "Profile"}
+                  {firstName || "Profile"}
                 </h1>
 
                 
@@ -89,10 +165,10 @@ function StaticNavigationPC() {
             
           </div>
 
-          {showProfileOptions  && (
-            <ProfileClickOptions 
-              myUser={user.user_metadata?.first_name || "Profile"} 
-            />
+          {showProfileOptions && (
+              <ProfileClickOptions 
+                  myUser={firstName || "Profile"}
+              />
           )}
         </div>
 

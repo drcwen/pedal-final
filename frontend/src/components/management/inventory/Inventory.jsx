@@ -13,7 +13,7 @@ import Maintenance from "./Bikes/Maintenance/Maintenance"
 import { supabase } from "../../../lib/supabase"
 import SetMaintenanceStatus from "./Bikes/SetMaintenanceStatus"
 
-function Inventory() {
+function Inventory({role }) {
 
     const [activeTab, setActiveTab] = useState("Bike");
     const [addType, setAddType] = useState(false);
@@ -51,6 +51,35 @@ function Inventory() {
     const [bikeError, setBikeError] = useState("");
     const [gpsError, setGpsError] = useState("");
     
+    const [gpsStatusFilter, setGpsStatusFilter] = useState("All");
+
+    const totalGPS = gps.length;
+
+    const availableGPSCount = gps.filter(
+        (item) => item.status === "Available"
+    ).length;
+
+    const rentedGPSCount = gps.filter(
+        (item) => item.status === "Rented"
+    ).length;
+
+    const maintenanceGPSCount = gps.filter(
+        (item) => item.status === "Under Maintenance"
+    ).length;
+
+    const lostGPSCount = gps.filter(
+        (item) => item.status === "Lost"
+    ).length;
+
+    const damagedGPSCount = gps.filter(
+        (item) => item.status === "Damaged"
+    ).length;
+
+    const filteredGPS = gps.filter((item) => {
+        if (gpsStatusFilter === "All") return true;
+
+        return item.status === gpsStatusFilter;
+    });
 
     //Adding new GPS
     const [gpsName, setGpsName] = useState("");
@@ -293,23 +322,49 @@ function Inventory() {
             `);
 
         if (!error) {
-            setBikeTypes(data || []);
+            const sortedBikeTypes = (data || []).map((bikeType) => ({
+                ...bikeType,
+                bikes_mod: [...(bikeType.bikes_mod || [])].sort((a, b) => {
+                    // Extract the numeric part starting from the second character
+                    const numberA = Number(a.code.slice(1));
+                    const numberB = Number(b.code.slice(1));
+
+                    return numberA - numberB;
+                }),
+            }));
+
+            setBikeTypes(sortedBikeTypes);
         } else {
             console.error("Error fetching bikes:", error);
         }
     };
 
     const fetchGPS = async () => {
-        const {data, error} = await supabase
+        const { data, error } = await supabase
             .from("gps_mod")
-            .select(`*`);
+            .select("*");
 
-        if(!error) {
-            setGPS(data || []);
+        if (error) {
+            console.error("Error fetching GPS:", error);
+            return;
         }
 
-        console.log(data);
-    }
+        const sortedGPS = (data || []).sort((a, b) => {
+            // Extract the number from names such as "GPS 1", "GPS 2", etc.
+            const numberA = Number(a.code.match(/\d+/)?.[0] ?? 0);
+            const numberB = Number(b.code.match(/\d+/)?.[0] ?? 0);
+
+            return numberA - numberB;
+        });
+
+        setGPS(sortedGPS);
+    };
+
+    const nextGpsNumber =
+        gps.reduce((max, item) => {
+            const match = item.code.match(/^GPS\s*(\d+)$/i);
+            return match ? Math.max(max, Number(match[1])) : max;
+        }, 0) + 1;
 
     const handleGpsConfirmation = async () => {
         setGpsError("");
@@ -522,6 +577,7 @@ function Inventory() {
         "Rented",
         "Under Maintenance",
         "Lost",
+        "Damaged",
         "Disposed",
         "Offline"
     ];
@@ -570,7 +626,7 @@ return (
     <>
 
         <div className='w-full h-screen md:bg-[#F2F2F2] flex'>
-            <Sidebar active={'inventory'}/>
+            <Sidebar active={'inventory'} userRole={role}/>
 
             {!maintenance ? (
             <>
@@ -651,7 +707,12 @@ return (
                                         className='flex md:flex-row gap-3'
                                     >
                                         <div 
-                                            onClick={() => {setAddGPS(true)}}
+                                            onClick={() => {
+                                                setGpsName(`GPS ${nextGpsNumber}`);
+                                                setSimNumber("");
+                                                setGpsError("");
+                                                setAddGPS(true);
+                                            }}
                                             className='w-fit cursor-pointer bg-blue hover:bg-blue/70 hover:text-[#ffffff] duration-300 transition-all items-center text-center rounded-xl flex flex-row justify-between gap-3 px-3 py-2 md:text-lg text-md font-akagi font-bold text-[#ffffff]'>
                                             <FaPlus className='text-md md:text-bold text-[#ffffff]'/>
                                             Add New GPS
@@ -664,6 +725,88 @@ return (
                             {activeTab === "gps" &&
 
                                 <div className='flex flex-col gap-3'>
+                                    
+                                    <div className='py-5 grid md:grid-cols-3 xl:grid-cols-6 grid-cols-2 gap-2 text-center font-akagi text-md font-bold text-gray'>
+
+                                        <div
+                                            onClick={() => setGpsStatusFilter("All")}
+                                            className={`cursor-pointer border hover:scale-103 hover:shadow-2xl duration-300 transition-all rounded-lg shadow-lg flex flex-col gap-2 py-2 items-center
+                                                ${
+                                                    gpsStatusFilter === "All"
+                                                        ? "bg-blue text-[#ffffff] border-blue"
+                                                        : "bg-[#FFFFFFF] text-gray border-[#c9c9c9]"
+                                                }`}
+                                        >
+                                            <h1>Total Qty</h1>
+                                            <h1 className='text-xl'>{totalGPS}</h1>
+                                        </div>
+
+                                        <div
+                                            onClick={() => setGpsStatusFilter("Available")}
+                                            className={`cursor-pointer border hover:scale-103 hover:shadow-2xl duration-300 transition-all rounded-lg shadow-lg flex flex-col gap-2 py-2 items-center
+                                                ${
+                                                    gpsStatusFilter === "Available"
+                                                        ? "bg-blue text-[#ffffff] border-blue"
+                                                        : "bg-[#FFFFFFF] text-gray border-[#c9c9c9]"
+                                                }`}
+                                        >
+                                            <h1>Available</h1>
+                                            <h1 className='text-xl'>{availableGPSCount}</h1>
+                                        </div>
+
+                                        <div
+                                            onClick={() => setGpsStatusFilter("Rented")}
+                                            className={`cursor-pointer border hover:scale-103 hover:shadow-2xl duration-300 transition-all rounded-lg shadow-lg flex flex-col gap-2 py-2 items-center
+                                                ${
+                                                    gpsStatusFilter === "Rented"
+                                                        ? "bg-blue text-[#ffffff] border-blue"
+                                                        : "bg-[#FFFFFFF] text-gray border-[#c9c9c9]"
+                                                }`}
+                                        >
+                                            <h1>Currently Rented</h1>
+                                            <h1 className='text-xl'>{rentedGPSCount}</h1>
+                                        </div>
+
+                                        <div
+                                            onClick={() => setGpsStatusFilter("Under Maintenance")}
+                                            className={`cursor-pointer border hover:scale-103 hover:shadow-2xl duration-300 transition-all rounded-lg shadow-lg flex flex-col gap-2 py-2 items-center
+                                                ${
+                                                    gpsStatusFilter === "Under Maintenance"
+                                                        ? "bg-blue text-[#ffffff] border-blue"
+                                                        : "bg-[#FFFFFFF] text-gray border-[#c9c9c9]"
+                                                }`}
+                                        >
+                                            <h1>Under Maintenance</h1>
+                                            <h1 className='text-xl'>{maintenanceGPSCount}</h1>
+                                        </div>
+
+                                        <div
+                                            onClick={() => setGpsStatusFilter("Lost")}
+                                            className={`cursor-pointer border hover:scale-103 hover:shadow-2xl duration-300 transition-all rounded-lg shadow-lg flex flex-col gap-2 py-2 items-center
+                                                ${
+                                                    gpsStatusFilter === "Lost"
+                                                        ? "bg-blue text-[#ffffff] border-blue"
+                                                        : "bg-[#FFFFFFF] text-gray border-[#c9c9c9]"
+                                                }`}
+                                        >
+                                            <h1>Lost</h1>
+                                            <h1 className='text-xl'>{lostGPSCount}</h1>
+                                        </div>
+
+                                        <div
+                                            onClick={() => setGpsStatusFilter("Damaged")}
+                                            className={`cursor-pointer border hover:scale-103 hover:shadow-2xl duration-300 transition-all rounded-lg shadow-lg flex flex-col gap-2 py-2 items-center
+                                                ${
+                                                    gpsStatusFilter === "Damaged"
+                                                        ? "bg-blue text-[#ffffff] border-blue"
+                                                        : "bg-[#FFFFFFF] text-gray border-[#c9c9c9]"
+                                                }`}
+                                        >
+                                            <h1>Damaged</h1>
+                                            <h1 className='text-xl'>{damagedGPSCount}</h1>
+                                        </div>
+
+                                    </div>
                                     <div className='hidden w-full md:grid md:grid-cols-[1fr_1fr_1fr_50px] gap-2 text-center items-center font-akagi font-bold text-[#9E9E9E]'>
                                         <div className=''>GPS Name</div>
                                         <div className=''>Battery Life</div>
@@ -677,25 +820,35 @@ return (
                                     </div>
 
                                     <div className='flex flex-col gap-2'>
-                                        {gps.map((jipies) => (
-                                            <GPSRow
-                                                key={jipies.id}
-                                                name={jipies.code}
-                                                status={jipies.status}
-                                                battery={jipies.battery_life + "%"}
-                                                simNumber={jipies.sim_number}
-                                                availableData={jipies.available_data}
-                                                gpsId={jipies.id}
-                                                fetchGPS={fetchGPS}
-                                                onEditStatus={() => {
-                                                    setSelectedGpsId(jipies.id);
-                                                    setSelectedGpsName(jipies.code);
-                                                    setSelectedGpsStatus(jipies.status);
-                                                    setGpsStatusError("");
-                                                    setGpsEdit(true);
-                                                }}
-                                            />
-                                        ))}
+                                        {filteredGPS.length > 0 ? (
+                                            filteredGPS.map((jipies) => (
+                                                <GPSRow
+                                                    key={jipies.id}
+                                                    name={jipies.code}
+                                                    status={jipies.status}
+                                                    battery={jipies.battery_life + "%"}
+                                                    simNumber={jipies.sim_number}
+                                                    availableData={jipies.available_data}
+                                                    gpsId={jipies.id}
+                                                    fetchGPS={fetchGPS}
+                                                    onEditStatus={() => {
+                                                        setSelectedGpsId(jipies.id);
+                                                        setSelectedGpsName(jipies.code);
+                                                        setSelectedGpsStatus(jipies.status);
+                                                        setGpsStatusError("");
+                                                        setGpsEdit(true);
+                                                    }}
+                                                />
+                                            ))
+                                        ) : (
+                                            <div className="flex flex-col items-center justify-center py-10 text-gray font-akagi">
+                                                <p className="text-sm font-medium text-gray/60">
+                                                    {gpsStatusFilter === "All"
+                                                        ? "No GPS devices have been added yet."
+                                                        : `There are currently no GPS devices with ${gpsStatusFilter.toLowerCase()} status.`}
+                                                </p>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             }
@@ -757,12 +910,11 @@ return (
                                     <div className='flex flex-col gap-4 font-akagi font-bold text-gray'>
                                         <div className='flex flex-col gap-1'>
                                             <h1>New GPS Name</h1>
-                                            <input 
+                                            <input
                                                 value={gpsName}
                                                 onChange={(e) => setGpsName(e.target.value)}
-                                                type='text'
-                                                className='focus:outline-none font-medium bg-[#EBEBEB] text-[#505050]/50 rounded-lg py-1 px-2'
-                                                placeholder='Enter GPS name'
+                                                type="text"
+                                                className="focus:outline-none font-akagi text-sm font-medium bg-[#EBEBEB] text-gray rounded-lg py-1 px-2"
                                             />
                                         </div>
 
@@ -780,7 +932,7 @@ return (
                                                 type='text'
                                                 inputMode='numeric'
                                                 maxLength={11}
-                                                className='focus:outline-none font-medium bg-[#EBEBEB] text-[#505050]/50 rounded-lg py-1 px-2'
+                                                className='focus:outline-none font-medium bg-[#EBEBEB] text-gray rounded-lg py-1 px-2'
                                                 placeholder='Enter 11-digit SIM number'
                                             />
                                         </div>
