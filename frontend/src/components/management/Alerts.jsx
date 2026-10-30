@@ -30,6 +30,40 @@ function Alerts({role}) {
     const [locating, setLocating] = useState(false);
     const [locateError, setLocateError] = useState("");
 
+    const getEmptyAlertMessage = () => {
+        switch (activeTab) {
+            case "Pending":
+                return {
+                    title: "No Pending Alerts",
+                    message: "There are currently no pending alerts.",
+                };
+
+            case "Resolved":
+                return {
+                    title: "No Resolved Alerts",
+                    message: "There are no resolved alerts yet.",
+                };
+
+            case "Dismissed":
+                return {
+                    title: "No Dismissed Alerts",
+                    message: "There are no dismissed alerts.",
+                };
+
+            case "All":
+                return {
+                    title: "No Alerts",
+                    message: "There are currently no reported incidents.",
+                };
+
+            default:
+                return {
+                    title: "No Alerts",
+                    message: "No alerts found.",
+                };
+        }
+    };
+
     const tabs = [
         {
             key: "Pending",
@@ -523,13 +557,14 @@ function Alerts({role}) {
                                 </div>
                             )}
 
-                            {!loading && !errorMessage && activeAlerts.length === 0 && (
+                            {!loading && !errorMessage && filteredAlerts.length === 0 && (
                                 <div className="flex flex-col items-center justify-center py-16 text-center font-akagi text-gray gap-2">
                                     <h1 className="text-xl font-bold text-blue">
-                                        No Alerts
+                                        {getEmptyAlertMessage().title}
                                     </h1>
+
                                     <p className="font-medium">
-                                        There are currently no reported incidents.
+                                        {getEmptyAlertMessage().message}
                                     </p>
                                 </div>
                             )}
