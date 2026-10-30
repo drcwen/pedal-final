@@ -7,6 +7,7 @@ import SidebarMobile from "./sidebar/SidebarMobile";
 import { IoMdLocate } from "react-icons/io";
 import { RiArrowDropDownLine } from "react-icons/ri";
 import { HiOutlineBell, HiOutlineClock } from "react-icons/hi";
+import { useNavigate } from "react-router-dom";
 
 function Alerts({role}) {
     const [activeAlerts, setActiveAlerts] = useState([]);
@@ -23,6 +24,11 @@ function Alerts({role}) {
     const [notificationLoading, setNotificationLoading] = useState(true);
     const [notificationError, setNotificationError] = useState("");
     const [adminUserId, setAdminUserId] = useState(null);
+
+    const navigate = useNavigate();
+
+    const [locating, setLocating] = useState(false);
+    const [locateError, setLocateError] = useState("");
 
     const tabs = [
         {
@@ -352,6 +358,46 @@ function Alerts({role}) {
         setSelectedAlert(null);
         setShowResolveDropdown(false);
         setErrorMessage("");
+    };
+
+    const handleLocateBike = async () => {
+        if (!selectedAlert?.bike_id || locating) return;
+
+        try {
+            setLocating(true);
+            setLocateError("");
+
+            // Find the active order assigned to this bike.
+            const { data, error } = await supabase
+                .from("orders_mod")
+                .select("gps_id")
+                .eq("bike_id", selectedAlert.bike_id)
+                .eq("status", "started")
+                .not("gps_id", "is", null)
+                .limit(1)
+                .maybeSingle();
+
+            if (error) throw error;
+
+            if (!data?.gps_id) {
+                setLocateError(
+                    "No active GPS assignment was found for this bike."
+                );
+                return;
+            }
+
+            // Navigate using the GPS ID.
+            navigate(`/monitoring/${data.gps_id}`);
+
+        } catch (error) {
+            console.error("Error locating bike:", error);
+
+            setLocateError(
+                "Failed to locate this bike. Please try again."
+            );
+        } finally {
+            setLocating(false);
+        }
     };
 
     return (
@@ -842,15 +888,25 @@ function Alerts({role}) {
 
                             <button
                                 type="button"
-                                onClick={() => {
-                                    // Add your bike location functionality here.
-                                }}
-                                className="w-fit px-3 py-1 bg-green-500 rounded-lg flex gap-2 items-center text-[#ffffff] cursor-pointer hover:opacity-80 transition"
+                                onClick={handleLocateBike}
+                                disabled={locating}
+                                className={`w-fit px-3 py-1 bg-green-500 rounded-lg flex gap-2 items-center text-[#ffffff] transition ${
+                                    locating
+                                        ? "opacity-50 cursor-not-allowed"
+                                        : "cursor-pointer hover:opacity-80"
+                                }`}
                             >
                                 <IoMdLocate className="text-[#ffffff]" />
-                                Locate
+                                {locating ? "Locating..." : "Locate"}
                             </button>
+
+                            
                         </div>
+                        {locateError && (
+                            <p className="text-sm font-akagi font-medium text-red-500">
+                                {locateError}
+                            </p>
+                        )}
                     </div>
                 </div>
             )}
