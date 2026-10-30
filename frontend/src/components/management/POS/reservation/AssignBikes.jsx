@@ -3,13 +3,23 @@ import OrderRow from "./OrderRow"
 import { supabase } from "../../../../lib/supabase"
 import { useNavigate } from "react-router-dom";
 
-function AssignBikes({onClose, fullName, bikeDetails, transaction}) {
+function AssignBikes({
+    onClose,
+    fullName,
+    bikeDetails,
+    transaction,
+    refreshTransactions
+}) {
 
     const [selectedItems, setSelectedItems] = useState({});
     const [confirmProceed, setConfirmProceed] = useState(false);
     const [confirmBack, setConfirmBack] = useState(false);
     const [transactionId, setTransactionId] = useState(null);
     const navigate = useNavigate();
+
+    const [idType, setIdType] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState("");
 
     useEffect(() => {
         console.log("Selected Items:", selectedItems);
@@ -18,7 +28,7 @@ function AssignBikes({onClose, fullName, bikeDetails, transaction}) {
 
     const assignBikes = async () => {
         for (const [orderId, selection] of Object.entries(selectedItems)) {
-            const {error} = await supabase
+            const { error } = await supabase
                 .from("orders_mod")
                 .update({
                     bike_id: selection.bikeId,
@@ -27,17 +37,12 @@ function AssignBikes({onClose, fullName, bikeDetails, transaction}) {
                 })
                 .eq("id", orderId);
 
-            if(error) {
-                console.log("Error", error);
-            }
-            console.log("Order Id",orderId);
-            console.log("Selection",selection)
-            
+            if (error) throw error;
         }
-    }
+    };
 
     const updateGPS = async () => {
-        for (const [orderId, selection] of Object.entries(selectedItems)) {
+        for (const selection of Object.values(selectedItems)) {
             if (!selection.gpsId) continue;
 
             const { error } = await supabase
@@ -47,47 +52,76 @@ function AssignBikes({onClose, fullName, bikeDetails, transaction}) {
                 })
                 .eq("id", selection.gpsId);
 
-            if (error) {
-                console.error("Error updating GPS:", error);
-                throw error;
-            }
+            if (error) throw error;
         }
     };
 
     const updateBike = async () => {
-        for(const [orderId, selection] of Object.entries(selectedItems)) {
-            const {error} = await supabase
+        for (const selection of Object.values(selectedItems)) {
+            const { error } = await supabase
                 .from("bikes_mod")
                 .update({
                     status: "Rented"
                 })
-                .eq("id", selection.bikeId)
+                .eq("id", selection.bikeId);
 
-            if(error) {
-                alert(error);
-            }
+            if (error) throw error;
         }
-    }
+    };
 
     const updateTransaction = async () => {
-        const {error } = await supabase
+        const { error } = await supabase
             .from("transactions_mod")
             .update({
                 status: "started"
             })
-            .eq("id", transaction.id)
+            .eq("id", transaction.id);
 
-        if(error)
-            alert(error)
-    }
+        if (error) throw error;
+    };
 
     const handleSubmit = async () => {
-        await assignBikes();
-        await updateTransaction();
-        await updateBike();
-        await updateGPS();
-        
-        window.location.reload();
+        if (!idType) {
+            setSubmitError("Please select an ID type.");
+            return;
+        }
+
+        if (Object.keys(selectedItems).length !== bikeDetails.length) {
+            setSubmitError("Please assign a bike to every order.");
+            return;
+        }
+
+        if (Object.values(selectedItems).some(item => !item.bikeId)) {
+            setSubmitError("Please select a bike for every order.");
+            return;
+        }
+
+        setIsSubmitting(true);
+        setSubmitError("");
+
+        try {
+            await assignBikes();
+            await updateTransaction();
+            await updateBike();
+            await updateGPS();
+
+            // Close the confirmation modal
+            setConfirmProceed(false);
+
+            // Refresh the transaction list in the parent component
+            if (refreshTransactions) {
+                await refreshTransactions?.();
+            }
+
+            // Close the Assign Bikes modal
+            onClose();
+
+        } catch (error) {
+            console.error("Error assigning bikes:", error);
+            setSubmitError("Something went wrong while assigning bikes. Please try again.");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     
@@ -108,9 +142,27 @@ function AssignBikes({onClose, fullName, bikeDetails, transaction}) {
                         </div>
 
                         <div className='grid lg:grid-cols-[150px_1fr] grid-cols-[90px_1fr] items-center'>
-                            <h1 className='md:text-md text-sm font-akagi font-bold text-[#6D7172]'>ID Type:</h1>
+                            <h1 className='md:text-md text-sm font-akagi font-bold text-[#6D7172]'>
+                                ID Type:
+                            </h1>
+
                             <div className='bg-[#D9D9D9] rounded-lg px-3 py-1 flex items-center'>
-                                <input className='w-full md:text-md text-sm font-akagi font-bold text-[#6D7172]'></input>
+                                <select
+                                    value={idType}
+                                    onChange={(e) => setIdType(e.target.value)}
+                                    className='w-full bg-transparent outline-none md:text-md text-sm font-akagi font-bold text-[#6D7172]'
+                                >
+                                    <option value="">Select ID Type</option>
+                                    <option value="Student ID">Student ID</option>
+                                    <option value="National ID">National ID</option>
+                                    <option value="Driver's License">Driver's License</option>
+                                    <option value="Passport">Passport</option>
+                                    <option value="UMID">UMID</option>
+                                    <option value="PhilHealth ID">PhilHealth ID</option>
+                                    <option value="Postal ID">Postal ID</option>
+                                    <option value="Voter's ID">Voter's ID</option>
+                                    <option value="Other">Other</option>
+                                </select>
                             </div>
                         </div>
 
@@ -245,21 +297,44 @@ function AssignBikes({onClose, fullName, bikeDetails, transaction}) {
                     <div
                         className='fixed inset-0 bg-black/60 flex items-center justify-center'
                     >
-                        <div className='p-5 pt-10 px-10 bg-white rounded-xl flex flex-col gap-10'>
+                        <div className='p-5 pt-10 px-10 bg-[#ffffff] rounded-xl flex flex-col gap-10'>
 
-                            <h1 className='text-xl font-akagi font-bold text-darkblue'>Are you sure you want to proceed?</h1>
+                            <h1 className='text-xl font-akagi font-bold text-darkblue'>
+                                Are you sure you want to proceed?
+                            </h1>
 
-                            <div className='flex flex-row justify-between'>
+                            {submitError && (
+                                <p className='text-sm font-akagi font-bold text-red-500 text-center'>
+                                    {submitError}
+                                </p>
+                            )}
+
+                            <div className='flex flex-row justify-between gap-5'>
                                 <div
-                                    onClick={() => {setConfirmProceed(false)}}   
-                                    className='bg-red-500 rounded-xl px-7 py-2 cursor-pointer'>
-                                    <h1 className='text-lg font-akagi font-bold text-[#ffffff]'>No</h1>
+                                    onClick={() => {
+                                        if (!isSubmitting) {
+                                            setConfirmProceed(false);
+                                            setSubmitError("");
+                                        }
+                                    }}
+                                    className={`bg-red-500 rounded-xl px-7 py-2 ${
+                                        isSubmitting ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                                    }`}
+                                >
+                                    <h1 className='text-lg font-akagi font-bold text-[#ffffff]'>
+                                        No
+                                    </h1>
                                 </div>
 
                                 <div
-                                    onClick={() => {handleSubmit()}}   
-                                    className='bg-green-500 rounded-xl px-7 py-2 cursor-pointer'>
-                                    <h1 className='text-lg font-akagi font-bold text-[#ffffff]'>Yes</h1>
+                                    onClick={!isSubmitting ? handleSubmit : undefined}
+                                    className={`bg-green-500 rounded-xl px-7 py-2 ${
+                                        isSubmitting ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                                    }`}
+                                >
+                                    <h1 className='text-lg font-akagi font-bold text-[#ffffff]'>
+                                        {isSubmitting ? "Processing..." : "Yes"}
+                                    </h1>
                                 </div>
                             </div>
                         </div>

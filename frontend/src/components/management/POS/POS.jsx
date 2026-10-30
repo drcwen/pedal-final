@@ -505,6 +505,7 @@ function POS({ role }) {
                                                     bikeDetails={trans.orders_mod ?? []}
                                                     customer={trans.customer}
                                                     transaction={trans}
+                                                    refreshTransactions={fetchTransactions}
                                                 />
                                             ))}
                                         </div>

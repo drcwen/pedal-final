@@ -37,24 +37,64 @@ function NavigationPC() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  //Supabase
   useEffect(() => {
+    let isMounted = true;
+    let requestId = 0;
 
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user)
+    const fetchUserProfile = async (authUser) => {
+        const currentRequest = ++requestId;
 
-      const firstName = data.user.user_metadata.name.split(" ")[0];
-      setFirstName(firstName)
-    })
+        if (!authUser) {
+            setUser(null);
+            setFirstName("");
+            return;
+        }
 
+        setUser(authUser);
+        setFirstName("");
+
+        const { data, error } = await supabase
+            .from("profiles_mod")
+            .select("id, first_name")
+            .eq("id", authUser.id)
+            .single();
+
+        if (!isMounted || currentRequest !== requestId) return;
+
+        if (error) {
+            console.error("Profile fetch error:", error);
+            return;
+        }
+
+        console.log("Logged-in user ID:", authUser.id);
+        console.log("Profile retrieved:", data);
+
+        setFirstName(data.first_name || "");
+    };
+
+    // Get the currently logged-in user
+    supabase.auth.getUser().then(({ data, error }) => {
+        if (error) {
+            console.error("Auth error:", error.message);
+            return;
+        }
+
+        fetchUserProfile(data.user);
+    });
+
+    // Listen for login/logout events
     const {
-      data: { subscription }
+        data: { subscription }
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-    })
+        fetchUserProfile(session?.user ?? null);
+    });
 
-    return () => subscription.unsubscribe()
-  }, [])
+    return () => {
+        isMounted = false;
+        requestId++;
+        subscription.unsubscribe();
+    };
+}, []);
 
   const navDesign =
     'font-akagi text-lg font-bold text-white text-shadow-lg hover:text-yellow transition-all duration-300 hover:scale-105 cursor-pointer';
@@ -106,7 +146,7 @@ function NavigationPC() {
               className='cursor-pointer'>
 
                 <h1 className='text-white font-akagi font-bold hover:text-yellow transition-all'>
-                  {user.user_metadata.first_name || "Profile"}
+                  {firstName || "Profile"}
                 </h1>
 
                 
@@ -118,10 +158,10 @@ function NavigationPC() {
             
           </div>
 
-          {showProfileOptions  && (
-            <ProfileClickOptions 
-              myUser={user.user_metadata.first_name || "Profile"}
-            />
+          {showProfileOptions && (
+              <ProfileClickOptions
+                  myUser={firstName || "Profile"}
+              />
           )}
         </div>
 

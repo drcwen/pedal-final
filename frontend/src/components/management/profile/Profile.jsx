@@ -26,7 +26,7 @@ function Profile({ fullName, role, email, contact, id, branch, firstName, lastNa
     const [editBranch, setEditBranch] = useState(branch);
     const [editPassword, setEditPassword] = useState("");
 
-    const [simNumber, setSimNumber] = useState("");
+    const [simNumber, setSimNumber] = useState(contact || "");
     const [simNumberError, setSimNumberError] = useState("");
 
     const [changePassword, setChangePassword] = useState(false);
@@ -81,15 +81,15 @@ function Profile({ fullName, role, email, contact, id, branch, firstName, lastNa
                     first_name: editFirstName,
                     last_name: editLastName,
                     username: editUsername,
-                    contact: editContact,
-                    role: role === "admin" ? role : editRole,
+                    contact: simNumber,
+                    role: role === "admin" ? editRole : role,
                 })
                 .eq("id", id);
 
             if (profileError) throw profileError;
 
             // Save the PIN only when the admin explicitly changes it.
-            if (role === "admin" && changePin) {
+            if ((role === "admin" || role === "cashier") && changePin) {
                 const { error: pinError } = await supabase
                     .from("pin_mod")
                     .upsert(
@@ -167,6 +167,7 @@ function Profile({ fullName, role, email, contact, id, branch, firstName, lastNa
                                         setEditRole(role);
                                         setEditEmail(email);
                                         setEditContact(contact);
+                                        setSimNumber(contact || "");
                                         setEditUsername(username);
                                         setChangePin(false);
                                         setEditPin("");
@@ -340,9 +341,9 @@ function Profile({ fullName, role, email, contact, id, branch, firstName, lastNa
                                 <h1 className='font-bold'>{id}</h1>
                             </div>
 
-                            {role === "admin" && ( 
+                            {(role === "admin" || role === "cashier") && (
                                 <div className='flex flex-col'> 
-                                    <h1 className='font-medium'>Admin PIN</h1> 
+                                    <h1 className='font-medium'>PIN</h1> 
                                     
                                     <div className='flex flex-row items-center gap-2'> 
                                         {!changePin ? ( 
@@ -410,7 +411,7 @@ function Profile({ fullName, role, email, contact, id, branch, firstName, lastNa
                             <div className='flex flex-col'>
                                 <h1 className='font-medium'>Position</h1>
                                     <div className={`w-fit ${edit ? undefined : "border border-[#505050]/30"} rounded-lg ${!edit ? "px-2 py-1" : undefined}`}>
-                                        {!edit || role === "admin" ? (
+                                        {!edit || role !== "admin" ? (
                                             <h1 className="font-bold first-letter:uppercase">
                                                 {role}
                                             </h1>

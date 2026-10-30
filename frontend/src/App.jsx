@@ -319,6 +319,7 @@
                     firstName={accountId.first_name}
                     lastName={accountId.last_name}
                     username={accountId.username}
+                    role={role}
                   />
                 }
               />
