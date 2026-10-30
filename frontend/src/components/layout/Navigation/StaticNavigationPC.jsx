@@ -82,6 +82,81 @@ function StaticNavigationPC() {
     };
 }, []);
 
+useEffect(() => {
+    if (!user?.id) {
+        setUnreadNotificationsCount(0);
+        setCartItemsCount(0);
+        return;
+    }
+
+    const fetchCounts = async () => {
+        // Fetch unread notification count
+        const { count: notificationCount, error: notificationError } =
+            await supabase
+                .from("notifications_mod")
+                .select("id", { count: "exact", head: true })
+                .eq("recipient_id", user.id)
+                .eq("is_read", false);
+
+        if (notificationError) {
+            console.error("Notification count error:", notificationError);
+        } else {
+            setUnreadNotificationsCount(notificationCount || 0);
+        }
+
+        // Fetch cart item count
+        const { count: cartCount, error: cartError } = await supabase
+            .from("orders_mod")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", user.id)
+            .is("transaction_id", null);
+
+        if (cartError) {
+            console.error("Cart count error:", cartError);
+        } else {
+            setCartItemsCount(cartCount || 0);
+        }
+    };
+
+    fetchCounts();
+
+    // Subscribe to notification and cart changes
+    const channel = supabase
+        .channel(`static-navigation-${user.id}`)
+
+        .on(
+            "postgres_changes",
+            {
+                event: "*",
+                schema: "public",
+                table: "notifications_mod",
+                filter: `recipient_id=eq.${user.id}`,
+            },
+            () => {
+                fetchCounts();
+            }
+        )
+
+        .on(
+            "postgres_changes",
+            {
+                event: "*",
+                schema: "public",
+                table: "orders_mod",
+                filter: `user_id=eq.${user.id}`,
+            },
+            () => {
+                fetchCounts();
+            }
+        )
+
+        .subscribe();
+
+    return () => {
+        supabase.removeChannel(channel);
+    };
+}, [user?.id]);
+
   const navDesign =
     'font-akagi text-lg font-bold text-white text-shadow-lg hover:text-yellow transition-all duration-300 hover:scale-105 cursor-pointer';
 

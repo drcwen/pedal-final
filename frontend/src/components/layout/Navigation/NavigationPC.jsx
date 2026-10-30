@@ -19,6 +19,9 @@ function NavigationPC() {
 
   const [firstName, setFirstName] = useState("");
 
+  const [notificationCount, setNotificationCount] = useState(0);
+  const [cartCount, setCartCount] = useState(0);
+
   const navigate = useNavigate();
 
   // Scroll listener
@@ -96,6 +99,81 @@ function NavigationPC() {
     };
 }, []);
 
+  useEffect(() => {
+      if (!user?.id) {
+          setNotificationCount(0);
+          setCartCount(0);
+          return;
+      }
+
+      const fetchCounts = async () => {
+          // Count unread notifications
+          const { count: notifications, error: notificationError } =
+              await supabase
+                  .from("notifications_mod")
+                  .select("id", { count: "exact", head: true })
+                  .eq("recipient_id", user.id)
+                  .eq("is_read", false);
+
+          if (notificationError) {
+              console.error("Notification count error:", notificationError);
+          } else {
+              setNotificationCount(notifications || 0);
+          }
+
+          // Count cart items
+          const { count: cart, error: cartError } = await supabase
+              .from("orders_mod")
+              .select("id", { count: "exact", head: true })
+              .eq("user_id", user.id)
+              .is("transaction_id", null);
+
+          if (cartError) {
+              console.error("Cart count error:", cartError);
+          } else {
+              setCartCount(cart || 0);
+          }
+      };
+
+      fetchCounts();
+
+      // Listen for notification and cart changes
+      const channel = supabase
+          .channel(`customer-navigation-${user.id}`)
+
+          .on(
+              "postgres_changes",
+              {
+                  event: "*",
+                  schema: "public",
+                  table: "notifications_mod",
+                  filter: `recipient_id=eq.${user.id}`,
+              },
+              () => {
+                  fetchCounts();
+              }
+          )
+
+          .on(
+              "postgres_changes",
+              {
+                  event: "*",
+                  schema: "public",
+                  table: "orders_mod",
+                  filter: `user_id=eq.${user.id}`,
+              },
+              () => {
+                  fetchCounts();
+              }
+          )
+
+          .subscribe();
+
+      return () => {
+          supabase.removeChannel(channel);
+      };
+  }, [user?.id]);
+
   const navDesign =
     'font-akagi text-lg font-bold text-white text-shadow-lg hover:text-yellow transition-all duration-300 hover:scale-105 cursor-pointer';
 
@@ -132,14 +210,33 @@ function NavigationPC() {
 
           <div className='flex flex-row gap-8'>
 
-            <HiMiniBellAlert 
-              onClick={() => {navigate("/notifications")}}
-              className='text-white text-xl text-shadow-lg hover:text-yellow transition-all cursor-pointer duration-300 hover:scale-110'/>
+            {/* Notifications */}
+            <div className="relative">
+                <HiMiniBellAlert
+                    onClick={() => navigate("/notifications")}
+                    className="text-white text-xl text-shadow-lg hover:text-yellow transition-all cursor-pointer duration-300 hover:scale-110"
+                />
 
-            <IoMdCart 
-              className='text-white text-xl text-shadow-lg hover:text-yellow transition-all cursor-pointer duration-300 hover:scale-110' 
-              onClick={() => navigate("/cart")}
-            />
+                {notificationCount > 0 && (
+                    <span className="absolute -top-2 -right-2 min-w-4 h-4 px-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold font-akagi">
+                        {notificationCount > 99 ? "99+" : notificationCount}
+                    </span>
+                )}
+            </div>
+
+            {/* Cart */}
+            <div className="relative">
+                <IoMdCart
+                    className="text-white text-xl text-shadow-lg hover:text-yellow transition-all cursor-pointer duration-300 hover:scale-110"
+                    onClick={() => navigate("/cart")}
+                />
+
+                {cartCount > 0 && (
+                    <span className="absolute -top-2 -right-2 min-w-4 h-4 px-1 flex items-center justify-center rounded-full bg-yellow text-red-500 text-[10px] font-bold font-akagi">
+                        {cartCount > 99 ? "99+" : cartCount}
+                    </span>
+                )}
+            </div>
             
             { user ? (
               <div onClick={() => setShowProfileOptions(prev => !prev)}
