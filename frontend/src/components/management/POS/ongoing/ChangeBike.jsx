@@ -290,7 +290,7 @@ function ChangeBike({setChangeOrder, changeOrder}) {
                                             <div 
                                                 onClick={totalPayment === 0 ? undefined : () => {setGcash(true), cash === true ? setCash(!cash) : ""}}
                                                 className={`border-2 border-gray rounded-lg text-center py-2 ${gcash === true ? `bg-gray text-[#ffffff]` : `bg-transparent `}`}>
-                                                <h1 className={`xl:text-xl lg:text-lg font-bold font-akagi ${gcash === true ? `text-[#fffffff]` : `text-gray`}`}>GCash</h1>
+                                                <h1 className={`xl:text-xl lg:text-lg font-bold font-akagi ${gcash === true ? `text-[#fffffff]` : `text-gray`}`}>QR</h1>
                                             </div>
 
                                             <div 
@@ -479,24 +479,23 @@ function ChangeBike({setChangeOrder, changeOrder}) {
                     className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center"
                 >
                     <div
-                        className="bg-white rounded-2xl px-10 py-10 flex flex-col gap-5 items-center justify-center text-center"
+                        className="bg-[#ffffff] rounded-2xl px-10 py-10 flex flex-col gap-5 items-center justify-center text-center"
                     >
 
                         {gcashStatus === "waiting" && (
                             <>
                                 <h1 className="font-akagi font-bold text-[#505050] text-2xl">
-                                    Pay with GCash
+                                    Pay with QR
                                 </h1>
 
                                 <div className="flex flex-col gap-2">
                                     <h1 className="font-akagi font-bold text-[#505050] text-md">
-                                        Scan the QR below using the GCash app
+                                        Scan the QR below to pay using QR
                                     </h1>
                                 </div>
 
                                 <div className="flex flex-col gap-5 items-center justify-center">
 
-                                    {/* QR CODE */}
                                     {/* QR CODE */}
                                     {qrLoading ? (
                                         <div className="w-52 h-52 flex items-center justify-center">
