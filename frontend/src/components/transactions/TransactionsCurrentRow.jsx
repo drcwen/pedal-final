@@ -108,6 +108,61 @@ function TransactionCurrentRow({ bikeCount, date, method, total, status, transac
 
     const [refundSubmitting, setRefundSubmitting] = useState(false);
 
+    const sendRefundNotifications = async (transactionId) => {
+        try {
+            // Get the currently logged-in customer
+            const {
+                data: { user },
+                error: userError
+            } = await supabase.auth.getUser();
+
+            if (userError) throw userError;
+
+            if (!user) {
+                throw new Error("Unable to identify the logged-in user.");
+            }
+
+            // Get all admins and cashiers
+            const { data: employees, error: employeesError } = await supabase
+                .from("profiles_mod")
+                .select("id, role")
+                .in("role", ["admin", "cashier"]);
+
+            if (employeesError) throw employeesError;
+
+            if (!employees || employees.length === 0) {
+                throw new Error("No admins or cashiers were found.");
+            }
+
+            // Get the first order associated with this transaction
+            const orderId = transactions?.orders_mod?.[0]?.id ?? null;
+
+            // Create one notification for each employee
+            const notifications = employees.map((employee) => ({
+                recipient_id: employee.id,
+                sender_id: user.id,
+                order_id: orderId,
+                transaction_id: transactionId,
+                type: "refund_request",
+                title: "New Refund Request",
+                message: `A customer has submitted a refund request for transaction #${transactionId}. Please review the request.`,
+                is_read: false
+            }));
+
+            // Insert notifications
+            const { error: notificationError } = await supabase
+                .from("notifications_mod")
+                .insert(notifications);
+
+            if (notificationError) throw notificationError;
+
+            console.log("Refund notifications successfully sent!");
+
+        } catch (error) {
+            console.error("Error sending refund notifications:", error);
+        }
+    };
+
     const handleSubmit = async () => {
         if (existingRefund || refundSubmitting) {
             return;
@@ -226,6 +281,10 @@ function TransactionCurrentRow({ bikeCount, date, method, total, status, transac
 
             // Both operations succeeded
             setExistingRefund(data);
+
+            // Notify all admins and cashiers
+            await sendRefundNotifications(originalTransactionId);
+
             setOpenRefund(false);
             setShowTransaction(false);
 
@@ -660,7 +719,8 @@ function TransactionCurrentRow({ bikeCount, date, method, total, status, transac
                             status === "pending" ||
                             status === "refund rejected" ||
                             status === "refunded" ||
-                            status === "pending refund"
+                            status === "pending refund" || 
+                            status === "unattended"
                         ) && (
                             <div
                                 onClick={async (e) => {
@@ -902,6 +962,84 @@ function TransactionCurrentRow({ bikeCount, date, method, total, status, transac
                                     />
                                 </div>
 
+                                <div
+                                            className={`rounded-lg p-3 flex gap-2 items-start border ${
+                                                !existingRefund
+                                                    ? "bg-red-50 border-red-200"
+                                                    : existingRefund.status?.toLowerCase() === "rejected"
+                                                        ? "bg-red-50 border-red-200"
+                                                        : existingRefund.status?.toLowerCase() === "approved"
+                                                            ? "bg-green-50 border-green-200"
+                                                            : "bg-yellow-50 border-yellow-200"
+                                            }`}
+                                        >
+                                            <RiRefundFill
+                                                className={`text-xl shrink-0 mt-0.5 ${
+                                                    !existingRefund
+                                                        ? "text-red-400"
+                                                        : existingRefund.status?.toLowerCase() === "rejected"
+                                                            ? "text-red-500"
+                                                            : existingRefund.status?.toLowerCase() === "approved"
+                                                                ? "text-green-600"
+                                                                : "text-yellow-600"
+                                                }`}
+                                            />
+
+                                            <p
+                                                className={`text-xs md:text-sm font-medium ${
+                                                    !existingRefund
+                                                        ? "text-red-500"
+                                                        : existingRefund.status?.toLowerCase() === "rejected"
+                                                            ? "text-red-600"
+                                                            : existingRefund.status?.toLowerCase() === "approved"
+                                                                ? "text-green-700"
+                                                                : "text-yellow-700"
+                                                }`}
+                                            >
+                                                {!existingRefund ? (
+                                                    <>
+                                                        Submitting this form does not guarantee approval.
+                                                        Your refund request will be reviewed by the 3Jremy's POS administrator.
+                                                        Please double-check your refund amount and account details.
+                                                    </>
+                                                ) : existingRefund.status?.toLowerCase() === "rejected" ? (
+                                                    <>
+                                                        Your refund request has been rejected by 3Jremy's POS administrator.
+                                                        Please review the reason below.
+                                                    </>
+                                                ) : existingRefund.status?.toLowerCase() === "approved" ? (
+                                                    <>
+                                                        Your refund request has been approved by 3Jremy's POS administrator.
+                                                        Please wait for the refund to be processed.
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        Your refund request has been submitted successfully!
+                                                        Please check back here once the 3Jremy's POS administrator responds to your request. Thank you for your patience!
+                                                    </>
+                                                )}
+                                            </p>
+                                        </div>
+
+                                        {/* Admin Rejection Reason */}
+                                        {existingRefund?.status?.toLowerCase() === "rejected" && (
+                                            <div className="rounded-lg border border-red-200 bg-red-50 p-4 flex flex-col gap-2">
+                                                <h2 className="text-sm font-bold text-red-600">
+                                                    Reason for Rejection
+                                                </h2>
+
+                                                <p className="text-sm font-medium text-red-700 whitespace-pre-wrap break-words">
+                                                    {existingRefund.rejection_reason || "No rejection reason was provided."}
+                                                </p>
+                                            </div>
+                                        )}
+
+                                    {refundError && (
+                                        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                                            {refundError}
+                                        </p>
+                                    )}
+
                                 {/* Refund information */}
                                 <div className="flex flex-col gap-4">
 
@@ -1076,70 +1214,7 @@ function TransactionCurrentRow({ bikeCount, date, method, total, status, transac
                                     </div>
 
                                     {/* Refund Status Notice */}
-                                        <div
-                                            className={`rounded-lg p-3 flex gap-2 items-start border ${
-                                                !existingRefund
-                                                    ? "bg-red-50 border-red-200"
-                                                    : existingRefund.status?.toLowerCase() === "rejected"
-                                                        ? "bg-red-50 border-red-200"
-                                                        : existingRefund.status?.toLowerCase() === "approved"
-                                                            ? "bg-green-50 border-green-200"
-                                                            : "bg-yellow-50 border-yellow-200"
-                                            }`}
-                                        >
-                                            <RiRefundFill
-                                                className={`text-xl shrink-0 mt-0.5 ${
-                                                    !existingRefund
-                                                        ? "text-red-400"
-                                                        : existingRefund.status?.toLowerCase() === "rejected"
-                                                            ? "text-red-500"
-                                                            : existingRefund.status?.toLowerCase() === "approved"
-                                                                ? "text-green-600"
-                                                                : "text-yellow-600"
-                                                }`}
-                                            />
-
-                                            <p
-                                                className={`text-xs md:text-sm font-medium ${
-                                                    !existingRefund
-                                                        ? "text-red-500"
-                                                        : existingRefund.status?.toLowerCase() === "rejected"
-                                                            ? "text-red-600"
-                                                            : existingRefund.status?.toLowerCase() === "approved"
-                                                                ? "text-green-700"
-                                                                : "text-yellow-700"
-                                                }`}
-                                            >
-                                                {!existingRefund ? (
-                                                    <>
-                                                        Submitting this form does not guarantee approval.
-                                                        Your refund request will be reviewed by the 3Jremy's POS administrator.
-                                                        Please double-check your refund amount and account details.
-                                                    </>
-                                                ) : existingRefund.status?.toLowerCase() === "rejected" ? (
-                                                    <>
-                                                        Your refund request has been rejected by 3Jremy's POS administrator.
-                                                        Please contact the administrator if you need more information.
-                                                    </>
-                                                ) : existingRefund.status?.toLowerCase() === "approved" ? (
-                                                    <>
-                                                        Your refund request has been approved by 3Jremy's POS administrator.
-                                                        Please wait for the refund to be processed.
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        Your refund request has been submitted successfully!
-                                                        Please check back here once the 3Jremy's POS administrator responds to your request. Thank you for your patience!
-                                                    </>
-                                                )}
-                                            </p>
-                                        </div>
-
-                                    {refundError && (
-                                        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-                                            {refundError}
-                                        </p>
-                                    )}
+                                        
 
                                     {/* Actions */}
                                     <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2">

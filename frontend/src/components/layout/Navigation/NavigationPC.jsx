@@ -7,6 +7,7 @@ import { IoClose } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../../lib/supabase"
 import ProfileClickOptions from "./ProfileClickOptions"
+import { HiMiniBellAlert } from "react-icons/hi2";
 
 function NavigationPC() {
   const [scrolled, setScrolled] = useState(false);
@@ -90,11 +91,15 @@ function NavigationPC() {
           </ul>
 
           <div className='flex flex-row gap-8'>
+
+            <HiMiniBellAlert 
+              onClick={() => {navigate("/notifications")}}
+              className='text-white text-xl text-shadow-lg hover:text-yellow transition-all cursor-pointer duration-300 hover:scale-110'/>
+
             <IoMdCart 
               className='text-white text-xl text-shadow-lg hover:text-yellow transition-all cursor-pointer duration-300 hover:scale-110' 
               onClick={() => navigate("/cart")}
-              />
-
+            />
             
             { user ? (
               <div onClick={() => setShowProfileOptions(prev => !prev)}

@@ -33,6 +33,8 @@
   import Reviews from "./components/sections/Reviews"
   import Refund from "./components/management/refund/Refund"
 
+  import Notifications from "./components/sections/Notifications"
+
   function App() {
     const [session, setSession] = useState(null);
     const [role, setRole] = useState(null);
@@ -196,6 +198,7 @@
             <Route path="/" element={<LandingPage />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/reserve" element={<Reserve />} />
+            <Route path="/notifications" element={<Notifications/>} />
             <Route path="/rent" element={<BikeExpand />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />
