@@ -15,6 +15,8 @@ function WalkInRent({role}) {
     const [info, setInfo] = useState([]);
     const [proceed, setProceed] = useState(false);
     const [openBikeId, setOpenBikeId] = useState(null);
+    const [qrPaymentImage, setQrPaymentImage] = useState(null);
+    const [qrLoading, setQrLoading] = useState(true);
 
     const [bikeData, setBikeData] = useState({});
     const [cart, setCart] = useState([]);
@@ -259,6 +261,31 @@ function WalkInRent({role}) {
             setProceed(true);
         }
     };
+
+    useEffect(() => {
+        const fetchQrPayment = async () => {
+            try {
+                setQrLoading(true);
+
+                const { data, error } = await supabase
+                    .from("qr_payments_mod")
+                    .select("qr_payment_image_url")
+                    .limit(1)
+                    .maybeSingle();
+
+                if (error) throw error;
+
+                setQrPaymentImage(data?.qr_payment_image_url || null);
+            } catch (error) {
+                console.error("Failed to fetch QR payment image:", error);
+                setQrPaymentImage(null);
+            } finally {
+                setQrLoading(false);
+            }
+        };
+
+        fetchQrPayment();
+    }, []);
 
   return (
     <>
@@ -582,7 +609,7 @@ function WalkInRent({role}) {
                     className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center"
                 >
                     <div
-                        className="bg-white rounded-2xl px-10 py-10 flex flex-col gap-5 items-center justify-center text-center"
+                        className="bg-[#ffffff] rounded-2xl px-10 py-10 flex flex-col gap-5 items-center justify-center text-center"
                     >
 
                         {gcashStatus === "waiting" && (
@@ -600,11 +627,23 @@ function WalkInRent({role}) {
                                 <div className="flex flex-col gap-5 items-center justify-center">
 
                                     {/* QR CODE */}
-                                    <img
-                                        onClick={simulatePayment}
-                                        src="https://res.cloudinary.com/dp3vkgxtb/image/upload/v1779959866/qrcode_envfyr.png"
-                                        className="w-52 h-52 cursor-pointer hover:scale-105 transition-all duration-300"
-                                    />
+                                    {qrLoading ? (
+                                        <div className="w-52 h-52 flex items-center justify-center">
+                                            <div className="w-10 h-10 border-4 border-gray/20 border-t-blue rounded-full animate-spin" />
+                                        </div>
+                                    ) : qrPaymentImage ? (
+                                        <img
+                                            src={qrPaymentImage}
+                                            alt="GCash Payment QR Code"
+                                            className="w-52 h-52 object-contain"
+                                        />
+                                    ) : (
+                                        <div className="w-52 h-52 flex items-center justify-center bg-gray-100 rounded-xl p-4">
+                                            <p className="text-sm text-gray text-center font-akagi">
+                                                No QR payment image has been uploaded yet.
+                                            </p>
+                                        </div>
+                                    )}
 
                                     <div className="flex flex-col gap-1">
                                         <h1 className="font-akagi font-bold text-[#505050] text-md">

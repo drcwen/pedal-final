@@ -98,6 +98,151 @@ function Settings({role}) {
         text: ""
     });
 
+    // QR PAYMENT SETTINGS
+    const [qrPayment, setQrPayment] = useState(null);
+    const [qrFile, setQrFile] = useState(null);
+    const [qrPreview, setQrPreview] = useState(null);
+
+    const [qrLoading, setQrLoading] = useState(true);
+    const [qrUploading, setQrUploading] = useState(false);
+
+    const [qrMessage, setQrMessage] = useState({
+        type: "",
+        text: ""
+    });
+
+    // FETCH QR PAYMENT
+    const fetchQrPayment = async () => {
+        try {
+            setQrLoading(true);
+
+            const { data, error } = await supabase
+                .from("qr_payments_mod")
+                .select("*")
+                .order("id", { ascending: true })
+                .limit(1)
+                .maybeSingle();
+
+            if (error) throw error;
+
+            setQrPayment(data);
+
+        } catch (error) {
+            console.error("Error fetching QR payment:", error);
+
+            setQrMessage({
+                type: "error",
+                text: "Failed to load QR payment settings."
+            });
+        } finally {
+            setQrLoading(false);
+        }
+    };
+
+    // SELECT QR IMAGE
+    const handleQrImageChange = (e) => {
+        const file = e.target.files?.[0];
+
+        if (!file) return;
+
+        if (!file.type.startsWith("image/")) {
+            setQrMessage({
+                type: "error",
+                text: "Please select a valid image file."
+            });
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            setQrMessage({
+                type: "error",
+                text: "Image size must not exceed 5MB."
+            });
+            return;
+        }
+
+        setQrFile(file);
+        setQrPreview(URL.createObjectURL(file));
+
+        setQrMessage({
+            type: "",
+            text: ""
+        });
+    };
+
+    // UPLOAD AND SAVE QR IMAGE
+    const saveQrPayment = async () => {
+        if (!isAdmin || !qrFile || !qrPayment || qrUploading) return;
+
+        try {
+            setQrUploading(true);
+
+            setQrMessage({
+                type: "",
+                text: ""
+            });
+
+            // 1. Upload image to Cloudinary
+            const formData = new FormData();
+
+            formData.append("file", qrFile);
+            formData.append(
+                "upload_preset",
+                import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
+            );
+
+            const cloudinaryResponse = await fetch(
+                `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload`,
+                {
+                    method: "POST",
+                    body: formData
+                }
+            );
+
+            const cloudinaryData = await cloudinaryResponse.json();
+
+            if (!cloudinaryResponse.ok) {
+                throw new Error(
+                    cloudinaryData.error?.message || "Cloudinary upload failed."
+                );
+            }
+
+            const imageUrl = cloudinaryData.secure_url;
+
+            // 2. Save image URL to Supabase
+            const { data, error } = await supabase
+                .from("qr_payments_mod")
+                .update({
+                    qr_payment_image_url: imageUrl
+                })
+                .eq("id", qrPayment.id)
+                .select()
+                .single();
+
+            if (error) throw error;
+
+            // 3. Update local state
+            setQrPayment(data);
+            setQrFile(null);
+            setQrPreview(null);
+
+            setQrMessage({
+                type: "success",
+                text: "QR payment image updated successfully!"
+            });
+
+        } catch (error) {
+            console.error("Error saving QR payment:", error);
+
+            setQrMessage({
+                type: "error",
+                text: error.message || "Failed to update QR payment image."
+            });
+        } finally {
+            setQrUploading(false);
+        }
+    };
+
     const handleAdd = async () => {
         const {data, error} = await supabase
             .from("revenue_deductions_mod")
@@ -677,6 +822,7 @@ function Settings({role}) {
         fetchNonWorking();
         fetchRentalRules();
         fetchVoidSetting();
+        fetchQrPayment();
     }, []);
 
   return (
@@ -695,45 +841,50 @@ function Settings({role}) {
 
                 <SidebarMobile active={'pos'}/>
                     
-                <div className='w-full h-full p-10 bg-[#ffffff] rounded-xl flex flex-col gap-5'>
+                <div className='w-full h-full p-3 sm:p-5 lg:p-10 bg-[#ffffff] rounded-xl flex flex-col gap-5 min-w-0 overflow-hidden'>
                     
                     <h1 className='md:text-4xl text-2xl font-akagi font-bold tracking-wide text-blue'>System Settings</h1>
 
-                    <div className='flex flex-row gap-5 font-akagi font-medium text-gray'>
+                    <div className='flex flex-row gap-5 font-akagi font-medium text-gray
+                        w-full overflow-x-auto whitespace-nowrap
+                        scrollbar-hide pb-2'
+                    >
                         <h1 
                             onClick={() => {setActiveTab("operatingHours")}}
-                            className={`hover:underline duration-300 transition-all cursor-pointer
-                            ${activeTab === "operatingHours" ? "text-navyblue text-bold" : "text-gray/90"}`}
+                            className={`shrink-0 hover:underline duration-300 transition-all cursor-pointer
+                                ${activeTab === "operatingHours" ? "text-navyblue text-bold" : "text-gray/90"}`}
                         >Operating Hours</h1>
 
                         <h1 
                             onClick={() => {setActiveTab("revenueDeductions")}}
-                            className={`hover:underline duration-300 transition-all cursor-pointer
-                            ${activeTab === "revenueDeductions" ? "text-navyblue text-bold" : "text-gray/90"}`}
+                            className={`shrink-0 hover:underline duration-300 transition-all cursor-pointer
+                                ${activeTab === "revenueDeductions" ? "text-navyblue text-bold" : "text-gray/90"}`}
                         >
                             Revenue Deductions
                         </h1>
 
                         <h1
                             onClick={() => setActiveTab("rentalRules")}
-                            className={`hover:underline duration-300 transition-all cursor-pointer ${
-                                activeTab === "rentalRules"
-                                    ? "text-navyblue text-bold"
-                                    : "text-gray/90"
-                            }`}
+                            className={`shrink-0 hover:underline duration-300 transition-all cursor-pointer
+                                ${activeTab === "rentalRules" ? "text-navyblue text-bold" : "text-gray/90"}`}
                         >
                             Rules & Regulations
                         </h1>
 
                         <h1
                             onClick={() => setActiveTab("void")}
-                            className={`hover:underline duration-300 transition-all cursor-pointer ${
-                                activeTab === "void"
-                                    ? "text-navyblue text-bold"
-                                    : "text-gray/90"
-                            }`}
+                            className={`shrink-0 hover:underline duration-300 transition-all cursor-pointer
+                                ${activeTab === "void" ? "text-navyblue text-bold" : "text-gray/90"}`}
                         >
                             Void
+                        </h1>
+
+                        <h1
+                            onClick={() => setActiveTab("qrPayment")}
+                            className={`shrink-0 hover:underline duration-300 transition-all cursor-pointer
+                                ${activeTab === "qrPayment" ? "text-navyblue text-bold" : "text-gray/90"}`}
+                        >
+                            QR Payment
                         </h1>
                         
                         
@@ -1287,6 +1438,173 @@ function Settings({role}) {
                             </motion.div>
                         </>
                     }
+
+                    {activeTab === "qrPayment" && (
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                        className="w-full flex-1 min-h-0 overflow-y-auto rounded-xl border border-gray/60 bg-[#ebebeb]"
+                    >
+                        <div className="flex flex-col gap-6 p-5">
+
+                            {/* HEADER */}
+                            <div className="flex flex-col gap-1">
+                                <h1 className="text-xl font-akagi font-bold tracking-wide text-blue md:text-2xl">
+                                    QR Payment Settings
+                                </h1>
+
+                                <p className="text-sm font-akagi font-medium text-gray">
+                                    Manage the QR code displayed to customers when paying through QR payment.
+                                </p>
+                            </div>
+
+                            {!isAdmin ? (
+                                <div className="rounded-xl border border-gray/40 bg-[#ffffff] p-5 font-akagi text-gray">
+                                    Only administrators can manage the QR payment image.
+                                </div>
+                            ) : qrLoading ? (
+                                <div className="rounded-xl border border-gray/40 bg-[#ffffff] p-8 text-center font-akagi text-gray">
+                                    Loading QR payment settings...
+                                </div>
+                            ) : !qrPayment ? (
+                                <div className="rounded-xl border border-red-200 bg-red-50 p-5 font-akagi text-sm text-red-700">
+                                    QR payment settings could not be found. Please make sure an initial record exists in `qr_payments_mod`.
+                                </div>
+                            ) : (
+                                <div className="flex flex-col gap-5 rounded-xl border border-gray/40 bg-[#ffffff] p-5">
+
+                                    <div className="flex flex-col gap-1">
+                                        <h2 className="text-lg font-akagi font-bold text-blue">
+                                            Current QR Payment Image
+                                        </h2>
+
+                                        <p className="text-sm font-akagi font-medium text-gray">
+                                            Upload a new QR code to replace the currently displayed payment image.
+                                        </p>
+                                    </div>
+
+                                    {/* QR IMAGE PREVIEW */}
+                                    <div className="flex flex-col items-center gap-3">
+
+                                        {qrPreview || qrPayment.qr_payment_image_url ? (
+                                            <img
+                                                src={
+                                                    qrPreview ||
+                                                    qrPayment.qr_payment_image_url
+                                                }
+                                                alt="QR Payment"
+                                                className="w-64 h-64 rounded-xl border border-gray/30 bg-[#ffffff] object-contain p-2"
+                                            />
+                                        ) : (
+                                            <div className="flex h-64 w-64 items-center justify-center rounded-xl border-2 border-dashed border-gray/40 bg-gray/5 p-5 text-center">
+                                                <p className="font-akagi font-medium text-gray">
+                                                    No QR payment image uploaded yet.
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        <p className="text-xs font-akagi font-medium text-gray">
+                                            {qrPreview
+                                                ? "New image preview"
+                                                : "Currently saved QR image"}
+                                        </p>
+                                    </div>
+
+                                    {/* UPLOAD INPUT */}
+                                    <div className="flex flex-col gap-3">
+
+                                        <label
+                                            htmlFor="qrPaymentUpload"
+                                            className="w-fit cursor-pointer rounded-lg bg-blue px-4 py-2 font-akagi font-bold text-[#ffffff] transition hover:bg-navyblue"
+                                        >
+                                            Choose QR Image
+                                        </label>
+
+                                        <input
+                                            id="qrPaymentUpload"
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleQrImageChange}
+                                            disabled={qrUploading}
+                                            className="hidden"
+                                        />
+
+                                        {qrFile && (
+                                            <div className="flex flex-wrap items-center gap-2 font-akagi text-sm text-gray">
+                                                <span className="font-bold">
+                                                    Selected:
+                                                </span>
+
+                                                <span className="break-all">
+                                                    {qrFile.name}
+                                                </span>
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setQrFile(null);
+                                                        setQrPreview(null);
+                                                        setQrMessage({
+                                                            type: "",
+                                                            text: ""
+                                                        });
+                                                    }}
+                                                    disabled={qrUploading}
+                                                    className="text-red-500 font-bold hover:underline"
+                                                >
+                                                    Remove
+                                                </button>
+                                            </div>
+                                        )}
+
+                                        <p className="text-xs font-akagi text-gray">
+                                            Accepted image formats: JPG, PNG, WEBP. Maximum file size: 5MB.
+                                        </p>
+                                    </div>
+
+                                    {/* FEEDBACK */}
+                                    {qrMessage.text && (
+                                        <div
+                                            role="status"
+                                            aria-live="polite"
+                                            className={`rounded-lg border px-3 py-2 font-akagi text-sm font-medium ${
+                                                qrMessage.type === "success"
+                                                    ? "border-blue bg-blue/10 text-blue"
+                                                    : "border-red-200 bg-red-50 text-red-700"
+                                            }`}
+                                        >
+                                            {qrMessage.text}
+                                        </div>
+                                    )}
+
+                                    {/* SAVE BUTTON */}
+                                    <button
+                                        type="button"
+                                        onClick={saveQrPayment}
+                                        disabled={!qrFile || qrUploading}
+                                        className={`w-fit rounded-lg px-5 py-2 font-akagi font-bold text-navyblue transition ${
+                                            !qrFile || qrUploading
+                                                ? "cursor-not-allowed bg-yellow/50"
+                                                : "cursor-pointer bg-yellow hover:opacity-80"
+                                        }`}
+                                    >
+                                        {qrUploading ? (
+                                            <span className="flex items-center gap-2">
+                                                <span className="h-4 w-4 animate-spin rounded-full border-2 border-navyblue/30 border-t-navyblue" />
+                                                Uploading...
+                                            </span>
+                                        ) : (
+                                            "Save QR Payment"
+                                        )}
+                                    </button>
+
+                                </div>
+                            )}
+                        </div>
+                    </motion.div>
+                )}
 
                     {activeTab === "rentalRules" && (
                         <motion.div
