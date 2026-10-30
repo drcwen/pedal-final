@@ -850,7 +850,7 @@ function Monitoring({ role }) {
                                                         </div>
 
                                                         <span className="text-[11px] text-gray font-medium">
-                                                            Seen: {formatLastSeen(gpsData?.last_seen)}
+                                                            Seen: {formatLastSeen(gpsData?.updated_at)}
                                                         </span>
 
                                                         {isOutOfBounds && (

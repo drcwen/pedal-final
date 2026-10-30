@@ -9,7 +9,6 @@ import { motion } from "motion/react"
 import { useNavigate } from "react-router-dom";
 import { TbHistory } from "react-icons/tb";
 import { IoMdClose } from "react-icons/io";
-import { RiRefundFill } from "react-icons/ri";
 
 function POS({ role }) {
 
