@@ -371,13 +371,17 @@ function Notifications() {
                             {/* Modal Header */}
                             <div className="flex items-start justify-between gap-4 mb-6">
                                 <div className="flex items-center gap-3">
-                                    <div className={`p-3 rounded-full ${
-                                        selectedNotification.type === "refund_approved"
-                                            ? "bg-green-100 text-green-600"
-                                            : selectedNotification.type === "refund_rejected"
-                                            ? "bg-red-100 text-red-500"
-                                            : "bg-blue/10 text-blue"
-                                    }`}>
+                                    <div
+                                        className={`p-3 rounded-full ${
+                                            selectedNotification.type === "refund_approved"
+                                                ? "bg-green-100 text-green-600"
+                                                : selectedNotification.type === "refund_rejected"
+                                                ? "bg-red-100 text-red-500"
+                                                : selectedNotification.type === "reservation_affected"
+                                                ? "bg-yellow-100 text-yellow-600"
+                                                : "bg-blue/10 text-blue"
+                                        }`}
+                                    >
                                         {selectedNotification.type === "refund_approved" ? (
                                             <HiOutlineCheckCircle className="text-2xl" />
                                         ) : (
@@ -389,6 +393,7 @@ function Notifications() {
                                         <h2 className="text-xl md:text-2xl font-bold text-blue">
                                             Notification Details
                                         </h2>
+
                                         <p className="text-xs text-gray mt-1">
                                             {formatDate(selectedNotification.created_at)}
                                         </p>
@@ -411,11 +416,13 @@ function Notifications() {
                                         {selectedNotification.type?.replace(/_/g, " ")}
                                     </span>
 
-                                    <span className={`text-xs font-bold px-3 py-1 rounded-full ${
-                                        selectedNotification.is_read
-                                            ? "bg-gray-100 text-gray-500"
-                                            : "bg-blue text-[#ffffff]"
-                                    }`}>
+                                    <span
+                                        className={`text-xs font-bold px-3 py-1 rounded-full ${
+                                            selectedNotification.is_read
+                                                ? "bg-gray-100 text-gray-500"
+                                                : "bg-blue text-[#ffffff]"
+                                        }`}
+                                    >
                                         {selectedNotification.is_read ? "READ" : "UNREAD"}
                                     </span>
                                 </div>
@@ -429,81 +436,107 @@ function Notifications() {
                                 </p>
                             </div>
 
-                            {/* Refund Request Information */}
-                            <div className="flex flex-col gap-4">
-                                <h3 className="text-sm font-bold text-blue uppercase tracking-wider">
-                                    Refund Request Information
-                                </h3>
+                            {/* Reservation Affected Notice */}
+                            {selectedNotification.type === "reservation_affected" ? (
+                                <div className="flex flex-col gap-4">
+                                    <div className="flex items-start gap-3 bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                                        <HiOutlineBell className="text-yellow-600 text-2xl shrink-0 mt-0.5" />
 
-                                {selectedNotification.refund ? (
-                                    <>
-                                        {[
-                                            ["Refund Request ID", selectedNotification.refund.id],
-                                            [
-                                                "Transaction ID",
-                                                selectedNotification.refund.original_transaction_id,
-                                            ],
-                                            [
-                                                "Refund Status",
-                                                selectedNotification.refund.status,
-                                            ],
-                                            [
-                                                "Refund Method",
-                                                selectedNotification.refund.refund_method,
-                                            ],
-                                            [
-                                                "Account Holder",
-                                                selectedNotification.refund.account_holder_name,
-                                            ],
-                                            [
-                                                "Account Number",
-                                                selectedNotification.refund.account_number,
-                                            ],
-                                            [
-                                                "Reason",
-                                                selectedNotification.refund.reason,
-                                            ],
-                                            [
-                                                "Additional Details",
-                                                selectedNotification.refund.additional_details,
-                                            ],
-                                            [
-                                                "Refund Reference Number",
-                                                selectedNotification.refund.refund_reference_number,
-                                            ],
-                                            ...(selectedNotification.refund.status?.toLowerCase() === "rejected"
-                                                ? [
-                                                    [
-                                                        "Admin Rejection Reason",
-                                                        selectedNotification.refund.rejection_reason,
-                                                    ],
-                                                ]
-                                                : []),
-                                            [
-                                                "Request Submitted",
-                                                formatDate(selectedNotification.refund.created_at),
-                                            ],
-                                        ].map(([label, value]) => (
-                                            <div
-                                                key={label}
-                                                className="flex flex-col gap-1 border-b border-gray-100 pb-3"
-                                            >
-                                                <span className="text-xs font-bold text-gray-400 uppercase">
-                                                    {label}
-                                                </span>
+                                        <div>
+                                            <h3 className="font-bold text-yellow-800">
+                                                Important Reservation Notice
+                                            </h3>
 
-                                                <span className="text-sm font-semibold text-gray break-words">
-                                                    {value || "Not provided"}
-                                                </span>
-                                            </div>
-                                        ))}
-                                    </>
-                                ) : (
-                                    <p className="text-sm text-gray font-medium">
-                                        No refund request information is associated with this notification.
-                                    </p>
-                                )}
-                            </div>
+                                            <p className="text-sm text-yellow-700 mt-1 leading-relaxed">
+                                                Your reservation has been affected by a scheduled
+                                                non-working day. Please contact the administrator
+                                                for assistance regarding your reservation and
+                                                possible refund arrangements.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {selectedNotification.transaction_id && (
+                                        <div className="border-b border-gray-100 pb-3">
+                                            <span className="text-xs font-bold text-gray-400 uppercase">
+                                                Transaction ID
+                                            </span>
+
+                                            <p className="text-sm font-semibold text-gray mt-1">
+                                                #{selectedNotification.transaction_id}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : selectedNotification.refund ? (
+                                /* Refund Request Information */
+                                <div className="flex flex-col gap-4">
+                                    <h3 className="text-sm font-bold text-blue uppercase tracking-wider">
+                                        Refund Request Information
+                                    </h3>
+
+                                    {[
+                                        ["Refund Request ID", selectedNotification.refund.id],
+                                        [
+                                            "Transaction ID",
+                                            selectedNotification.refund.original_transaction_id,
+                                        ],
+                                        [
+                                            "Refund Status",
+                                            selectedNotification.refund.status,
+                                        ],
+                                        [
+                                            "Refund Method",
+                                            selectedNotification.refund.refund_method,
+                                        ],
+                                        [
+                                            "Account Holder",
+                                            selectedNotification.refund.account_holder_name,
+                                        ],
+                                        [
+                                            "Account Number",
+                                            selectedNotification.refund.account_number,
+                                        ],
+                                        [
+                                            "Reason",
+                                            selectedNotification.refund.reason,
+                                        ],
+                                        [
+                                            "Additional Details",
+                                            selectedNotification.refund.additional_details,
+                                        ],
+                                        [
+                                            "Refund Reference Number",
+                                            selectedNotification.refund.refund_reference_number,
+                                        ],
+                                        ...(selectedNotification.refund.status?.toLowerCase() === "rejected"
+                                            ? [
+                                                [
+                                                    "Admin Rejection Reason",
+                                                    selectedNotification.refund.rejection_reason,
+                                                ],
+                                            ]
+                                            : []),
+                                        [
+                                            "Request Submitted",
+                                            formatDate(selectedNotification.refund.created_at),
+                                        ],
+                                    ].map(([label, value]) => (
+                                        <div
+                                            key={label}
+                                            className="flex flex-col gap-1 border-b border-gray-100 pb-3"
+                                        >
+                                            <span className="text-xs font-bold text-gray-400 uppercase">
+                                                {label}
+                                            </span>
+
+                                            <span className="text-sm font-semibold text-gray break-words">
+                                                {value || "Not provided"}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : null}
 
                             {/* Close Button */}
                             <button

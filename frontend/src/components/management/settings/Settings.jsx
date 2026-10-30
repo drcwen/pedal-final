@@ -41,6 +41,12 @@ function Settings({role}) {
 
     const [dropDown, setDropDown] = useState(false);
 
+    const [showHolidayWarning, setShowHolidayWarning] = useState(false);
+    const [affectedReservations, setAffectedReservations] = useState([]);
+    const [checkingReservations, setCheckingReservations] = useState(false);
+    const [confirmingHoliday, setConfirmingHoliday] = useState(false);
+    const [holidayMessage, setHolidayMessage] = useState("");
+
     const [savingSchedule, setSavingSchedule] = useState(false);
     const [scheduleMessage, setScheduleMessage] = useState({
         type: "",
@@ -232,32 +238,136 @@ function Settings({role}) {
     }
 
     const submitNonWorking = async () => {
+        if (!date || !event.trim() || loading) return;
 
         try {
             setLoading(true);
-            
-            const {data, error} = await supabase
-                .from("non_working_days_mod")
-                .insert({
-                    date: date,
-                    event_name: event
-                })
+            setHolidayMessage("");
 
-                if(error) {
-                    console.error(error);
-                    return
-                }
-                
-            await fetchNonWorking();
-            setEvent("");
-            setDate("");
+            // 1. Check reservations that will be affected by this closing date
+            const { data, error } = await supabase
+                .from("orders_mod")
+                .select(`
+                    id,
+                    reservation_date,
+                    status,
+                    transactions_mod!inner (
+                        id,
+                        user_id,
+                        type,
+                        status
+                    )
+                `)
+                .eq("reservation_date", date)
+                .eq("status", "reserved")
+                .eq("transactions_mod.type", "reservation");
 
-        } catch(err) {
-            console.error(err);
+            if (error) throw error;
+
+            const reservations = data || [];
+
+            // 2. If there are affected reservations, show the warning first
+            if (reservations.length > 0) {
+                setAffectedReservations(reservations);
+                setShowHolidayWarning(true);
+                return;
+            }
+
+            // 3. No affected reservations, so save the holiday immediately
+            await saveNonWorkingDay([]);
+
+        } catch (error) {
+            console.error("Error checking affected reservations:", error);
+            setHolidayMessage(
+                "Failed to check reservations for this date. Please try again."
+            );
         } finally {
             setLoading(false);
         }
-    }
+    };
+
+    const saveNonWorkingDay = async (reservations) => {
+        try {
+            setConfirmingHoliday(true);
+            setHolidayMessage("");
+
+            const { data: userData, error: userError } =
+                await supabase.auth.getUser();
+
+            if (userError) throw userError;
+
+            const currentUser = userData.user;
+
+            // 1. Insert the special non-working day
+            const { error: holidayError } = await supabase
+                .from("non_working_days_mod")
+                .insert({
+                    date: date,
+                    event_name: event.trim()
+                });
+
+            if (holidayError) throw holidayError;
+
+            // 2. Group affected reservations by transaction
+            if (reservations.length > 0) {
+
+                const uniqueTransactions = new Map();
+
+                reservations.forEach((reservation) => {
+                    const transaction = reservation.transactions_mod;
+
+                    if (transaction?.id && transaction?.user_id) {
+                        // Use transaction ID as the key to prevent duplicate notifications
+                        uniqueTransactions.set(transaction.id, transaction);
+                    }
+                });
+
+                // 3. Create only one notification per transaction
+                const notifications = Array.from(uniqueTransactions.values()).map(
+                    (transaction) => ({
+                        recipient_id: transaction.user_id,
+                        sender_id: currentUser.id,
+                        transaction_id: transaction.id,
+                        type: "reservation_affected",
+                        title: "Reservation Affected by Holiday",
+                        message: `Your reservation scheduled for ${date} is affected because the bike rental facility will be closed due to ${event.trim()}. Please contact the administrator regarding your refund.`,
+                        is_read: false
+                    })
+                );
+
+                // 4. Insert notifications
+                if (notifications.length > 0) {
+                    const { error: notificationError } = await supabase
+                        .from("notifications_mod")
+                        .insert(notifications);
+
+                    if (notificationError) {
+                        console.error("Error sending customer notifications:", notificationError);
+
+                        setHolidayMessage(
+                            "The non-working day was saved, but some customer notifications could not be sent."
+                        );
+                    }
+                }
+            }
+
+            await fetchNonWorking();
+
+            setEvent("");
+            setDate("");
+            setAffectedReservations([]);
+            setShowHolidayWarning(false);
+
+        } catch (error) {
+            console.error("Error saving non-working day:", error);
+
+            setHolidayMessage(
+                "Failed to save the non-working day. Please try again."
+            );
+        } finally {
+            setConfirmingHoliday(false);
+        }
+    };
 
     const fetchRentalRules = async () => {
         setRulesLoading(true);
@@ -664,16 +774,24 @@ function Settings({role}) {
                                     />
                                 </div>
 
-                                <div 
+                                <button
+                                    type="button"
                                     onClick={submitNonWorking}
-                                    className={`cursor-pointer ${
-                                        event === "" || date === "" ? "hidden" : "block"
-                                    } 
-                                    
-                                    ${loading ? "disabled opacity-20" : "bg-yellow"} w-fit rounded-lg px-4 py-1 font-akagi font-bold text-navyblue`}
+                                    disabled={loading || !event.trim() || !date}
+                                    className={`w-fit rounded-lg px-4 py-1 font-akagi font-bold text-navyblue transition ${
+                                        loading || !event.trim() || !date
+                                            ? "cursor-not-allowed bg-yellow/50"
+                                            : "cursor-pointer bg-yellow hover:opacity-80"
+                                    }`}
                                 >
-                                    Add
-                                </div>
+                                    {loading ? "Checking..." : "Add"}
+                                </button>
+
+                                {holidayMessage && (
+                                    <div className="w-full rounded-lg border border-red-200 bg-red-50 px-3 py-2 font-akagi text-sm font-medium text-red-700">
+                                        {holidayMessage}
+                                    </div>
+                                )}
 
                                 <div className='flex flex-col gap-1 font-akagi font-bold text-gray'>
 
@@ -1202,6 +1320,73 @@ function Settings({role}) {
                 </div>
             </motion.div>
         </div>
+
+        {showHolidayWarning && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4">
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                    className="w-full max-w-md rounded-2xl bg-[#ffffff] p-6 shadow-2xl"
+                >
+                    <div className="flex flex-col items-center gap-4 text-center">
+
+                        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-yellow/20">
+                            <IoMdArrowDropdown className="rotate-180 text-4xl text-yellow-600" />
+                        </div>
+
+                        <div className="flex flex-col gap-2">
+                            <h2 className="font-akagi text-2xl font-bold text-blue">
+                                Affected Reservations
+                            </h2>
+
+                            <p className="font-akagi font-medium text-gray">
+                                There {affectedReservations.length === 1 ? "is" : "are"}{" "}
+                                <span className="font-bold text-red-600">
+                                    {affectedReservations.length} reservation
+                                    {affectedReservations.length === 1 ? "" : "s"}
+                                </span>{" "}
+                                scheduled for{" "}
+                                <span className="font-bold">{date}</span>.
+                            </p>
+
+                            <p className="font-akagi text-sm text-gray">
+                                If you proceed with this special non-working day, the
+                                affected customers will be notified that their
+                                reservation is affected and that they should contact
+                                the administrator regarding their refund.
+                            </p>
+
+                            <p className="font-akagi text-sm font-bold text-red-600">
+                                Do you want to continue?
+                            </p>
+                        </div>
+
+                        <div className="flex w-full flex-col gap-2 sm:flex-row">
+                            <button
+                                type="button"
+                                disabled={confirmingHoliday}
+                                onClick={() => setShowHolidayWarning(false)}
+                                className="w-full rounded-lg border border-gray px-4 py-2 font-akagi font-bold text-gray transition hover:bg-gray/10 disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                type="button"
+                                disabled={confirmingHoliday}
+                                onClick={() => saveNonWorkingDay(affectedReservations)}
+                                className="w-full rounded-lg bg-blue px-4 py-2 font-akagi font-bold text-[#ffffff] transition hover:bg-navyblue disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                {confirmingHoliday
+                                    ? "Saving..."
+                                    : "Confirm & Notify"}
+                            </button>
+                        </div>
+                    </div>
+                </motion.div>
+            </div>
+        )}
     </>
   )
 }
