@@ -711,68 +711,87 @@ function Alerts({role}) {
                             ) : (
                                 <div className="flex flex-col gap-3">
                                     {adminNotifications.map((notification) => (
-                                        <button
+                                        <div
                                             key={notification.id}
-                                            type="button"
                                             onClick={() => markNotificationAsRead(notification)}
-                                            className={`w-full text-left flex gap-4 items-start p-4 rounded-xl border transition ${
+                                            className={`w-full text-left flex flex-col sm:flex-row gap-4 items-start sm:items-center p-4 rounded-xl border transition cursor-pointer ${
                                                 notification.is_read
                                                     ? "bg-[#ffffff] border-gray-200 hover:bg-gray-50"
                                                     : "bg-blue/5 border-blue/30 hover:bg-blue/10"
                                             }`}
                                         >
-                                            <div
-                                                className={`shrink-0 rounded-full p-3 ${
-                                                    notification.is_read
-                                                        ? "bg-gray-100 text-gray-500"
-                                                        : "bg-blue/10 text-blue"
-                                                }`}
-                                            >
-                                                <HiOutlineBell className="text-xl" />
-                                            </div>
-
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex flex-wrap items-center justify-between gap-2">
-                                                    <h3 className="font-bold text-blue">
-                                                        {notification.title || "Notification"}
-                                                    </h3>
-
-                                                    {!notification.is_read && (
-                                                        <span className="bg-blue text-[#ffffff] text-xs font-bold px-3 py-1 rounded-full">
-                                                            NEW
-                                                        </span>
-                                                    )}
+                                            {/* Notification Information */}
+                                            <div className="flex gap-4 items-start flex-1 min-w-0">
+                                                <div
+                                                    className={`shrink-0 rounded-full p-3 ${
+                                                        notification.is_read
+                                                            ? "bg-gray-100 text-gray-500"
+                                                            : "bg-blue/10 text-blue"
+                                                    }`}
+                                                >
+                                                    <HiOutlineBell className="text-xl" />
                                                 </div>
 
-                                                <p className="text-sm text-gray font-medium mt-2 leading-relaxed">
-                                                    {notification.message}
-                                                </p>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex flex-wrap items-center justify-between gap-2">
+                                                        <h3 className="font-bold text-blue">
+                                                            {notification.title || "Notification"}
+                                                        </h3>
 
-                                                <div className="flex flex-wrap gap-2 items-center mt-3 text-xs text-gray-500">
-                                                    <HiOutlineClock className="text-base" />
-
-                                                    <span>
-                                                        {formatTime(notification.created_at)}
-                                                    </span>
-
-                                                    <span>•</span>
-
-                                                    <span>
-                                                        {formatRelativeDate(notification.created_at)}
-                                                    </span>
-
-                                                    {notification.type && (
-                                                        <>
-                                                            <span>•</span>
-
-                                                            <span className="capitalize">
-                                                                {notification.type.replace(/_/g, " ")}
+                                                        {!notification.is_read && (
+                                                            <span className="bg-blue text-[#ffffff] text-xs font-bold px-3 py-1 rounded-full">
+                                                                NEW
                                                             </span>
-                                                        </>
-                                                    )}
+                                                        )}
+                                                    </div>
+
+                                                    <p className="text-sm text-gray font-medium mt-2 leading-relaxed">
+                                                        {notification.message}
+                                                    </p>
+
+                                                    <div className="flex flex-wrap gap-2 items-center mt-3 text-xs text-gray-500">
+                                                        <HiOutlineClock className="text-base" />
+
+                                                        <span>
+                                                            {formatTime(notification.created_at)}
+                                                        </span>
+
+                                                        <span>•</span>
+
+                                                        <span>
+                                                            {formatRelativeDate(notification.created_at)}
+                                                        </span>
+
+                                                        {notification.type && (
+                                                            <>
+                                                                <span>•</span>
+
+                                                                <span className="capitalize">
+                                                                    {notification.type.replace(/_/g, " ")}
+                                                                </span>
+                                                            </>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </button>
+
+                                            {/* View GPS Button */}
+                                            {notification.gps_id && (
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+
+                                                        markNotificationAsRead(notification);
+                                                        navigate(`/monitoring/${notification.gps_id}`);
+                                                    }}
+                                                    className="shrink-0 w-full sm:w-fit flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-[#ffffff] font-bold text-sm px-4 py-2 rounded-lg transition"
+                                                >
+                                                    <IoMdLocate className="text-lg" />
+                                                    View GPS
+                                                </button>
+                                            )}
+                                        </div>
                                     ))}
                                 </div>
                             )}
@@ -921,21 +940,26 @@ function Alerts({role}) {
                                 Close
                             </button>
 
-                            <button
-                                type="button"
-                                onClick={handleLocateBike}
-                                disabled={locating}
-                                className={`w-fit px-3 py-1 bg-green-500 rounded-lg flex gap-2 items-center text-[#ffffff] transition ${
-                                    locating
-                                        ? "opacity-50 cursor-not-allowed"
-                                        : "cursor-pointer hover:opacity-80"
-                                }`}
-                            >
-                                <IoMdLocate className="text-[#ffffff]" />
-                                {locating ? "Locating..." : "Locate"}
-                            </button>
+                            <div className="flex flex-col items-end gap-2">
+                                {/* NEW badge - PC only */}
+                                <span className="hidden md:block bg-red-500 text-[#ffffff] text-xs font-bold px-3 py-1 rounded-full">
+                                    NEW
+                                </span>
 
-                            
+                                <button
+                                    type="button"
+                                    onClick={handleLocateBike}
+                                    disabled={locating}
+                                    className={`w-fit px-3 py-1 bg-green-500 rounded-lg flex gap-2 items-center text-[#ffffff] transition ${
+                                        locating
+                                            ? "opacity-50 cursor-not-allowed"
+                                            : "cursor-pointer hover:opacity-80"
+                                    }`}
+                                >
+                                    <IoMdLocate className="text-[#ffffff]" />
+                                    {locating ? "Locating..." : "Locate"}
+                                </button>
+                            </div>
                         </div>
                         {locateError && (
                             <p className="text-sm font-akagi font-medium text-red-500">

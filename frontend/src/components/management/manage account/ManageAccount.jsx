@@ -67,8 +67,28 @@ function ManageAccount({role}) {
             errors.contact = "Contact number must start with 09 and contain exactly 11 digits.";
         }
 
-        if (!/^[^\s@]+@[^\s@]+\.com$/i.test(email)) {
+        if (!/^[^\s@]+@[^\s@]+\.com$/i.test(email.trim())) {
             errors.email = "Please enter a valid .com email address.";
+        } else {
+            // Check whether the email already exists.
+            try {
+                const { data, error } = await supabase
+                    .from("profiles_mod")
+                    .select("id")
+                    .ilike("email", email.trim())
+                    .limit(1)
+                    .maybeSingle();
+
+                if (error) throw error;
+
+                if (data) {
+                    errors.email = "This email address is already registered.";
+                }
+
+            } catch (error) {
+                console.error("Email check failed:", error);
+                errors.email = "Unable to verify email. Please try again.";
+            }
         }
 
         if (!password.trim()) {
@@ -168,7 +188,7 @@ function ManageAccount({role}) {
                 "create-employee",
                 {
                     body: {
-                        email: email,
+                        email: email.trim().toLowerCase(),
                         password: password,
                         firstName: firstName,
                         lastName: lastName,
