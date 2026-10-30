@@ -311,7 +311,7 @@
                   <AccountDetails
                     key={accountId.id}
                     fullName={accountId.first_name + " " + accountId.last_name}
-                    role={accountId.role}
+                    accountRole={accountId.role}
                     email={accountId.email}
                     contact={accountId.contact}
                     id={accountId.id}

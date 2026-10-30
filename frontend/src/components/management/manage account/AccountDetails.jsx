@@ -12,7 +12,7 @@ import { RiArrowDropDownLine } from "react-icons/ri";
 import { IoCloseSharp } from "react-icons/io5";
 import { supabase } from "../../../lib/supabase"
 
-function AccountDetails({ fullName, role, email, contact, id, branch, firstName, lastName, username }) {
+function AccountDetails({ fullName, role, email, contact, id, branch, firstName, lastName, username, accountRole }) {
 
     const navigate = useNavigate();
 
@@ -21,7 +21,7 @@ function AccountDetails({ fullName, role, email, contact, id, branch, firstName,
     const [editEmail, setEditEmail] = useState(email);
     const [editFirstName, setEditFirstName] = useState(firstName);
     const [editLastName, setEditLastName] = useState(lastName);
-    const [editRole, setEditRole] = useState(role);
+    const [editRole, setEditRole] = useState(accountRole);
     const [editContact, setEditContact] = useState(contact);
     const [editBranch, setEditBranch] = useState(branch);
     const [editPassword, setEditPassword] = useState("");
@@ -169,7 +169,7 @@ function AccountDetails({ fullName, role, email, contact, id, branch, firstName,
 
             if (profileError) throw profileError;
 
-            if (changePin && role === "admin") {
+            if (changePin && accountRole === "admin") {
                 const { error: pinSaveError } = await supabase
                     .from("pin_mod")
                     .upsert(
@@ -265,7 +265,7 @@ function AccountDetails({ fullName, role, email, contact, id, branch, firstName,
                                     if (edit) {
                                         setEditFirstName(firstName);
                                         setEditLastName(lastName);
-                                        setEditRole(role);
+                                        setEditRole(accountRole);
                                         setEditEmail(email);
                                         setEditContact(contact);
                                         setEditUsername(username);

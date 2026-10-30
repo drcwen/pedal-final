@@ -1055,6 +1055,65 @@ function DataReports({role}) {
             .replace(/[\s-]+/g, "_");
     };
 
+    // Filter transactions based on selected types and statuses.
+    const filteredTransactions = transactionData.filter((transaction) =>
+        selectedTypes.includes(transaction.type) &&
+        selectedStatuses.includes(normalizeStatus(transaction.status))
+    );
+
+    // Get the transaction date using Philippine time.
+    const getPhilippineDateKey = (timestamp) => {
+        if (!timestamp) return "unknown";
+
+        return new Intl.DateTimeFormat("en-CA", {
+            timeZone: "Asia/Manila",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+        }).format(new Date(timestamp));
+    };
+
+    // Convert the date key into a readable date.
+    const getPhilippineDateLabel = (dateKey) => {
+        if (dateKey === "unknown") return "Unknown Date";
+
+        return new Date(`${dateKey}T00:00:00+08:00`).toLocaleDateString(
+            "en-PH",
+            {
+                timeZone: "Asia/Manila",
+                month: "long",
+                day: "numeric",
+                year: "numeric",
+            }
+        );
+    };
+
+    // Group filtered transactions by date.
+    const groupedTransactions = filteredTransactions.reduce(
+        (groups, transaction) => {
+            const dateKey = getPhilippineDateKey(transaction.created_at);
+
+            if (!groups[dateKey]) {
+                groups[dateKey] = [];
+            }
+
+            groups[dateKey].push(transaction);
+
+            return groups;
+        },
+        {}
+    );
+
+    // Sort dates from newest to oldest.
+    const sortedTransactionDates = Object.keys(groupedTransactions).sort(
+        (a, b) => {
+            if (a === "unknown") return 1;
+            if (b === "unknown") return -1;
+
+            return b.localeCompare(a);
+        }
+    );
+
   return (
     <>
 
@@ -1538,150 +1597,164 @@ function DataReports({role}) {
 
                             </div>
 
-                            {/* All Transactions */}
-                                {loading ? (
-                                    <div className="flex justify-center py-10">
-                                        <h1 className="font-akagi text-lg text-[#6D7172]">
-                                            Loading transactions...
-                                        </h1>
-                                    </div>
-                                ) : transactionData.length === 0 ? (
-                                    <div className="flex justify-center py-10">
-                                        <h1 className="font-akagi text-lg text-[#6D7172]">
-                                            No transactions found for the selected dates.
-                                        </h1>
-                                    </div>
-                                ) : (
+                                {/* All Transactions */}
+                                    {loading ? (
+                                        <div className="flex justify-center py-10">
+                                            <h1 className="font-akagi text-lg text-[#6D7172]">
+                                                Loading transactions...
+                                            </h1>
+                                        </div>
+                                    ) : filteredTransactions.length === 0 ? (
+                                        <div className="flex justify-center py-10">
+                                            <h1 className="font-akagi text-lg text-[#6D7172]">
+                                                No transactions found for the selected filters and dates.
+                                            </h1>
+                                        </div>
+                                    ) : (
+                                        <div className="flex flex-col gap-6">
 
-                                    <div className="flex flex-col gap-3">
-                                    {transactionData
-                                        .filter((transaction) =>
-                                            selectedTypes.includes(transaction.type) &&
-                                            selectedStatuses.includes(normalizeStatus(transaction.status))
-                                        )
-                                        .map((transaction) => {
+                                            {sortedTransactionDates.map((dateKey) => {
+                                                const transactions = groupedTransactions[dateKey];
 
-                                            const extensionTransaction =
-                                                transaction.type === "extend"
-                                                    ? transaction.extensions_mod?.[0]?.orders_mod?.transaction
-                                                    : null;
+                                                return (
+                                                    <div
+                                                        key={dateKey}
+                                                        className="flex flex-col gap-3"
+                                                    >
 
-                                            const changeTransaction =
-                                                transaction.type === "change"
-                                                    ? transaction.change_bikes_mod?.[0]?.orders_mod?.transaction
-                                                    : null;
+                                                        {/* Date Heading and Transaction Count */}
+                                                        <div className="flex flex-row justify-between items-center border-b border-[#D9D9D9] pb-2">
 
-                                            const maintenanceTransaction =
-                                                transaction.type === "maintenance"
-                                                    ? transaction.maintenance_mod?.[0]?.orders_mod?.transaction
-                                                    : null;
+                                                            <h1 className="font-akagi font-bold text-lg text-blue">
+                                                                {getPhilippineDateLabel(dateKey)}
+                                                            </h1>
 
-                                            const overtimeTransaction =
-                                                transaction.type === "overtime"
-                                                    ? transaction.overtime_mod?.[0]?.original_transaction
-                                                    : null;
+                                                            <span className="font-akagi font-bold text-sm text-gray bg-[#E2E2E2] px-3 py-1 rounded-full">
+                                                                {transactions.length} {transactions.length === 1 ? "transaction" : "transactions"}
+                                                            </span>
 
-                                            const profile =
-                                                transaction.type === "extend"
-                                                    ? extensionTransaction?.profile
-                                                    : transaction.type === "change"
-                                                        ? changeTransaction?.profile
-                                                        : transaction.type === "maintenance"
-                                                            ? maintenanceTransaction?.profile
-                                                            : transaction.type === "overtime"
-                                                                ? overtimeTransaction?.profile
-                                                                : transaction.profile;
+                                                        </div>
 
-                                            const walkIn =
-                                                transaction.type === "extend"
-                                                    ? extensionTransaction?.walk_in
-                                                    : transaction.type === "change"
-                                                        ? changeTransaction?.walk_in
-                                                        : transaction.type === "maintenance"
-                                                            ? maintenanceTransaction?.walk_in
-                                                            : transaction.type === "overtime"
-                                                                ? overtimeTransaction?.walk_in
-                                                                : transaction.walk_in;
+                                                        {/* Transactions for this date */}
+                                                        <div className="flex flex-col gap-3">
 
-                                            const customerName =
-                                                transaction.type === "maintenance"
-                                                    ? profile
-                                                        ? (
-                                                            profile.full_name ??
-                                                            `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim()
-                                                        )
-                                                        : walkIn?.[0]?.full_name ?? "Management"
-                                                    : profile
-                                                        ? (
-                                                            profile.full_name ??
-                                                            `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim()
-                                                        )
-                                                        : walkIn?.[0]?.full_name ?? "Unknown Customer";
+                                                            {transactions.map((transaction) => {
 
-                                            const extensionData =
-                                                transaction.extensions_mod?.[0] ?? null;
+                                                                const extensionTransaction =
+                                                                    transaction.type === "extend"
+                                                                        ? transaction.extensions_mod?.[0]?.orders_mod?.transaction
+                                                                        : null;
 
-                                            const changedBikesData =
-                                                transaction.change_bikes_mod ?? [];
+                                                                const changeTransaction =
+                                                                    transaction.type === "change"
+                                                                        ? transaction.change_bikes_mod?.[0]?.orders_mod?.transaction
+                                                                        : null;
 
-                                            const maintenanceData =
-                                                transaction.maintenance_mod?.[0] ?? null;
+                                                                const maintenanceTransaction =
+                                                                    transaction.type === "maintenance"
+                                                                        ? transaction.maintenance_mod?.[0]?.orders_mod?.transaction
+                                                                        : null;
 
-                                            let totalBikes;
+                                                                const overtimeTransaction =
+                                                                    transaction.type === "overtime"
+                                                                        ? transaction.overtime_mod?.[0]?.original_transaction
+                                                                        : null;
 
-                                            if (
-                                                transaction.type === "walk-in" ||
-                                                transaction.type === "reservation"
-                                            ) {
-                                                totalBikes = transaction.orders_mod?.length ?? 0;
-                                            } else if (transaction.type === "change") {
-                                                totalBikes = "C";
-                                            } else if (transaction.type === "extend") {
-                                                totalBikes = "E";
-                                            } else if (transaction.type === "overtime") {
-                                                totalBikes = "OT";
-                                            } else if (transaction.type === "maintenance") {
-                                                totalBikes = "M";
-                                            } else {
-                                                totalBikes = 0;
-                                            }
+                                                                const profile =
+                                                                    transaction.type === "extend"
+                                                                        ? extensionTransaction?.profile
+                                                                        : transaction.type === "change"
+                                                                            ? changeTransaction?.profile
+                                                                            : transaction.type === "maintenance"
+                                                                                ? maintenanceTransaction?.profile
+                                                                                : transaction.type === "overtime"
+                                                                                    ? overtimeTransaction?.profile
+                                                                                    : transaction.profile;
 
-                                            return (
-                                                <TransactionRow
-                                                    key={transaction.id}
+                                                                const walkIn =
+                                                                    transaction.type === "extend"
+                                                                        ? extensionTransaction?.walk_in
+                                                                        : transaction.type === "change"
+                                                                            ? changeTransaction?.walk_in
+                                                                            : transaction.type === "maintenance"
+                                                                                ? maintenanceTransaction?.walk_in
+                                                                                : transaction.type === "overtime"
+                                                                                    ? overtimeTransaction?.walk_in
+                                                                                    : transaction.walk_in;
 
-                                                    totalBikes={totalBikes}
+                                                                const customerName =
+                                                                    transaction.type === "maintenance"
+                                                                        ? profile
+                                                                            ? (
+                                                                                profile.full_name ??
+                                                                                `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim()
+                                                                            )
+                                                                            : walkIn?.[0]?.full_name ?? "Management"
+                                                                        : profile
+                                                                            ? (
+                                                                                profile.full_name ??
+                                                                                `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim()
+                                                                            )
+                                                                            : walkIn?.[0]?.full_name ?? "Unknown Customer";
 
-                                                    transactionId={transaction.id}
+                                                                const extensionData =
+                                                                    transaction.extensions_mod?.[0] ?? null;
 
-                                                    fullName={customerName}
+                                                                const changedBikesData =
+                                                                    transaction.change_bikes_mod ?? [];
 
-                                                    transactionType={transaction.type}
+                                                                const maintenanceData =
+                                                                    transaction.maintenance_mod?.[0] ?? null;
 
-                                                    timeAdded={formatDate(transaction.created_at)}
+                                                                let totalBikes;
 
-                                                    status={transaction.status}
+                                                                if (
+                                                                    transaction.type === "walk-in" ||
+                                                                    transaction.type === "reservation"
+                                                                ) {
+                                                                    totalBikes = transaction.orders_mod?.length ?? 0;
+                                                                } else if (transaction.type === "change") {
+                                                                    totalBikes = "C";
+                                                                } else if (transaction.type === "extend") {
+                                                                    totalBikes = "E";
+                                                                } else if (transaction.type === "overtime") {
+                                                                    totalBikes = "OT";
+                                                                } else if (transaction.type === "maintenance") {
+                                                                    totalBikes = "M";
+                                                                } else {
+                                                                    totalBikes = 0;
+                                                                }
 
-                                                    transactionData={transaction.orders_mod ?? []}
+                                                                return (
+                                                                    <TransactionRow
+                                                                        key={transaction.id}
+                                                                        totalBikes={totalBikes}
+                                                                        transactionId={transaction.id}
+                                                                        fullName={customerName}
+                                                                        transactionType={transaction.type}
+                                                                        timeAdded={formatDate(transaction.created_at)}
+                                                                        status={transaction.status}
+                                                                        transactionData={transaction.orders_mod ?? []}
+                                                                        transactionPayment={transaction}
+                                                                        extensionsData={extensionData}
+                                                                        changeBikesData={changedBikesData}
+                                                                        maintenanceData={maintenanceData}
+                                                                        assistedBy={
+                                                                            transaction?.assisted_by_profile?.full_name ??
+                                                                            "Unknown"
+                                                                        }
+                                                                    />
+                                                                );
+                                                            })}
 
-                                                    transactionPayment={transaction}
+                                                        </div>
 
-                                                    extensionsData={extensionData}
+                                                    </div>
+                                                );
+                                            })}
 
-                                                    changeBikesData={changedBikesData}
-
-                                                    maintenanceData={maintenanceData}
-
-                                                    assistedBy={
-                                                        transaction?.assisted_by_profile?.full_name ??
-                                                        "Unknown"
-                                                    }
-                                                />
-                                            );
-                                        })}
-                                    </div>
-
-                                )}
+                                        </div>
+                                    )}
 
                             
 
