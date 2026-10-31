@@ -11,6 +11,7 @@ import { PiSignOutBold } from "react-icons/pi";
 import { TbReportAnalytics } from "react-icons/tb";
 import { TiUser } from "react-icons/ti";
 import { RiRefundFill } from "react-icons/ri";
+import { HiMiniBellAlert } from "react-icons/hi2";
 
 function SidebarMobile({ active, outOfBoundsCount = 0 }) {
     const navigate = useNavigate();
@@ -32,6 +33,7 @@ function SidebarMobile({ active, outOfBoundsCount = 0 }) {
     ];
 
     const moreMenu = [
+        { name: "Alerts", icon: HiMiniBellAlert, key: "alerts", route: "/admin-alerts" },
         { name: "Inventory", icon: MdOutlineInventory, key: "inventory", route: "/inventory" },
         { name: "Refund", icon: RiRefundFill, key: "refund", route: "/refund" },
         { name: "Monitoring", icon: IoIosPin, key: "monitoring", route: "/monitoring" },
