@@ -424,7 +424,7 @@ function WalkInRent({role}) {
                                             <h1 className={`text-xl font-bold font-akagi ${
                                                 gcash ? "text-[#ffffff]" : "text-gray"
                                             }`}>
-                                                GCash
+                                                QR
                                             </h1>
                                         </div>
 

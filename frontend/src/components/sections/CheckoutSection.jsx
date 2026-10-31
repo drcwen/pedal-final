@@ -17,7 +17,7 @@ function CartSection() {
 
     const [dropDown, setDropDown] = useState(false);
 
-    const [paymentMethod, setPaymentMethod] = useState("GCash");
+    const [paymentMethod, setPaymentMethod] = useState("QR");
 
     const [showPopup, setShowPopup] = useState(false);
 
@@ -120,7 +120,7 @@ function CartSection() {
     }, [orders]);
 
     function handleCheckout() {
-        if (paymentMethod === "GCash") {
+        if (paymentMethod === "QR") {
             setShowPopup(true);
             return;
         }
@@ -238,12 +238,12 @@ function CartSection() {
 
                                 <div 
                                     onClick={() => {
-                                        setPaymentMethod("GCash");
+                                        setPaymentMethod("QR");
                                         setDropDown(true);
                                     }}
                                     className='bg-white p-5 rounded-bl-lg rounded-br-lg cursor-pointer hover:bg-gray-100'>
                                     <h1 className='font-akagi font-bold text-[#6D7172] text-xl'>
-                                        GCash
+                                        QR
                                     </h1>
                                 </div>
 
