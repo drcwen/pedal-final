@@ -78,7 +78,10 @@ function HeroSection() {
                     animate={fadeScale.animate}
                     transition={fadeScale.transition}
                   >
-                  <div className='px-5 py-2 border-3 border-yellow w-fit rounded-md'>
+                  <div 
+                  
+                    onClick={() => {navigate("/reserve")}} 
+                    className='px-5 py-2 border-3 border-yellow w-fit rounded-md'>
                       <h1 className='text-md font-akagi font-black text-yellow'>Reserve</h1>
                   </div>
                 </motion.button>
